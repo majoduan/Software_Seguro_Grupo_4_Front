@@ -1,0 +1,163 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap');
+
+/* Ocultar barras de scroll */
+* {
+    -ms-overflow-style: none;  /* Internet Explorer 10+ */
+    scrollbar-width: none;  /* Firefox */
+}
+
+*::-webkit-scrollbar {
+    display: none;  /* Safari and Chrome */
+}
+
+html, body {
+    overflow: hidden;  /* Ocultar scroll completamente */
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+}
+
+.login-container {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    width: 100vw;
+    height: 100vh;
+    background-color: #01050E;
+    background-image: url('https://img.freepik.com/premium-photo/creative-digital-polygonal-open-padlock-hologram-blue-background-with-mock-up-place-safety-protection-security-concept-3d-rendering_670147-76060.jpg');
+    background-size: contain;
+    background-position: 30% center;
+    background-repeat: no-repeat;
+    padding-right: 80px;
+    /* Espaciado entre la card y el borde derecho */
+}
+
+.bg-image {
+    display: none;
+}
+
+.form-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+.login-form {
+    background: #ffffff;
+    padding: 3em;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 0 10px rgba(0, 0, 0, 0.1);
+    width: 400px;
+    /* Más delgada */
+    min-height: 580px;
+    /* Mayor altura */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.login-title {
+    font-size: 2.5em;
+    margin-bottom: 0.5em;
+    color: #021F59;
+    text-align: center;
+}
+
+.login-subtitle {
+    font-size: 2em;
+    margin-bottom: 1.5em;
+    color: #021F59;
+    text-align: left;
+}
+
+.input-group {
+    margin-bottom: 1.5em;
+}
+
+.input-label {
+    color: #333;
+    font-weight: 500;
+    margin-bottom: 0.5em;
+    display: block;
+}
+
+.input-field {
+    width: 100%;
+    padding: 0.8em;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background: #fff;
+    color: #333;
+    font-size: 1em;
+}
+
+.input-field::placeholder {
+    color: #888;
+}
+
+.submit-button {
+    border-radius: 8px;
+    border: none;
+    padding: 0.8em;
+    font-size: 1.1em;
+    font-weight: 500;
+    background-color: #021F59;
+    color: #fff;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    width: 50%;
+    /* Menos ancho */
+    margin: 0 auto;
+    /* Centrado */
+    margin-bottom: 1.5em;
+}
+
+.submit-button:hover {
+    background-color: #011843;
+}
+
+.no-account-container {
+    text-align: center;
+    margin-top: 1em;
+}
+
+.no-account-text {
+    display: inline;
+    color: #333;
+}
+
+.no-account-link {
+    display: inline;
+    font-weight: 500;
+    color: #021F59;
+    text-decoration: none;
+    margin-left: 0.5em;
+}
+
+.no-account-link:hover {
+    color: #011843;
+}
+
+/* Media queries for responsive design */
+@media (min-width: 768px) {
+    .login-form {
+        width: 450px;
+        /* Increase form width for tablets */
+    }
+}
+
+@media (min-width: 1024px) {
+    .login-form {
+        width: 500px;
+        /* Increase form width for desktops */
+    }
+}
+
+@media (min-width: 1440px) {
+    .login-form {
+        width: 550px;
+        /* Increase form width for large screens */
+    }
+}
