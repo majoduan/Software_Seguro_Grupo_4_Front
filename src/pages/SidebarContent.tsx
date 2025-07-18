@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Nav, Button } from 'react-bootstrap';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -6,6 +6,7 @@ import { SidebarContentProps } from '../interfaces/bar';
 import { TableProperties, FolderKanban, FileChartLine, CircleUserRound, UserPlus, LogOut, Icon, FileUp, History,FileSpreadsheet } from 'lucide-react';
 import { owl } from '@lucide/lab';
 import { ROLES } from '../interfaces/user';
+import { rolAPI } from '../api/userAPI';
 
 const SidebarContent: React.FC<SidebarContentProps> = ({
   usuario,
@@ -16,6 +17,24 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
   const { logout, hasAnyRole } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  const [nombreRol, setNombreRol] = useState<string>('');
+
+  // Efecto para obtener el nombre del rol
+  useEffect(() => {
+    const obtenerNombreRol = async () => {
+      if (usuario?.id_rol) {
+        try {
+          const roles = await rolAPI.getRoles();
+          const rolEncontrado = roles.find(rol => rol.id_rol === usuario.id_rol);
+          setNombreRol(rolEncontrado?.nombre_rol || usuario.id_rol);
+        } catch (error) {
+          console.error('Error al obtener el nombre del rol:', error);
+          setNombreRol(usuario.id_rol); // Fallback al ID si hay error
+        }
+      }
+    };
+    obtenerNombreRol();
+  }, [usuario?.id_rol]);
 
   // Función para determinar si un link está activo
   const isActive = (path: string) => {
@@ -284,7 +303,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
               <div className="d-flex align-items-center">
                 <div>
                   <div className="fw-bold">{usuario.nombre}</div>
-                  <small className="text-muted">{usuario.id_rol}</small>
+                  <small className="text-muted">{nombreRol}</small>
                 </div>
               </div>
               <Button
@@ -418,19 +437,6 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
               </Nav.Link>
             </Nav.Item>
           )}
-         
-          {/* Registrar usuario
-          {hasAccessTo([ROLES.ADMINISTRADOR]) && (
-            <Nav.Item>
-              <Nav.Link
-                className={`text-white ${isActive("/register")}`}
-                onClick={() => handleNavigate("/register")}
-                title="Registrar usuario"
-              >
-                <UserPlus size={iconSize} />
-              </Nav.Link>
-            </Nav.Item>
-          )} */}
 
           <div className="px-3 mt-4 mb-2 text-secondary text-uppercase small">XLSX</div>
 

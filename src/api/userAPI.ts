@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { UserRegister, UserProfile, AuthResponse, Rol, PerfilUsuario } from '../interfaces/user';
+import { UserRegister, AuthResponse, Rol, PerfilUsuario, Usuario } from '../interfaces/user';
 
 // Configuración base de axios
 export const API = axios.create({
@@ -28,7 +28,7 @@ export async function hashPassword(password: string): Promise<string> {
 // Servicios de autenticación
 export const authAPI = {
     // Inicio de sesión
-    login: async (email: string, password: string): Promise<{ token: string, userData: UserProfile }> => {
+    login: async (email: string, password: string): Promise<{ token: string, userData: Usuario }> => {
         // Hash de la contraseña
         const hashedPassword = await hashPassword(password);
         
@@ -49,7 +49,7 @@ export const authAPI = {
         const token = response.data.access_token;
         
         // Obtener datos del usuario
-        let userData: UserProfile = {
+        let userData: Usuario = {
             id: '',
             nombre: email,
             email: email,
@@ -62,12 +62,13 @@ export const authAPI = {
             
             // Obtener el perfil del usuario
             const userResponse = await API.get('/perfil');
-            const userDetails = userResponse.data as { nombre?: string; rol: string };
+            const userDetails = userResponse.data as { id: string; nombre: string; rol: string };
             
             userData = {
-                nombre_rol: userDetails.rol, // Usar UUID para compatibilidad
-                id_rol: userDetails.rol, // El UUID del rol va aquí
-                username: userDetails.nombre
+                id: userDetails.id,
+                nombre: userDetails.nombre,
+                email: email,
+                id_rol: userDetails.rol,
             };
         } catch (error) {
             console.error('Error al obtener datos del usuario:', error);
