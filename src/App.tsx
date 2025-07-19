@@ -156,9 +156,21 @@ function AppContent() {
         <Routes>
           {/* Rutas públicas */}
           <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
+          {/* <Route path="/register" element={<Register />} /> */}
           
           {/* Rutas protegidas */}
+
+          <Route path="/register" element={
+            <ProtectedRoute>
+              <RoleProtectedRoute requiredRoles={[
+                ROLES.ADMINISTRADOR
+                ]}>
+                  <Register />
+              </RoleProtectedRoute>
+            </ProtectedRoute>
+          } />
+
+
           <Route path="/dashboard" element={
             <ProtectedRoute>
               <Dashboard />
