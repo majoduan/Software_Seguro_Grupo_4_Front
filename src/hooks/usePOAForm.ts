@@ -5,6 +5,7 @@ import { Periodo, PeriodoCreate } from '../interfaces/periodo';
 import { poaAPI } from '../api/poaAPI';
 import { periodoAPI } from '../api/periodoAPI';
 import { projectAPI } from '../api/projectAPI';
+import { sanitizeInput, sanitizeForSubmit } from '../utils/sanitizer';
 
 interface UsePOAFormProps {
   initialProyecto?: Proyecto | null;
@@ -13,10 +14,13 @@ interface UsePOAFormProps {
 }
 
 export const usePOAForm = ({ initialProyecto, initialPeriodos = [], isEditing = false }: UsePOAFormProps) => {
-  // Estados para campos del formulario
+  // Estados para campos del formulario con sanitización
   const [id_proyecto, setIdProyecto] = useState('');
   const [id_tipo_poa, setIdTipoPoa] = useState('');
-  const [codigo_poa_base, setCodigoPoaBase] = useState('');
+  const [codigo_poa_base, setCodigoPoaBaseInternal] = useState('');
+  
+  // Setter sanitizado para código POA
+  const setCodigoPoaBase = (value: string) => setCodigoPoaBaseInternal(sanitizeInput(value));
   
   // Estado para periodos seleccionados
   const [periodosSeleccionados, setPeriodosSeleccionados] = useState<Periodo[]>(initialPeriodos);
@@ -670,7 +674,7 @@ export const usePOAForm = ({ initialProyecto, initialPeriodos = [], isEditing = 
           // Necesitamos usar el período real del POA existente, no el temporal
           const idPeriodoFinal = poaExistente.id_periodo; // El POA ya tiene el UUID real del período
 
-          const codigoPoa = codigoPorPeriodo[periodo.id_periodo] || poaExistente.codigo_poa;
+          const codigoPoa = sanitizeForSubmit(codigoPorPeriodo[periodo.id_periodo] || poaExistente.codigo_poa);
           
           const datosActualizacion: PoaCreate = {
             id_proyecto,
@@ -797,7 +801,7 @@ export const usePOAForm = ({ initialProyecto, initialPeriodos = [], isEditing = 
           const datosPOA: PoaCreate = {
             id_proyecto,
             id_tipo_poa,
-            codigo_poa: codigoPoa,
+            codigo_poa: sanitizeForSubmit(codigoPoa),
             anio_ejecucion: anioPorPeriodo[periodo.id_periodo] || periodo.anio || '',
             presupuesto_asignado: parseFloat(presupuestoPorPeriodo[periodo.id_periodo]),
             id_periodo: periodoId,

@@ -2,6 +2,7 @@ import React from 'react';
 import { Modal, Form, Button, InputGroup, Row, Col, Alert } from 'react-bootstrap';
 import { TareaForm } from '../interfaces/tarea';
 import { esContratacionServiciosProfesionales } from '../utils/asignarCantidad';
+import { sanitizeInput } from '../utils/sanitizer';
 
 interface TareaModalProps {
   show: boolean;
@@ -172,7 +173,7 @@ const TareaModal: React.FC<TareaModalProps> = ({
           {tarea.detalle?.tiene_multiples_descripciones ? (
             <Form.Select
               value={tarea.descripcion_seleccionada || tarea.detalle_descripcion || ''}
-              onChange={(e) => onDescripcionChange(e.target.value)}
+              onChange={(e) => onDescripcionChange(sanitizeInput(e.target.value, true))}
             >
               <option value="">Seleccione una descripción...</option>
               {tarea.detalle.descripciones_disponibles?.map((descripcion, index) => (
@@ -186,7 +187,7 @@ const TareaModal: React.FC<TareaModalProps> = ({
               as="textarea"
               rows={2}
               value={tarea.detalle_descripcion || ''}
-              onChange={(e) => onDescripcionChange(e.target.value)}
+              onChange={(e) => onDescripcionChange(sanitizeInput(e.target.value, true))}
             />
           )}
           <Form.Text className="text-muted">
