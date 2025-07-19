@@ -34,7 +34,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Función para limpiar la autenticación
   const clearAuth = useCallback(() => {
-    cookieUtils.remove('auth_token');
+    //cookieUtils.remove('auth_token');
     cookieUtils.remove('user_data');
     // localStorage.removeItem('token');
     // localStorage.removeItem('usuario');
@@ -89,18 +89,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const verificarToken = useCallback(async () => {
     // const storedToken = localStorage.getItem('token');
     // 🔧 CAMBIO: Obtener token de cookies
-    const storedToken = cookieUtils.get('auth_token');
+    // const storedToken = cookieUtils.get('auth_token');
     
-    if (!storedToken) {
-      return false;
-    }
+    // if (!storedToken) {
+    //   return false;
+    // }
 
-    // Verificar si el token ha expirado por tiempo
-    if (isTokenExpired(storedToken)) {
-      console.log('Token expirado por tiempo');
-      clearAuth();
-      return false;
-    }
+    // // Verificar si el token ha expirado por tiempo
+    // if (isTokenExpired(storedToken)) {
+    //   console.log('Token expirado por tiempo');
+    //   clearAuth();
+    //   return false;
+    // }
 
     try {
       // Verificar el token con el servidor
@@ -129,14 +129,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // const storedUsuario = localStorage.getItem('usuario');
 
       // 🔧 CAMBIO: Usar cookies en lugar de localStorag
-      const storedToken = cookieUtils.get('auth_token');
+      //const storedToken = cookieUtils.get('auth_token');
       const storedUsuarioString = cookieUtils.get('user_data');
 
       console.log('=== Inicializando Auth ===');
-      console.log('storedToken:', storedToken ? 'Existe' : 'No existe');
+      //console.log('storedToken:', storedToken ? 'Existe' : 'No existe');
       console.log('storedUsuario:', storedUsuarioString ? 'Existe' : 'No existe');
 
-      if (storedToken && storedUsuarioString) {
+      //if (storedToken && storedUsuarioString) {
+      if (storedUsuarioString) {
         try {
           // Verificar si el token es válido
           const tokenValido = await verificarToken();
@@ -144,10 +145,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           if (tokenValido) {
             const parsedUsuario = JSON.parse(storedUsuarioString);
             console.log('Usuario parseado:', parsedUsuario);
-            console.log('ID del rol:', parsedUsuario.id_rol);
-            console.log('Rol completo:', parsedUsuario.rol);
+            //console.log('ID del rol:', parsedUsuario.id_rol);
+            //console.log('Rol completo:', parsedUsuario.rol);
             
-            setToken(storedToken);
+            //setToken(storedToken);
+            setToken('cookie-token'); // Token ficticio para indicar autenticación
             setUsuario(parsedUsuario);
             //API.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
           }
@@ -214,7 +216,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Función de login
   const login = useCallback((newToken: string, userData: Usuario) => {
       console.log('=== Login ===');
-      console.log('newToken:', newToken ? 'Existe' : 'No existe');
+      //console.log('newToken:', newToken ? 'Existe' : 'No existe');
       console.log('userData:', userData);
       
       try {
@@ -227,7 +229,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           
           setToken(newToken);
           setUsuario(userData);
-          console.log('✅ Usuario establecido:', userData); // Debug adicional
+          //console.log('✅ Usuario establecido:', userData); // Debug adicional
           navigate('/dashboard');
       } catch (error) {
           console.error('Error guardando datos de autenticación:', error);
