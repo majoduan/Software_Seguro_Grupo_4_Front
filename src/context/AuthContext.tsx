@@ -190,8 +190,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             id_rol: userData.id_rol,
             rol: userData.rol
         }), {
-            secure: window.location.protocol === 'https:',
-            sameSite: 'strict',
+            secure: true,
+            sameSite: 'none',
             maxAge: 7 * 24 * 60 * 60
         });
         

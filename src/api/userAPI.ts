@@ -4,7 +4,7 @@ import { cookieUtils } from '../utils/cookieUtils';
 
 // Configuración base de axios
 export const API = axios.create({
-    baseURL: "/api",  // 🔧 Cambiado a /api para que coincida con el proxy de Vercel
+    baseURL: import.meta.env.VITE_URL_BACKEND,
     withCredentials: true // 🔧 NUEVO: Para enviar cookies automáticamente
 });
 
