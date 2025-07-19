@@ -9,6 +9,7 @@ import { getActividadesPorTipoPOA } from '../utils/listaActividades';
 import { showError, showInfo, showWarning } from '../utils/toast';
 import { filtrarDetallesPorActividadConConsultas, agruparDetallesDuplicados, obtenerNumeroTarea } from '../utils/tareaUtils';
 import { esContratacionServiciosProfesionales, obtenerPrecioPorDescripcion } from '../utils/asignarCantidad';
+import { sanitizeInput, sanitizeObject } from '../utils/sanitizer';
 
 // Extender la interfaz POA para incluir los datos del tipo
 interface POAExtendido extends POA {

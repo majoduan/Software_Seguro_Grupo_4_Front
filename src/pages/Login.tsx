@@ -1,6 +1,7 @@
 import { useState, FormEvent } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { authAPI } from '../api/userAPI';
+import { withSanitization } from '../utils/sanitizer';
 import '../styles/Login.css';
 
 const Login = () => {
@@ -9,6 +10,10 @@ const Login = () => {
     const [error, setError] = useState<string>('');
     const [loading, setLoading] = useState<boolean>(false);
     const { login } = useAuth();
+
+    // Versiones sanitizadas de los setters
+    const setSanitizedEmail = withSanitization(setEmail, 'email');
+    const setSanitizedPassword = withSanitization(setPassword, 'password');
 
     const handleLogin = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -56,7 +61,7 @@ const Login = () => {
                             type="email"
                             placeholder="usuario@epn.edu.ec"
                             value={email}
-                            onChange={(e) => setEmail(e.target.value)}
+                            onChange={(e) => setSanitizedEmail(e.target.value)}
                             required
                             className="input-field"
                         />
@@ -70,7 +75,7 @@ const Login = () => {
                             type="password"
                             placeholder=""
                             value={password}
-                            onChange={(e) => setPassword(e.target.value)}
+                            onChange={(e) => setSanitizedPassword(e.target.value)}
                             required
                             className="input-field"
                         />

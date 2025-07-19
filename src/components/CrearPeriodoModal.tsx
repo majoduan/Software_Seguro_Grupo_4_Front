@@ -1,6 +1,7 @@
 import React from 'react';
 import { Modal, Button, Form, Row, Col } from 'react-bootstrap';
 import { Periodo } from '../interfaces/periodo';
+import { sanitizeInput } from '../utils/sanitizer';
 
 interface PeriodoModalProps {
   show: boolean;
@@ -17,6 +18,22 @@ const CrearPeriodoModal: React.FC<PeriodoModalProps> = ({
   onChange,
   onSave
 }) => {
+  // Handler sanitizado para campos de texto
+  const handleSanitizedChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    const sanitizedValue = sanitizeInput(value);
+    
+    // Crear evento sanitizado
+    const sanitizedEvent = {
+      ...e,
+      target: {
+        ...e.target,
+        value: sanitizedValue
+      }
+    } as React.ChangeEvent<HTMLInputElement>;
+    
+    onChange(sanitizedEvent);
+  };
   return (
     <Modal show={show} onHide={onHide}>
       <Modal.Header closeButton>
@@ -29,7 +46,7 @@ const CrearPeriodoModal: React.FC<PeriodoModalProps> = ({
             type="text"
             name="codigo_periodo"
             value={nuevoPeriodo.codigo_periodo || ''}
-            onChange={onChange}
+            onChange={handleSanitizedChange}
             required
           />
         </Form.Group>
@@ -39,7 +56,7 @@ const CrearPeriodoModal: React.FC<PeriodoModalProps> = ({
             type="text"
             name="nombre_periodo"
             value={nuevoPeriodo.nombre_periodo || ''}
-            onChange={onChange}
+            onChange={handleSanitizedChange}
             required
           />
         </Form.Group>

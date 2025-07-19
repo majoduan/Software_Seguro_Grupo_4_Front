@@ -2,6 +2,7 @@ import { useState, useEffect, FormEvent } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { authAPI, rolAPI } from '../api/userAPI';
 import { Rol } from '../interfaces/user';
+import { withSanitization } from '../utils/sanitizer';
 import '../styles/Login.css';
 
 const Register = () => {
@@ -15,6 +16,12 @@ const Register = () => {
     const [selectedRol, setSelectedRol] = useState<string>('');
     const [loadingRoles, setLoadingRoles] = useState<boolean>(true);
     const navigate = useNavigate();
+
+    // Versiones sanitizadas de los setters - solo 4 líneas adicionales
+    const setSanitizedNombreUsuario = withSanitization(setNombreUsuario, 'nombre_usuario');
+    const setSanitizedEmail = withSanitization(setEmail, 'email');
+    const setSanitizedPassword = withSanitization(setPassword, 'password');
+    const setSanitizedConfirmPassword = withSanitization(setConfirmPassword, 'confirmPassword');
 
     // Cargar roles al montar el componente
     useEffect(() => {
@@ -105,7 +112,7 @@ const Register = () => {
                             type="text"
                             placeholder="Nombre y Apellido"
                             value={nombre_usuario}
-                            onChange={(e) => setNombreUsuario(e.target.value)}
+                            onChange={(e) => setSanitizedNombreUsuario(e.target.value)}
                             required
                             className="input-field"
                         />
@@ -120,7 +127,7 @@ const Register = () => {
                             type="email"
                             placeholder="usuario@epn.edu.ec"
                             value={email}
-                            onChange={(e) => setEmail(e.target.value)}
+                            onChange={(e) => setSanitizedEmail(e.target.value)}
                             required
                             className="input-field"
                         />
@@ -135,7 +142,7 @@ const Register = () => {
                             type="password"
                             placeholder=""
                             value={password}
-                            onChange={(e) => setPassword(e.target.value)}
+                            onChange={(e) => setSanitizedPassword(e.target.value)}
                             required
                             className="input-field"
                         />
@@ -150,7 +157,7 @@ const Register = () => {
                             type="password"
                             placeholder=""
                             value={confirmPassword}
-                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            onChange={(e) => setSanitizedConfirmPassword(e.target.value)}
                             required
                             className="input-field"
                         />

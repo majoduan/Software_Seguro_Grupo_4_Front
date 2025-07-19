@@ -8,6 +8,7 @@ import {
   validateEndDate,
   validateProjectFormRequiredFields
 } from '../validators/projectValidators';
+import { sanitizeInput, sanitizeForSubmit } from '../utils/sanitizer';
 
 interface UseProjectFormProps {
   initialTipoProyecto: TipoProyecto | null;
@@ -16,10 +17,16 @@ interface UseProjectFormProps {
 }
 
 export const useProjectForm = ({ initialTipoProyecto, initialProyecto, isEditing = false }: UseProjectFormProps) => {
-  // Form states
-  const [codigo_proyecto, setCodigo_proyecto] = useState('');
+  // Form states con sanitización automática
+  const [codigo_proyecto, setCodigo_proyectoInternal] = useState('');
+  const [titulo, setTituloInternal] = useState('');
+  
+  // Crear setters sanitizados
+  const setCodigo_proyecto = (value: string) => setCodigo_proyectoInternal(sanitizeInput(value));
+  const setTitulo = (value: string) => setTituloInternal(sanitizeInput(value));
+  
+  // Estados que no necesitan sanitización (selectores, fechas, números)
   const [codigoModificadoManualmente, setCodigoModificadoManualmente] = useState(false);
-  const [titulo, setTitulo] = useState('');
   const [tipoProyecto, setTipoProyecto] = useState<TipoProyecto | null>(initialTipoProyecto);
   const [id_estado_proyecto, setId_estado_proyecto] = useState('');
   const [id_director_proyecto, setId_director_proyecto] = useState('');
@@ -373,17 +380,17 @@ export const useProjectForm = ({ initialTipoProyecto, initialProyecto, isEditing
     setIsLoading(true);
     
     try {
-      // Prepare data to send to backend
+      // Prepare data to send to backend con sanitización
       let proyectoData: Partial<Proyecto>;
       
       if (isEditing && initialProyecto) {
         // Para edición, preparar solo los campos que se pueden modificar
         proyectoData = {
-          codigo_proyecto,
-          titulo,
+          codigo_proyecto: sanitizeForSubmit(codigo_proyecto),
+          titulo: sanitizeForSubmit(titulo),
           id_tipo_proyecto: tipoProyecto!.id_tipo_proyecto,
           id_estado_proyecto,
-          id_director_proyecto,
+          id_director_proyecto: sanitizeForSubmit(id_director_proyecto),
           presupuesto_aprobado: presupuesto_aprobado ? parseFloat(presupuesto_aprobado) : 0,
           fecha_inicio,
           fecha_fin,
@@ -407,11 +414,11 @@ export const useProjectForm = ({ initialTipoProyecto, initialProyecto, isEditing
       } else {
         // Para creación, incluir todos los campos necesarios
         proyectoData = {
-          codigo_proyecto,
-          titulo,
+          codigo_proyecto: sanitizeForSubmit(codigo_proyecto),
+          titulo: sanitizeForSubmit(titulo),
           id_tipo_proyecto: tipoProyecto!.id_tipo_proyecto,
           id_estado_proyecto,
-          id_director_proyecto,
+          id_director_proyecto: sanitizeForSubmit(id_director_proyecto),
           presupuesto_aprobado: presupuesto_aprobado ? parseFloat(presupuesto_aprobado) : 0,
           fecha_inicio,
           fecha_fin

@@ -2,6 +2,7 @@ import React from 'react';
 import { Row, Col, Form, Table, Badge } from 'react-bootstrap';
 import { XCircle } from 'lucide-react';
 import { Proyecto } from '../interfaces/project';
+import { withSanitization } from '../utils/sanitizer';
 
 interface BusquedaProyectoProps {
   proyectos: Proyecto[]; // Recibe todos los proyectos
@@ -21,12 +22,15 @@ const BusquedaProyecto: React.FC<BusquedaProyectoProps> = ({
   mostrarValidacion = false,
   modoEdicion = false // Valor por defecto
 }) => {
-  // Estados locales del componente hijo
-  const [busquedaProyecto, setBusquedaProyecto] = React.useState('');
+  // Estados locales del componente hijo con sanitización
+  const [busquedaProyecto, setBusquedaProyectoInternal] = React.useState('');
   const [mostrarBusqueda, setMostrarBusqueda] = React.useState(false);
   const [proyectosFiltrados, setProyectosFiltrados] = React.useState<Proyecto[]>([]);
   const [validaciones, setValidaciones] = React.useState<{ [key: string]: { esValido: boolean; razon?: string } }>({});
   const [validandoProyectos, setValidandoProyectos] = React.useState(false);
+
+  // Setter sanitizado
+  const setBusquedaProyecto = withSanitization(setBusquedaProyectoInternal, 'busqueda');
 
   // Filtrar proyectos cuando cambie el texto de búsqueda o la lista de proyectos
   React.useEffect(() => {

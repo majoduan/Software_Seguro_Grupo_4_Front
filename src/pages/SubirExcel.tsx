@@ -23,6 +23,7 @@ import { poaAPI } from "../api/poaAPI"; // Importa el API de POA
 import { TipoProyecto } from "../interfaces/project";
 import { POA } from "../interfaces/poa";
 import { excelAPI } from "../api/excelAPI"; // Importa la función de subir Excel
+import { withSanitization } from '../utils/sanitizer';
 
 const SubirExcel: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
@@ -31,8 +32,11 @@ const SubirExcel: React.FC = () => {
   const [tiposProyecto, setTiposProyecto] = useState<TipoProyecto[]>([]);
   const [poas, setPoas] = useState<POA[]>([]);
   const [poaSeleccionado, setPoaSeleccionado] = useState("");
-  const [nombreHoja, setNombreHoja] = useState(""); // Estado para el nombre de la hoja
+  const [nombreHoja, setNombreHojaInternal] = useState(""); // Estado para el nombre de la hoja con sanitización
   const [formTouched, setFormTouched] = useState(false);
+  
+  // Setter sanitizado
+  const setNombreHoja = withSanitization(setNombreHojaInternal, 'nombreHoja');
   const [errors, setErrors] = useState<{
     file?: string;
     opcion?: string;
