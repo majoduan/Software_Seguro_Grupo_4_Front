@@ -13,17 +13,6 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
-// Función para verificar si el token ha expirado
-const isTokenExpired = (token: string): boolean => {
-  try {
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    const currentTime = Date.now() / 1000;
-    return payload.exp < currentTime;
-  } catch (error) {
-    return true; // Si no se puede decodificar, considerarlo expirado
-  }
-};
-
 // Componente Provider
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [usuario, setUsuario] = useState<Usuario | null>(null);
@@ -34,10 +23,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Función para limpiar la autenticación
   const clearAuth = useCallback(() => {
-    //cookieUtils.remove('auth_token');
     cookieUtils.remove('user_data');
-    // localStorage.removeItem('token');
-    // localStorage.removeItem('usuario');
     setToken(null);
     setUsuario(null);
     //delete API.defaults.headers.common['Authorization'];
@@ -87,20 +73,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Función para verificar el token periódicamente
   const verificarToken = useCallback(async () => {
-    // const storedToken = localStorage.getItem('token');
-    // 🔧 CAMBIO: Obtener token de cookies
-    // const storedToken = cookieUtils.get('auth_token');
-    
-    // if (!storedToken) {
-    //   return false;
-    // }
-
-    // // Verificar si el token ha expirado por tiempo
-    // if (isTokenExpired(storedToken)) {
-    //   console.log('Token expirado por tiempo');
-    //   clearAuth();
-    //   return false;
-    // }
 
     try {
       // Verificar el token con el servidor
@@ -125,11 +97,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Verificar autenticación al cargar el componente
   useEffect(() => {
     const inicializarAuth = async () => {
-      // const storedToken = localStorage.getItem('token');
-      // const storedUsuario = localStorage.getItem('usuario');
-
-      // 🔧 CAMBIO: Usar cookies en lugar de localStorag
-      //const storedToken = cookieUtils.get('auth_token');
       const storedUsuarioString = cookieUtils.get('user_data');
 
       console.log('=== Inicializando Auth ===');
@@ -145,10 +112,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           if (tokenValido) {
             const parsedUsuario = JSON.parse(storedUsuarioString);
             console.log('Usuario parseado:', parsedUsuario);
-            //console.log('ID del rol:', parsedUsuario.id_rol);
-            //console.log('Rol completo:', parsedUsuario.rol);
-            
-            //setToken(storedToken);
+
             setToken('cookie-token'); // Token ficticio para indicar autenticación
             setUsuario(parsedUsuario);
             //API.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
@@ -216,25 +180,28 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Función de login
   const login = useCallback((newToken: string, userData: Usuario) => {
       console.log('=== Login ===');
-      //console.log('newToken:', newToken ? 'Existe' : 'No existe');
-      console.log('userData:', userData);
       
       try {
-          // Solo guardar datos del usuario (el token ya está en cookie desde el backend)
-          cookieUtils.set('user_data', JSON.stringify(userData), {
-              secure: window.location.protocol === 'https:',
-              sameSite: 'strict', // 🔧 Cambiar de 'strict' en prod a 'lax'
-              maxAge: 7 * 24 * 60 * 60
-          });
-          
-          setToken(newToken);
-          setUsuario(userData);
-          //console.log('✅ Usuario establecido:', userData); // Debug adicional
-          navigate('/dashboard');
-      } catch (error) {
-          console.error('Error guardando datos de autenticación:', error);
-      }
-  }, [navigate]);
+        // 🔧 SOLO GUARDAR DATOS BÁSICOS DEL USUARIO (sin token)
+        cookieUtils.set('user_data', JSON.stringify({
+            id: userData.id,
+            nombre: userData.nombre,
+            email: userData.email,
+            id_rol: userData.id_rol,
+            rol: userData.rol
+        }), {
+            secure: window.location.protocol === 'https:',
+            sameSite: 'strict',
+            maxAge: 7 * 24 * 60 * 60
+        });
+        
+        setToken("authenticated"); // Token dummy para estado local
+        setUsuario(userData);
+        navigate('/dashboard');
+    } catch (error) {
+        console.error('Error guardando datos de autenticación:', error);
+    }
+}, [navigate]);
 
   // Valor del contexto
   const value = {

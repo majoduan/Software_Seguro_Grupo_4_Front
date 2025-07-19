@@ -8,19 +8,6 @@ export const API = axios.create({
     withCredentials: true // 🔧 NUEVO: Para enviar cookies automáticamente
 });
 
-// Interceptor para incluir el token en todas las peticiones
-// API.interceptors.request.use((config) => {
-//     // 🔧 CAMBIO: Obtener token de cookies en lugar de localStorage 
-//     // const token = localStorage.getItem('token');
-    
-//     const token = cookieUtils.get('auth_token');
-
-//     if (token) {
-//         config.headers = config.headers || {};
-//         config.headers.Authorization = `Bearer ${token}`;
-//     }
-//     return config;
-// });
 
 // Función para hacer hash de la contraseña
 export async function hashPassword(password: string): Promise<string> {
@@ -51,38 +38,20 @@ export const authAPI = {
             }
         });
         
-        // Extraer el token
-        const token = response.data.access_token;
+        // 🔧 OBTENER DATOS DEL USUARIO (la cookie ya está configurada por el backend)
+        const userResponse = await API.get('/perfil');
+        const userDetails = userResponse.data;
         
-        // Obtener datos del usuario
-        let userData: Usuario = {
-            id: '',
-            nombre: email,
-            email: email,
-            id_rol: '',
+        const userData: Usuario = {
+            id: userDetails.id,
+            nombre: userDetails.nombre_usuario,
+            email: userDetails.email,
+            id_rol: userDetails.id_rol,
+            rol: userDetails.rol
         };
         
-        try {
-            // Configurar el token para la siguiente petición
-            //API.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-            
-            // Obtener el perfil del usuario
-            const userResponse = await API.get('/perfil');
-            const userDetails = userResponse.data as { id: string; nombre_usuario: string; id_rol: string; email: string; rol: Rol };
-            //const userDetails = userResponse.data
-            
-            userData = {
-                id: userDetails.id,
-                nombre: userDetails.nombre_usuario,
-                email: userDetails.email,
-                id_rol: userDetails.id_rol,
-                rol:userDetails.rol
-            };
-        } catch (error) {
-            console.error('Error al obtener datos del usuario:', error);
-        }
-        
-        return { token, userData };
+        // 🔧 RETORNAR TOKEN DUMMY (la autenticación real está en la cookie httpOnly)
+        return { token: "authenticated", userData };
     },
     
     // Registro de usuario

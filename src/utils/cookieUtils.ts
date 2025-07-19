@@ -8,7 +8,6 @@ export interface CookieOptions {
   domain?: string;
   secure?: boolean;
   sameSite?: 'strict' | 'lax' | 'none';
-  httpOnly?: boolean;
 }
 
 export const cookieUtils = {
@@ -49,11 +48,6 @@ export const cookieUtils = {
     if (finalOptions.sameSite) {
       cookieString += `; SameSite=${finalOptions.sameSite}`;
     }
-
-    if (finalOptions.httpOnly) {
-      cookieString += `; HttpOnly`;
-    }
-
     document.cookie = cookieString;
   },
 
