@@ -1,20 +1,26 @@
 import axios from 'axios';
 import { UserRegister, AuthResponse, Rol, PerfilUsuario, Usuario } from '../interfaces/user';
+import { cookieUtils } from '../utils/cookieUtils';
 
 // Configuración base de axios
 export const API = axios.create({
     baseURL: import.meta.env.VITE_URL_BACKEND,
+    withCredentials: true // 🔧 NUEVO: Para enviar cookies automáticamente
 });
 
 // Interceptor para incluir el token en todas las peticiones
-API.interceptors.request.use((config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-        config.headers = config.headers || {};
-        config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-});
+// API.interceptors.request.use((config) => {
+//     // 🔧 CAMBIO: Obtener token de cookies en lugar de localStorage 
+//     // const token = localStorage.getItem('token');
+    
+//     const token = cookieUtils.get('auth_token');
+
+//     if (token) {
+//         config.headers = config.headers || {};
+//         config.headers.Authorization = `Bearer ${token}`;
+//     }
+//     return config;
+// });
 
 // Función para hacer hash de la contraseña
 export async function hashPassword(password: string): Promise<string> {
@@ -58,17 +64,19 @@ export const authAPI = {
         
         try {
             // Configurar el token para la siguiente petición
-            API.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+            //API.defaults.headers.common['Authorization'] = `Bearer ${token}`;
             
             // Obtener el perfil del usuario
             const userResponse = await API.get('/perfil');
-            const userDetails = userResponse.data as { id: string; nombre: string; rol: string };
+            const userDetails = userResponse.data as { id: string; nombre_usuario: string; id_rol: string; email: string; rol: Rol };
+            //const userDetails = userResponse.data
             
             userData = {
                 id: userDetails.id,
-                nombre: userDetails.nombre,
-                email: email,
-                id_rol: userDetails.rol,
+                nombre: userDetails.nombre_usuario,
+                email: userDetails.email,
+                id_rol: userDetails.id_rol,
+                rol:userDetails.rol
             };
         } catch (error) {
             console.error('Error al obtener datos del usuario:', error);
@@ -94,6 +102,16 @@ export const authAPI = {
                 'Content-Type': 'application/json',
             }
         });
+    },
+
+    // Logout
+    logout: async (): Promise<void> => {
+        try {
+            await API.post('/logout');
+        } catch (error) {
+            console.error('Error en logout:', error);
+            // Continuar con logout local aunque falle el servidor
+        }
     }
 };
 

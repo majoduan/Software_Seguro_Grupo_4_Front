@@ -1,7 +1,8 @@
 import { createContext, useState, useContext, useEffect, ReactNode, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Usuario, AuthContextType, Rol } from '../interfaces/user'; // Agregar Rol aquí
-import { API } from '../api/userAPI';
+import { API, authAPI } from '../api/userAPI';
+import { cookieUtils } from '../utils/cookieUtils';
 
 
 // Crear el contexto
@@ -33,17 +34,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Función para limpiar la autenticación
   const clearAuth = useCallback(() => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('usuario');
+    cookieUtils.remove('auth_token');
+    cookieUtils.remove('user_data');
+    // localStorage.removeItem('token');
+    // localStorage.removeItem('usuario');
     setToken(null);
     setUsuario(null);
-    delete API.defaults.headers.common['Authorization'];
+    //delete API.defaults.headers.common['Authorization'];
   }, []);
 
   // Función de logout
-  const logout = useCallback(() => {
-    clearAuth();
-    navigate('/login');
+  const logout = useCallback(async () => {
+      try {
+          await authAPI.logout(); // Llamar al endpoint del backend
+      } catch (error) {
+          console.error('Error en logout:', error);
+      }
+      clearAuth();
+      navigate('/login');
   }, [clearAuth, navigate]);
 
   // Función para obtener el rol completo
@@ -79,7 +87,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Función para verificar el token periódicamente
   const verificarToken = useCallback(async () => {
-    const storedToken = localStorage.getItem('token');
+    // const storedToken = localStorage.getItem('token');
+    // 🔧 CAMBIO: Obtener token de cookies
+    const storedToken = cookieUtils.get('auth_token');
     
     if (!storedToken) {
       return false;
@@ -94,11 +104,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     try {
       // Verificar el token con el servidor
-      const response = await API.get('/perfil', {
-        headers: {
-          'Authorization': `Bearer ${storedToken}`
-        }
-      });
+      const response = await API.get('/perfil');
       
       // Si llegamos aquí, el token es válido
       return true;
@@ -119,27 +125,31 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Verificar autenticación al cargar el componente
   useEffect(() => {
     const inicializarAuth = async () => {
-      const storedToken = localStorage.getItem('token');
-      const storedUsuario = localStorage.getItem('usuario');
+      // const storedToken = localStorage.getItem('token');
+      // const storedUsuario = localStorage.getItem('usuario');
+
+      // 🔧 CAMBIO: Usar cookies en lugar de localStorag
+      const storedToken = cookieUtils.get('auth_token');
+      const storedUsuarioString = cookieUtils.get('user_data');
 
       console.log('=== Inicializando Auth ===');
       console.log('storedToken:', storedToken ? 'Existe' : 'No existe');
-      console.log('storedUsuario:', storedUsuario ? 'Existe' : 'No existe');
+      console.log('storedUsuario:', storedUsuarioString ? 'Existe' : 'No existe');
 
-      if (storedToken && storedUsuario) {
+      if (storedToken && storedUsuarioString) {
         try {
           // Verificar si el token es válido
           const tokenValido = await verificarToken();
           
           if (tokenValido) {
-            const parsedUsuario = JSON.parse(storedUsuario);
+            const parsedUsuario = JSON.parse(storedUsuarioString);
             console.log('Usuario parseado:', parsedUsuario);
             console.log('ID del rol:', parsedUsuario.id_rol);
             console.log('Rol completo:', parsedUsuario.rol);
             
             setToken(storedToken);
             setUsuario(parsedUsuario);
-            API.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
+            //API.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
           }
         } catch (error) {
           console.error('Error al parsear datos del usuario:', error);
@@ -203,16 +213,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Función de login
   const login = useCallback((newToken: string, userData: Usuario) => {
-    console.log('=== Login ===');
-    console.log('newToken:', newToken ? 'Existe' : 'No existe');
-    console.log('userData:', userData);
-    
-    localStorage.setItem('token', newToken);
-    localStorage.setItem('usuario', JSON.stringify(userData));
-    API.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
-    setToken(newToken);
-    setUsuario(userData);
-    navigate('/dashboard');
+      console.log('=== Login ===');
+      console.log('newToken:', newToken ? 'Existe' : 'No existe');
+      console.log('userData:', userData);
+      
+      try {
+          // Solo guardar datos del usuario (el token ya está en cookie desde el backend)
+          cookieUtils.set('user_data', JSON.stringify(userData), {
+              secure: window.location.protocol === 'https:',
+              sameSite: 'strict', // 🔧 Cambiar de 'strict' en prod a 'lax'
+              maxAge: 7 * 24 * 60 * 60
+          });
+          
+          setToken(newToken);
+          setUsuario(userData);
+          console.log('✅ Usuario establecido:', userData); // Debug adicional
+          navigate('/dashboard');
+      } catch (error) {
+          console.error('Error guardando datos de autenticación:', error);
+      }
   }, [navigate]);
 
   // Valor del contexto
