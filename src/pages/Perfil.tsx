@@ -1,42 +1,35 @@
 import React, { useEffect, useState } from 'react';
-import { userAPI, rolAPI } from '../api/userAPI';
-import { PerfilUsuario } from '../interfaces/user';
+import { rolAPI } from '../api/userAPI';
 import { useAuth } from '../context/AuthContext';
 import '../styles/Perfil.css'; // Importamos los estilos
 
 const Perfil: React.FC = () => {
-  const { token } = useAuth();
-  const [perfil, setPerfil] = useState<PerfilUsuario | null>(null);
+  const { usuario } = useAuth();
   const [nombreRol, setNombreRol] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  // En el useEffect:
-useEffect(() => {
-    const cargarPerfil = async () => {
-        if (!token) {
-            setError('No hay sesión activa');
-            setLoading(false);
-            return;
-        }
+  // Efecto para obtener el nombre del rol - igual que en SidebarContent
+  useEffect(() => {
+    const obtenerNombreRol = async () => {
+      if (usuario?.id_rol) {
         try {
-            // Obtener el perfil del usuario
-            const perfilData = await userAPI.getPerfilUsuario();
-            setPerfil(perfilData);
-            
-            // Obtener todos los roles y filtrar
-            const roles = await rolAPI.getRoles();
-            const rolEncontrado = roles.find(rol => rol.id_rol === perfilData.id_rol);
-            setNombreRol(rolEncontrado?.nombre_rol || 'Rol no encontrado');
-            
-        } catch (err) {
-            setError('Error al cargar los datos del perfil');
+          const roles = await rolAPI.getRoles();
+          const rolEncontrado = roles.find(rol => rol.id_rol === usuario.id_rol);
+          setNombreRol(rolEncontrado?.nombre_rol || usuario.id_rol);
+        } catch (error) {
+          setNombreRol(usuario.id_rol); // Fallback al ID si hay error
+          setError('Error al cargar el rol');
         } finally {
-            setLoading(false);
+          setLoading(false);
         }
+      } else {
+        setError('No hay usuario activo');
+        setLoading(false);
+      }
     };
-    cargarPerfil();
-}, [token]);
+    obtenerNombreRol();
+  }, [usuario?.id_rol]);
 
   if (loading) {
     return (
@@ -56,11 +49,11 @@ useEffect(() => {
     );
   }
 
-  if (!perfil) {
+  if (!usuario) {
     return (
       <div className="perfil-wrapper">
         <h1 className="perfil-title">Perfil de Usuario</h1>
-        <div className="empty-message">No se encontró información del perfil</div>
+        <div className="empty-message">No hay usuario activo</div>
       </div>
     );
   }
@@ -72,13 +65,8 @@ useEffect(() => {
       <div className="perfil-card">
         <div className="perfil-datos">
           <div className="perfil-campo">
-            <span className="perfil-etiqueta">ID</span>
-            <span className="perfil-valor">{perfil.id}</span>
-          </div>
-          
-          <div className="perfil-campo">
             <span className="perfil-etiqueta">Nombre</span>
-            <span className="perfil-valor">{perfil.nombre}</span>
+            <span className="perfil-valor">{usuario.nombre}</span>
           </div>
           
           <div className="perfil-campo">
