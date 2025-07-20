@@ -11,7 +11,6 @@ import {
   CircularProgress,
 } from "@mui/material";
 import iconoExcel from "../assets/icono-excel.png";
-import iconoPdf from "../assets/icono-pdf.png";
 import { reporteAPI } from '../api/reporteAPI';
 import "../styles/ReportePOA.css"; 
 
@@ -55,23 +54,17 @@ const ReportePOA: React.FC = () => {
     }
   };
 
-  const handleDescargar = async (tipo: "excel" | "pdf") => {
+  const handleDescargar = async () => {
     if (!reporteJson) return;
     
     try {
-      let blob: Blob;
-      
-      if (tipo === "excel") {
-        blob = await reporteAPI.descargarReporteExcel(reporteJson);
-      } else {
-        blob = await reporteAPI.descargarReportePDF(reporteJson);
-      }
+      const blob = await reporteAPI.descargarReporteExcel(reporteJson);
       
       // Crear y descargar el archivo
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = tipo === "excel" ? "reporte-poa.xlsx" : "reporte-poa.pdf";
+      a.download = "reporte-poa.xlsx";
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -153,18 +146,11 @@ const ReportePOA: React.FC = () => {
             </Typography>
             <div className="botones-descarga">
               <Button
-                onClick={() => handleDescargar("excel")}
+                onClick={handleDescargar}
                 className="reportepoa-custom-button-excel"
                 startIcon={<img src={iconoExcel} alt="Excel" style={{  height: 32 }} />}
               >
                 Excel
-              </Button>
-              <Button
-                onClick={() => handleDescargar("pdf")}
-                className="reportepoa-custom-button-pdf"
-                startIcon={<img src={iconoPdf} alt="PDF" style={{ height: 32 }} />}
-              >
-                PDF
               </Button>
             </div>
           </div>
