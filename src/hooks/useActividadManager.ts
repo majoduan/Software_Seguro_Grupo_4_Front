@@ -52,7 +52,6 @@ export const useActividadManager = () => {
         tipoPOAData: tipoPOAData
       };
     } catch (error) {
-      console.error(`Error al cargar tipo POA para ${poa.id_poa}:`, error);
       return {
         ...poa,
         tipo_poa: 'PVIF',
@@ -128,7 +127,6 @@ export const useActividadManager = () => {
             const precioAutomatico = obtenerPrecioPorDescripcion(tarea.descripcion_seleccionada);
             if (precioAutomatico !== null) {
               tarea.precio_unitario = precioAutomatico;
-              console.log(`💰 Precio automático aplicado para "${tarea.descripcion_seleccionada}": ${precioAutomatico}`);
             }
           }
         } else {
@@ -137,7 +135,6 @@ export const useActividadManager = () => {
             const precioAutomatico = obtenerPrecioPorDescripcion(tarea.detalle_descripcion);
             if (precioAutomatico !== null) {
               tarea.precio_unitario = precioAutomatico;
-              console.log(`💰 Precio automático aplicado para descripción principal "${tarea.detalle_descripcion}": ${precioAutomatico}`);
             }
           }
         }
@@ -145,11 +142,9 @@ export const useActividadManager = () => {
         tareasPrecargadas.push(tarea);
       }
 
-      console.log(`✅ Precargadas ${tareasPrecargadas.length} tareas para actividad ${codigoActividad} en POA ${poaId}`);
       return tareasPrecargadas;
 
     } catch (error) {
-      console.error('Error al precargar tareas para actividad:', codigoActividad, error);
       return [];
     }
   };
@@ -174,7 +169,6 @@ export const useActividadManager = () => {
             poasDisponibles.push(poaConTipo);
           }
         } catch (error) {
-          console.error(`Error verificando actividades para POA ${poa.id_poa}:`, error);
           const poaConTipo = await cargarTipoPOA(poa);
           poasDisponibles.push(poaConTipo);
         }
@@ -219,7 +213,6 @@ export const useActividadManager = () => {
             poasConActividadesExistentes.push(poaConTipo);
           }
         } catch (error) {
-          console.error(`Error verificando actividades para POA ${poa.id_poa}:`, error);
         }
       }
 
@@ -341,7 +334,6 @@ export const useActividadManager = () => {
                   tareasForm.push(tareaForm);
                   
                 } catch (tareaError) {
-                  console.warn(`Error al procesar tarea ${tareaReal.id_tarea}:`, tareaError);
                   
                   // Si hay error, usar valores por defecto
                   const tareaForm: TareaForm = {
@@ -394,7 +386,6 @@ export const useActividadManager = () => {
             });
           }
         } catch (error) {
-          console.error(`Error verificando actividades para POA ${poa.id_poa}:`, error);
         }
       }
 
@@ -417,7 +408,6 @@ export const useActividadManager = () => {
 
     } catch (err) {
       showError('Error al cargar los POAs con actividades y tareas');
-      console.error('Error:', err);
     } finally {
       setIsLoading(false);
     }

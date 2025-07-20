@@ -76,7 +76,6 @@ const encontrarActividadConfiguracion = async (
       }
       
     } catch (error) {
-      console.warn(`No se pudieron obtener tareas para determinar orden de actividad ${actividad.id_actividad}:`, error);
     }
     
     // Si no se puede determinar, usar la primera coincidencia
@@ -118,7 +117,6 @@ export const ordenarActividadesSegunConfiguracion = async (
 
     return actividadesOrdenadas;
   } catch (error) {
-    console.error('Error al ordenar actividades:', error);
     // En caso de error, retornar las actividades sin ordenar
     return actividades;
   }

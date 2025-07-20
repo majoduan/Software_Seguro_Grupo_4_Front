@@ -87,7 +87,6 @@ const VerProyectos: React.FC = () => {
 
         setProyectos(proyectosConPOAs);
       } catch (err) {
-        console.error('Error al cargar datos:', err);
         setError('Error al cargar los datos de proyectos');
         showError(err instanceof Error ? err.message : 'Error al cargar los datos de proyectos');
       } finally {

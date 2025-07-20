@@ -9,7 +9,6 @@ export const projectService = {
     try {
       return await projectAPI.getEstadosProyecto();
     } catch (error) {
-      console.error('Error fetching project states:', error);
       throw error;
     }
   },
@@ -21,7 +20,6 @@ export const projectService = {
     try {
       return await projectAPI.crearProyecto(proyectoData);
     } catch (error) {
-      console.error('Error creating project:', error);
       throw error;
     }
   },

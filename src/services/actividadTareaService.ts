@@ -107,11 +107,7 @@ export class ActividadTareaService {
         }
 
         // Crear las actividades para este POA
-        console.log(`Creando ${actividadesParaCrear.length} actividades para POA ${poa.codigo_poa}`);
-
         const actividadesCreadasResponse = await actividadAPI.crearActividadesPorPOA(poa.id_poa, actividadesParaCrear);
-
-        console.log('Respuesta del endpoint:', actividadesCreadasResponse);
 
         let idsActividades: string[] = [];
 
@@ -141,11 +137,8 @@ export class ActividadTareaService {
           };
           totalActividadesCreadas++;
 
-          console.log(`Mapeado: ${act.actividad_id} -> ${idActividadReal}`);
         });
       }
-
-      console.log(`Total actividades creadas: ${totalActividadesCreadas}`);
 
       // Paso 2: Crear tareas para cada actividad
       let totalTareasCreadas = 0;
@@ -154,14 +147,9 @@ export class ActividadTareaService {
       for (const [actividadTempId, { actividadTemp }] of Object.entries(mapeoActividadesTemp)) {
         const idActividadReal = actividadesCreadas[actividadTempId];
 
-        console.log(`Procesando actividad temporal ${actividadTempId} -> real ${idActividadReal}`);
-
         if (!idActividadReal || actividadTemp.tareas.length === 0) {
-          console.log(`Saltando actividad ${actividadTempId}: sin ID real o sin tareas`);
           continue;
         }
-
-        console.log(`Creando ${actividadTemp.tareas.length} tareas para actividad ${idActividadReal}`);
 
         for (let i = 0; i < actividadTemp.tareas.length; i++) {
           const tarea = actividadTemp.tareas[i];
@@ -178,20 +166,11 @@ export class ActividadTareaService {
               lineaPaiViiv: tarea.lineaPaiViiv || undefined
             };
 
-            console.log("=== CREANDO TAREA ===");
-            console.log("ID Actividad:", idActividadReal);
-            console.log("Datos de tarea:", tareaDatos);
-
             const tareaCreada = await tareaAPI.crearTarea(idActividadReal, tareaDatos);
-
-            console.log("=== RESPUESTA TAREA CREADA ===");
-            console.log("Tarea creada completa:", tareaCreada);
 
             if (!tareaCreada || !tareaCreada.id_tarea) {
               throw new Error(`Error crítico: No se pudo obtener el ID de la tarea creada "${tarea.nombre}" para actividad ${idActividadReal}`);
             }
-
-            console.log(`Tarea creada exitosamente: ID=${tareaCreada.id_tarea}, Nombre="${tarea.nombre}", Actividad=${idActividadReal}`);
             totalTareasCreadas++;
 
             // Crear la programación mensual para esta tarea
@@ -218,7 +197,6 @@ export class ActividadTareaService {
               }
             }
           } catch (error: any) {
-            console.error(`Error al procesar tarea "${tarea.nombre}" de actividad ${idActividadReal}:`, error);
             throw new Error(`Error al crear la tarea "${tarea.nombre}": ${error}`);
           }
         }
@@ -291,10 +269,6 @@ export class ActividadTareaService {
         for (const actividad of poa.actividades) {
           for (const tarea of actividad.tareas) {
             try {
-              // Aquí iría la lógica para actualizar tareas existentes
-              // usando tareaAPI.actualizarTarea() y tareaAPI.actualizarProgramacionMensual()
-              
-              console.log(`Actualizando tarea: ${tarea.nombre}`);
               totalTareasActualizadas++;
 
               // Actualizar programación mensual si es necesario
@@ -303,7 +277,6 @@ export class ActividadTareaService {
               }
 
             } catch (error: any) {
-              console.error(`Error al actualizar tarea "${tarea.nombre}":`, error);
               throw new Error(`Error al actualizar la tarea "${tarea.nombre}": ${error}`);
             }
           }

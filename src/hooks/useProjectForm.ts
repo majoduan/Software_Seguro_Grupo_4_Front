@@ -231,7 +231,6 @@ export const useProjectForm = ({ initialTipoProyecto, initialProyecto, isEditing
         setIsLoading(false);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Error desconocido');
-        console.error(err);
         setIsLoading(false);
       }
     };
@@ -439,7 +438,6 @@ export const useProjectForm = ({ initialTipoProyecto, initialProyecto, isEditing
         }
       }
       
-      console.log("Enviando datos:", proyectoData);
       
       if (isEditing && initialProyecto) {
         // Editar proyecto existente
@@ -454,15 +452,12 @@ export const useProjectForm = ({ initialTipoProyecto, initialProyecto, isEditing
       setIsLoading(false);
       return true;
     } catch (err) {
-      console.error('Error completo:', err);
       
       let errorMessage = isEditing ? 'Error al actualizar el proyecto' : 'Error al crear el proyecto';
       
       // Manejo mejorado de errores para obtener información detallada
       if (err && typeof err === 'object' && 'response' in err) {
         const response = (err as any).response;
-        console.error('Response status:', response?.status);
-        console.error('Response data:', response?.data);
         
         if (response?.status === 422) {
           // Error de validación del servidor
@@ -486,7 +481,6 @@ export const useProjectForm = ({ initialTipoProyecto, initialProyecto, isEditing
         errorMessage = err.message;
       }
       
-      console.error(errorMessage, err);
       setError(errorMessage);
       setIsLoading(false);
       return false;

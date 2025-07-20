@@ -94,7 +94,6 @@ export const usePOAForm = ({ initialProyecto, initialPeriodos = [], isEditing = 
         setPeriodos(periodosData);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Error desconocido');
-        console.error(err);
       } finally {
         setIsLoading(false);
       }
@@ -138,7 +137,6 @@ export const usePOAForm = ({ initialProyecto, initialPeriodos = [], isEditing = 
             
             setPresupuestoRestante(presupuestoRestanteCalculado);
           } catch (error) {
-            console.error('Error calculando presupuesto para edición:', error);
             const presupuestoAprobado = parseFloat(proyectoSeleccionado.presupuesto_aprobado.toString());
             setPresupuestoRestante(presupuestoAprobado - total);
           }
@@ -161,20 +159,17 @@ export const usePOAForm = ({ initialProyecto, initialPeriodos = [], isEditing = 
       const tipoProyecto = tiposProyecto.find(tp => tp.id_tipo_proyecto === proyecto.id_tipo_proyecto);
       
       if (!tipoProyecto) {
-        console.warn('No se encontró el tipo de proyecto:', proyecto.id_tipo_proyecto);
         return null;
       }
 
       const tipoPOA = await poaAPI.getTipoPOAByTipoProyecto(tipoProyecto.codigo_tipo);
       
       if (!tipoPOA) {
-        console.warn('No se encontró un tipo POA para el tipo de proyecto:', tipoProyecto.codigo_tipo);
         return tiposPoa.length > 0 ? tiposPoa[0] : null;
       }
 
       return tipoPOA;
     } catch (error) {
-      console.error('Error determinando tipo POA:', error);
       return tiposPoa.length > 0 ? tiposPoa[0] : null;
     }
   };
@@ -196,7 +191,6 @@ export const usePOAForm = ({ initialProyecto, initialPeriodos = [], isEditing = 
         presupuestoRestante
       };
     } catch (error) {
-      console.error('Error calculando presupuesto:', error);
       const presupuestoAprobado = parseFloat(proyecto.presupuesto_aprobado.toString());
       return {
         presupuestoAprobado,
@@ -247,7 +241,6 @@ export const usePOAForm = ({ initialProyecto, initialPeriodos = [], isEditing = 
       };
 
     } catch (error) {
-      console.error('Error validando disponibilidad del proyecto:', error);
       return { esValido: true, razon: 'Error al validar, proceder con precaución' };
     }
   };
@@ -273,7 +266,6 @@ export const usePOAForm = ({ initialProyecto, initialPeriodos = [], isEditing = 
       };
 
     } catch (error) {
-      console.error('Error validando proyecto para edición:', error);
       return { esValido: false, razon: 'Error al validar el proyecto' };
     }
   };
@@ -352,7 +344,6 @@ export const usePOAForm = ({ initialProyecto, initialPeriodos = [], isEditing = 
         setIdTipoPoa(tipoPOADeterminado.id_tipo_poa);
         setTipoPoaSeleccionado(tipoPOADeterminado);
       } else {
-        console.warn('No se pudo determinar el tipo POA para el proyecto');
         setError('No se pudo determinar el tipo de POA adecuado para este proyecto');
       }
       
@@ -446,7 +437,6 @@ export const usePOAForm = ({ initialProyecto, initialPeriodos = [], isEditing = 
         setPeriodosCalculados(periodosParaMostrar);
       }
     } catch (err) {
-      console.error('Error al procesar el proyecto seleccionado:', err);
       setError('Error al cargar datos automáticos del proyecto');
     }
   };
@@ -602,7 +592,6 @@ export const usePOAForm = ({ initialProyecto, initialPeriodos = [], isEditing = 
       alert('Periodo creado con éxito');
     } catch (err) {
       alert('Error al crear periodo: ' + (err instanceof Error ? err.message : 'Error desconocido'));
-      console.error('Error al crear periodo:', err);
     } finally {
       setIsLoading(false);
     }
@@ -642,7 +631,6 @@ export const usePOAForm = ({ initialProyecto, initialPeriodos = [], isEditing = 
         return await handleCrearPOAs();
       }
     } catch (err) {
-      console.error('Error en handleSubmit:', err);
       setError(`Error: ${err instanceof Error ? err.message : 'Error desconocido'}`);
       setIsLoading(false);
       return false;
@@ -660,13 +648,7 @@ export const usePOAForm = ({ initialProyecto, initialPeriodos = [], isEditing = 
           // Buscar el POA existente que corresponde a este período por año
           const poaExistente = poasExistentes.find(poa => poa.anio_ejecucion === periodo.anio);
           
-          console.log('=== DEBUG POA EXISTENTE ===');
-          console.log('Período buscado:', periodo);
-          console.log('POA existente encontrado:', poaExistente);
-          console.log('Todos los POAs existentes:', poasExistentes);
-          
           if (!poaExistente) {
-            console.error(`No se encontró POA existente para el período ${periodo.anio}`);
             setError(`No se encontró POA existente para el año ${periodo.anio}`);
             return false;
           }
@@ -687,26 +669,9 @@ export const usePOAForm = ({ initialProyecto, initialPeriodos = [], isEditing = 
             id_estado_poa: poaExistente.id_estado_poa
           };
           
-          console.log('=== DATOS PARA EDITAR POA ===');
-          console.log('POA ID:', poaExistente.id_poa);
-          console.log('ID período del POA existente:', poaExistente.id_periodo);
-          console.log('ID período final:', idPeriodoFinal);
-          console.log('Datos enviados:', JSON.stringify(datosActualizacion, null, 2));
-          
           const poaEditado = await poaAPI.editarPOA(poaExistente.id_poa, datosActualizacion);
           poasEditados.push(poaEditado);
         } catch (err: any) {
-          console.error('=== ERROR AL EDITAR POA ===');
-          console.error('Error completo:', err);
-          console.error('Response data:', err.response?.data);
-          if (err.response?.data?.detail && Array.isArray(err.response.data.detail)) {
-            console.error('Detalles de validación:', err.response.data.detail);
-            err.response.data.detail.forEach((error: any, index: number) => {
-              console.error(`Error ${index + 1}:`, error);
-            });
-          }
-          console.error('Response status:', err.response?.status);
-          console.error('Response headers:', err.response?.headers);
           setError(`Error al editar POA: ${err instanceof Error ? err.message : 'Error desconocido'}`);
           return false;
         }
@@ -720,7 +685,6 @@ export const usePOAForm = ({ initialProyecto, initialPeriodos = [], isEditing = 
         return false;
       }
     } catch (err) {
-      console.error('Error en handleEditarPOAs:', err);
       setError(`Error al editar POAs: ${err instanceof Error ? err.message : 'Error desconocido'}`);
       return false;
     } finally {
@@ -768,7 +732,6 @@ export const usePOAForm = ({ initialProyecto, initialPeriodos = [], isEditing = 
             const periodoCreado = await periodoAPI.crearPeriodo(periodoData);
             mapeoIdsPeriodos.set(periodo.id_periodo, periodoCreado.id_periodo);
           } catch (err) {
-            console.error('Error al crear periodo temporal:', err);
             setError(`Error al crear periodo ${periodo.nombre_periodo}: ${err instanceof Error ? err.message : 'Error desconocido'}`);
             return false;
           }
@@ -781,7 +744,6 @@ export const usePOAForm = ({ initialProyecto, initialPeriodos = [], isEditing = 
           if (periodo.id_periodo.startsWith('temp-')) {
             periodoId = mapeoIdsPeriodos.get(periodo.id_periodo);
             if (!periodoId) {
-              console.error(`No se pudo obtener un ID válido para el periodo ${periodo.codigo_periodo}`);
               continue;
             }
           }
@@ -789,7 +751,6 @@ export const usePOAForm = ({ initialProyecto, initialPeriodos = [], isEditing = 
           try {
             await periodoAPI.getPeriodo(periodoId);
           } catch (err) {
-            console.error(`El periodo con ID ${periodoId} no existe en la base de datos:`, err);
             setError(`El periodo ${periodo.nombre_periodo} no existe en la base de datos`);
             return false;
           }
@@ -812,7 +773,6 @@ export const usePOAForm = ({ initialProyecto, initialPeriodos = [], isEditing = 
           const nuevoPOA = await poaAPI.crearPOA(datosPOA);
           poaCreados.push(nuevoPOA);
         } catch (err) {
-          console.error('Error al crear POA:', err);
           setError(`Error al crear POA: ${err instanceof Error ? err.message : 'Error desconocido'}`);
           return false;
         }
@@ -826,7 +786,6 @@ export const usePOAForm = ({ initialProyecto, initialPeriodos = [], isEditing = 
         return false;
       }
     } catch (err) {
-      console.error('Error en handleCrearPOAs:', err);
       setError(`Error al crear POAs: ${err instanceof Error ? err.message : 'Error desconocido'}`);
       return false;
     } finally {

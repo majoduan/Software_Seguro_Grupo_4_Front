@@ -3,7 +3,6 @@ import { AuthProvider } from './context/AuthContext';
 import { useAuth } from './context/AuthContext'; // Agregar esta importación
 import AppLayout from './AppLayout';
 import ProtectedRoute from './components/ProtectedRoute';
-import SubirExcel from './pages/SubirExcel';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
@@ -28,7 +27,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import RoleProtectedRoute from './components/RoleProtectedRoute';
 
 // Importar las funciones de roles actualizadas
-import { ROLES, initializeRoles, areRolesLoaded, getAllRoles } from './interfaces/user';
+import { ROLES, initializeRoles, areRolesLoaded } from './interfaces/user';
 import { useState, useEffect } from 'react';
 
 
@@ -37,35 +36,6 @@ const DebugInfo = () => {
   const { usuario, getUserRole, hasRole, getRoleId } = useAuth();
   
   useEffect(() => {
-    if (areRolesLoaded()) {
-      console.log('=== DEBUG INFO COMPLETO ===');
-      console.log('👤 Usuario completo:', usuario);
-      console.log('🔑 ID del rol del usuario:', getRoleId());
-      console.log('👨‍💼 Rol completo:', getUserRole());
-      console.log('🔍 Roles disponibles:', getAllRoles());
-      
-      // Verificar cada rol específico
-      console.log('🔐 Verificaciones de roles:');
-      console.log('  - ADMINISTRADOR:', ROLES.ADMINISTRADOR);
-      console.log('  - DIRECTOR_DE_INVESTIGACION:', ROLES.DIRECTOR_DE_INVESTIGACION);
-      console.log('  - DIRECTOR_DE_PROYECTO:', ROLES.DIRECTOR_DE_PROYECTO);
-      console.log('  - DIRECTOR_DE_REFORMAS:', ROLES.DIRECTOR_DE_REFORMAS);
-      
-      console.log('✅ Permisos del usuario actual:');
-      console.log('  - ¿Es ADMINISTRADOR?', hasRole(ROLES.ADMINISTRADOR));
-      console.log('  - ¿Es DIRECTOR_DE_INVESTIGACION?', hasRole(ROLES.DIRECTOR_DE_INVESTIGACION));
-      console.log('  - ¿Es DIRECTOR_DE_PROYECTO?', hasRole(ROLES.DIRECTOR_DE_PROYECTO));
-      console.log('  - ¿Es DIRECTOR_DE_REFORMAS?', hasRole(ROLES.DIRECTOR_DE_REFORMAS));
-      
-      console.log('🔄 Comparación directa:');
-      console.log('  - ID del usuario:', getRoleId());
-      console.log('  - ID de ADMINISTRADOR:', ROLES.ADMINISTRADOR);
-      console.log('  - ¿Coincide?', getRoleId() === ROLES.ADMINISTRADOR);
-      
-      // Debug adicional
-      // debugRoles();
-      console.log('============================');
-    }
   }, [usuario, getRoleId, hasRole, getUserRole]);
   
   return null;
@@ -79,12 +49,9 @@ const RoleInitializer = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     const loadRoles = async () => {
       try {
-        console.log('🔄 Iniciando carga de roles...');
         await initializeRoles();
-        console.log('✅ Roles cargados exitosamente');
         setRolesLoaded(true);
       } catch (error) {
-        console.error('❌ Error al cargar roles:', error);
         setRolesError(error instanceof Error ? error.message : 'Error desconocido');
       }
     };
@@ -260,17 +227,6 @@ function AppContent() {
           <Route path="/perfil" element={
             <ProtectedRoute>
               <Perfil />
-            </ProtectedRoute>
-          } />
-
-          <Route path="/subir-excel" element={
-            <ProtectedRoute>
-              <RoleProtectedRoute requiredRoles={[
-                ROLES.ADMINISTRADOR,
-                ROLES.DIRECTOR_DE_REFORMAS,                
-              ]}>
-                <SubirExcel />
-              </RoleProtectedRoute>
             </ProtectedRoute>
           } />
 

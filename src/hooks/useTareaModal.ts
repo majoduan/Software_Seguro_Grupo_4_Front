@@ -168,7 +168,6 @@ export const useTareaModal = () => {
         setCurrentTarea(tareaActualizada);
 
       } catch (err) {
-        console.error('Error al procesar el detalle de tarea:', err);
       }
     }
   };
@@ -217,7 +216,6 @@ export const useTareaModal = () => {
         clearTaskError('precio_unitario');
       }
     } catch (error) {
-      console.error('Error al procesar cambio de descripción:', error);
       setCurrentTarea(prev => ({
         ...prev!,
         descripcion_seleccionada: descripcionSeleccionada,

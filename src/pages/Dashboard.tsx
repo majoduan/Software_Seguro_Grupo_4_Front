@@ -45,7 +45,6 @@ const Dashboard: React.FC = () => {
 
         // Obtener todos los proyectos una sola vez
         const proyectos = await projectAPI.getProyectos();
-        console.log('Proyectos obtenidos:', proyectos);
 
         // Obtener proyectos para cada POA
         const poasWithProjectsData: POAWithProject[] = [];
@@ -59,7 +58,6 @@ const Dashboard: React.FC = () => {
 
         setPOAsWithProjects(poasWithProjectsData);
       } catch (err) {
-        console.error('Error al cargar datos:', err);
         setError('Error al cargar los datos del dashboard');
       } finally {
         setLoading(false);

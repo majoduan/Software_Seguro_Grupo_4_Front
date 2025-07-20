@@ -48,7 +48,6 @@ export const useProyectoManager = () => {
             const actividades = await actividadAPI.getActividadesPorPOA(poa.id_poa);
             return actividades.length > 0;
           } catch (error) {
-            console.error(`Error verificando actividades para POA ${poa.id_poa}:`, error);
             return false;
           }
         })
@@ -70,7 +69,6 @@ export const useProyectoManager = () => {
       };
 
     } catch (error) {
-      console.error('Error validando proyecto:', error);
       return {
         esValido: true,
         razon: 'Error al validar disponibilidad'
@@ -97,7 +95,6 @@ export const useProyectoManager = () => {
             const actividades = await actividadAPI.getActividadesPorPOA(poa.id_poa);
             return actividades.length > 0;
           } catch (error) {
-            console.error(`Error verificando actividades para POA ${poa.id_poa}:`, error);
             return false;
           }
         })
@@ -118,7 +115,6 @@ export const useProyectoManager = () => {
       };
 
     } catch (error) {
-      console.error('Error validando proyecto:', error);
       return {
         esValido: false,
         razon: 'Error al validar disponibilidad'

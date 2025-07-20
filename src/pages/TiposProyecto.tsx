@@ -20,7 +20,6 @@ const TiposProyecto: React.FC = () => {
         setTiposProyecto(data);
         setError(null);
       } catch (err) {
-        console.error('Error al obtener tipos de proyecto:', err);
         setError('Error al cargar los tipos de proyecto');
       } finally {
         setLoading(false);

@@ -94,28 +94,18 @@ export const filtrarDetallesPorActividadConConsultas = async (
     return detallesTarea;
   }
 
-  console.log(`=== FILTRANDO DETALLES PARA ACTIVIDAD ${numeroActividad} (USANDO CARACTERISTICAS) ===`);
-  console.log(`Tipo POA: ${tipoPoa}, Total detalles: ${detallesTarea.length}`);
-
   const detallesConItems = await Promise.allSettled(
     detallesTarea.map(async (detalle, index) => {
       try {
         const itemPresupuestario = await getItemPresupuestarioPorId(detalle.id_item_presupuestario);
 
-        console.log(`\n--- Procesando detalle ${index + 1} ---`);
-        console.log(`Detalle: ${detalle.nombre}`);
-        console.log(`Descripción: ${detalle.descripcion || 'N/A'}`);
-        console.log(`Características: ${detalle.caracteristicas || 'N/A'}`);
-
         if (!detalle.caracteristicas || typeof detalle.caracteristicas !== 'string') {
-          console.log('❌ No hay características válidas');
           return { detalle, incluir: false, itemPresupuestario: null };
         }
 
         const numeros = detalle.caracteristicas.split('; ');
 
         if (numeros.length !== 3) {
-          console.log('❌ Formato de características inválido');
           return { detalle, incluir: false, itemPresupuestario };
         }
 
@@ -139,15 +129,12 @@ export const filtrarDetallesPorActividadConConsultas = async (
         }
 
         const numeroTarea = numeros[indice];
-        console.log(`Número de tarea desde características: ${numeroTarea}`);
 
         if (numeroTarea === '0') {
-          console.log('❌ No disponible para este tipo de POA (valor = 0)');
           return { detalle, incluir: false, itemPresupuestario };
         }
 
         const coincide = numeroTarea.startsWith(numeroActividad + '.');
-        console.log(`¿Coincide con actividad ${numeroActividad}? ${coincide ? '✅' : '❌'}`);
 
         if (coincide) {
           const detalleEspecifico = {
@@ -162,7 +149,6 @@ export const filtrarDetallesPorActividadConConsultas = async (
         return { detalle, incluir: false, itemPresupuestario, numeroTarea };
 
       } catch (error) {
-        console.error('Error al procesar detalle:', error);
         return { detalle, incluir: false, itemPresupuestario: null, error };
       }
     })
@@ -172,11 +158,6 @@ export const filtrarDetallesPorActividadConConsultas = async (
     .filter(result => result.status === 'fulfilled' && result.value.incluir)
     .map(result => (result as PromiseFulfilledResult<any>).value);
 
-  console.log(`\n=== RESULTADO FILTRADO ===`);
-  console.log(`Total detalles filtrados: ${filtrados.length}`);
-  filtrados.forEach((item, index) => {
-    console.log(`${index + 1}. ${item.detalle.nombre} - ${item.detalle.descripcion || 'Sin descripción'} - Tarea: ${item.numeroTarea}`);
-  });
 
   const filtradosOrdenados = filtrados.sort((a, b) => {
     const valorA = parseFloat(a.numeroTarea);

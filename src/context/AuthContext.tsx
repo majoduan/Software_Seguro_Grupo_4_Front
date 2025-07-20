@@ -34,7 +34,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       try {
           await authAPI.logout(); // Llamar al endpoint del backend
       } catch (error) {
-          console.error('Error en logout:', error);
       }
       clearAuth();
       navigate('/login');
@@ -42,23 +41,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Función para obtener el rol completo
   const getUserRole = (): Rol | null => {
-    console.log('getUserRole() - usuario:', usuario);
-    console.log('getUserRole() - usuario.rol:', usuario?.rol);
     return usuario?.rol || null;
   };
 
   // Función para verificar rol por UUID
   const hasRole = (roleId: string): boolean => {
     const result = usuario?.id_rol === roleId;
-    console.log(`hasRole(${roleId}):`, result);
-    console.log('usuario?.id_rol:', usuario?.id_rol);
     return result;
   };
 
   // Función para verificar múltiples roles por UUID
   const hasAnyRole = (roleIds: string[]): boolean => {
     const result = roleIds.some(roleId => hasRole(roleId));
-    console.log(`hasAnyRole(${roleIds.join(', ')}):`, result);
     return result;
   };
 
@@ -76,12 +70,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     try {
       // Verificar el token con el servidor
-      const response = await API.get('/perfil');
+      //const response = await API.get('/perfil');
       
       // Si llegamos aquí, el token es válido
       return true;
     } catch (error: any) {
-      console.log('Error al verificar token:', error);
       
       // Si es error 401 (no autorizado), el token no es válido
       if (error.response?.status === 401) {
@@ -99,10 +92,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const inicializarAuth = async () => {
       const storedUsuarioString = cookieUtils.get('user_data');
 
-      console.log('=== Inicializando Auth ===');
-      //console.log('storedToken:', storedToken ? 'Existe' : 'No existe');
-      console.log('storedUsuario:', storedUsuarioString ? 'Existe' : 'No existe');
-
       //if (storedToken && storedUsuarioString) {
       if (storedUsuarioString) {
         try {
@@ -111,14 +100,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           
           if (tokenValido) {
             const parsedUsuario = JSON.parse(storedUsuarioString);
-            console.log('Usuario parseado:', parsedUsuario);
 
             setToken('cookie-token'); // Token ficticio para indicar autenticación
             setUsuario(parsedUsuario);
             //API.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
           }
         } catch (error) {
-          console.error('Error al parsear datos del usuario:', error);
           clearAuth();
         }
       }
@@ -136,7 +123,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const intervalo = setInterval(async () => {
       const tokenValido = await verificarToken();
       if (!tokenValido && token) {
-        console.log('Token inválido detectado, cerrando sesión');
         logout();
       }
     }, 5 * 60 * 1000); // 5 minutos
@@ -150,7 +136,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       (response) => response,
       (error) => {
         if (error.response?.status === 401 && token) {
-          console.log('Respuesta 401 detectada, cerrando sesión');
           logout();
         }
         return Promise.reject(error);
@@ -179,7 +164,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Función de login
   const login = useCallback((newToken: string, userData: Usuario) => {
-      console.log('=== Login ===');
       
       try {
         // 🔧 SOLO GUARDAR DATOS BÁSICOS DEL USUARIO (sin token)
@@ -199,7 +183,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setUsuario(userData);
         navigate('/dashboard');
     } catch (error) {
-        console.error('Error guardando datos de autenticación:', error);
     }
 }, [navigate]);
 

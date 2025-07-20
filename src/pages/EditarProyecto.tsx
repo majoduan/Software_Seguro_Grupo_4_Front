@@ -41,7 +41,6 @@ const EditarProyecto: React.FC = () => {
         const proyectosData = await projectAPI.getProyectos();
         setProyectos(proyectosData);
       } catch (error) {
-        console.error('Error cargando proyectos:', error);
         setErrorBusqueda('Error al cargar los proyectos');
       } finally {
         setCargandoProyectos(false);
@@ -63,7 +62,6 @@ const EditarProyecto: React.FC = () => {
         );
         setTipoProyectoSeleccionado(tipoEncontrado || null);
       } catch (error) {
-        console.error('Error cargando tipo de proyecto:', error);
         setErrorBusqueda('Error al cargar el tipo de proyecto');
       }
     };

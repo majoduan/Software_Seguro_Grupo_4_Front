@@ -139,16 +139,6 @@ const ExportarPOAProyecto: React.FC<ExportarPOAProyectoProps> = ({
       const itemPresupuestario = await tareaAPI.getItemPresupuestarioDeTarea(idTarea);
       return itemPresupuestario.codigo;
     } catch (error) {
-      console.warn(`No se pudo obtener el item presupuestario para la tarea ${idTarea}:`, error);
-      
-      // Manejar errores específicos
-      if (error instanceof Error) {
-        if (error.message === "Tarea no encontrada") {
-          console.warn(`Tarea ${idTarea} no encontrada`);
-        } else if (error.message === "Item presupuestario no asociado a esta tarea") {
-          console.warn(`No hay item presupuestario asociado a la tarea ${idTarea}`);
-        }
-      }
       
       return 'N/A';
     }
@@ -207,14 +197,12 @@ const ExportarPOAProyecto: React.FC<ExportarPOAProyectoProps> = ({
               });
               
             } catch (tareaError) {
-              console.warn(`No se pudo obtener programación para tarea ${tarea.id_tarea}:`, tareaError);
               
               // Intentar obtener al menos el código del item presupuestario
               let codigoItem = 'N/A';
               try {
                 codigoItem = await obtenerCodigoItemPresupuestario(tarea.id_tarea);
               } catch (itemError) {
-                console.warn(`No se pudo obtener código de item para tarea ${tarea.id_tarea}:`, itemError);
               }
               
               // Si no hay programación, usar array de ceros
@@ -240,7 +228,6 @@ const ExportarPOAProyecto: React.FC<ExportarPOAProyectoProps> = ({
           });
           
         } catch (actividadError) {
-          console.warn(`No se pudieron obtener tareas para actividad ${actividad.id_actividad}:`, actividadError);
           // Si no hay tareas, crear actividad con array vacío
           actividadesConTareas.push({
             id_actividad: actividad.id_actividad,
@@ -255,7 +242,6 @@ const ExportarPOAProyecto: React.FC<ExportarPOAProyectoProps> = ({
       return actividadesConTareas;
       
     } catch (error) {
-      console.error('Error al obtener datos del POA:', error);
       throw error;
     }
   };
@@ -540,7 +526,6 @@ const ExportarPOAProyecto: React.FC<ExportarPOAProyectoProps> = ({
 
       showSuccess('Archivo Excel descargado exitosamente');
     } catch (error) {
-      console.error('Error al generar el archivo Excel:', error);
       showError('Error al generar el archivo Excel');
     }
   };
@@ -566,7 +551,6 @@ const ExportarPOAProyecto: React.FC<ExportarPOAProyectoProps> = ({
       await descargarArchivo(workbook, nombreArchivo);
       
     } catch (error) {
-      console.error('Error al exportar POA:', error);
       showError('Error al exportar POA');
     } finally {
       setLoading(false);
@@ -592,7 +576,6 @@ const ExportarPOAProyecto: React.FC<ExportarPOAProyectoProps> = ({
           const actividades = await obtenerDatosPOA(poa);
           crearHojaPOA(workbook, poa, actividades, `POA_${poa.codigo_poa}`);
         } catch (error) {
-          console.warn(`Error al obtener datos del POA ${poa.codigo_poa}:`, error);
           // Crear hoja vacía si hay error
           crearHojaPOA(workbook, poa, [], `POA_${poa.codigo_poa}`);
         }
@@ -602,7 +585,6 @@ const ExportarPOAProyecto: React.FC<ExportarPOAProyectoProps> = ({
       await descargarArchivo(workbook, nombreArchivo);
       
     } catch (error) {
-      console.error('Error al exportar todos los POAs:', error);
       showError('Error al exportar todos los POAs');
     } finally {
       setLoading(false);

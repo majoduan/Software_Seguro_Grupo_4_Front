@@ -9,12 +9,6 @@ export const actividadAPI = {
             const response = await API.get(`/poas/${idPoa}/actividades`);
             return response.data as Actividad[];
         } catch (error) {
-            console.error("Error al obtener actividades por POA:", error);
-            if (typeof error === "object" && error !== null && "response" in error) {
-                const err = error as { response: { data: any; status: any } };
-                console.error("Respuesta del servidor:", err.response.data);
-                console.error("Status:", err.response.status);
-            }
             throw error;
         }
     },
@@ -27,12 +21,6 @@ export const actividadAPI = {
             });
             return response.data;
         } catch (error) {
-            console.error("Error al crear actividades:", error);
-            if (typeof error === "object" && error !== null && "response" in error) {
-                const err = error as { response: { data: any; status: any } };
-                console.error("Respuesta del servidor:", err.response.data);
-                console.error("Status:", err.response.status);
-            }
             throw error;
         }
     },
@@ -43,7 +31,6 @@ export const actividadAPI = {
             const response = await API.delete(`/actividades/${idActividad}`);
             return response.data as Actividad;
         } catch (error) {
-            console.error("Error al eliminar actividad:", error);
             throw error;
         }
     },
@@ -54,7 +41,6 @@ export const actividadAPI = {
             const response = await API.put(`/actividades/${idActividad}`, datos);
             return response.data as Actividad;
         } catch (error) {
-            console.error("Error al editar actividad:", error);
             throw error;
         }
     },

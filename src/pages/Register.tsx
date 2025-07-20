@@ -35,7 +35,6 @@ const Register = () => {
                     setSelectedRol(rolesData[0].id_rol);
                 }
             } catch (error) {
-                console.error('Error al cargar roles:', error);
                 setError('No se pudieron cargar los roles. Por favor intenta más tarde.');
             } finally {
                 setLoadingRoles(false);
@@ -82,7 +81,6 @@ const Register = () => {
             navigate('/login', { state: { message: 'Registro exitoso. Por favor inicia sesión.' } });
 
         } catch (error: unknown) {
-            console.error('Error al registrar:', error);
             if (error instanceof Error) {
                 setError(error.message || 'Error al registrar el usuario');
             } else {

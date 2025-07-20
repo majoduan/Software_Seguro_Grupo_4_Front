@@ -68,9 +68,7 @@ const VerPOA: React.FC<VerPOAProps> = ({ poa }) => {
         codigo: itemPresupuestario.codigo,
         itemPresupuestario: itemPresupuestario
       };
-    } catch (error) {
-      console.warn(`No se pudo obtener item presupuestario para tarea ${idTarea}:`, error);
-      
+    } catch (error) {      
       // Manejar errores específicos
       if (error instanceof Error) {
         if (error.message === "Item presupuestario no asociado a esta tarea") {
@@ -141,7 +139,6 @@ const VerPOA: React.FC<VerPOAProps> = ({ poa }) => {
                 });
                 
               } catch (tareaError) {
-                console.warn(`Error al procesar tarea ${tarea.id_tarea}:`, tareaError);
                 showWarning(`Error al procesar tarea ${tarea.id_tarea}`);
                 
                 // Si hay error, usar valores por defecto
@@ -159,7 +156,6 @@ const VerPOA: React.FC<VerPOAProps> = ({ poa }) => {
             });
             
           } catch (actividadError) {
-            console.warn(`No se pudieron obtener tareas para actividad ${actividad.id_actividad}:`, actividadError);
             showWarning(`No se pudieron obtener tareas para actividad ${actividad.id_actividad}`);
             // Si no hay tareas, crear actividad con array vacío
             actividadesConTareas.push({
@@ -173,7 +169,6 @@ const VerPOA: React.FC<VerPOAProps> = ({ poa }) => {
         setActividades(actividadesConTareas);
         
       } catch (err) {
-        console.error('Error al cargar datos del POA:', err);
         setError('Error al cargar los datos del POA');
       } finally {
         setLoading(false);

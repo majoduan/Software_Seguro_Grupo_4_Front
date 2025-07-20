@@ -389,7 +389,6 @@ const ExportarPOA: React.FC<ExportarPOAProps> = ({
         onExport();
       }
     } catch (error) {
-      console.error('Error al generar el archivo Excel:', error);
     }
   };
 

@@ -30,7 +30,6 @@ useEffect(() => {
             setNombreRol(rolEncontrado?.nombre_rol || 'Rol no encontrado');
             
         } catch (err) {
-            console.error('Error al cargar el perfil:', err);
             setError('Error al cargar los datos del perfil');
         } finally {
             setLoading(false);

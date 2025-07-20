@@ -104,10 +104,7 @@ class RoleManager {
 
         try {
             const { rolAPI } = await import('../api/userAPI');
-            const rolesData = await rolAPI.getRoles();
-            
-            console.log('🔄 Roles obtenidos de la API:', rolesData);
-            
+            const rolesData = await rolAPI.getRoles();            
             // Limpiar mapas
             this.roles.clear();
             this.rolesByName.clear();
@@ -118,15 +115,10 @@ class RoleManager {
                 this.roles.set(normalizedName, rol.id_rol);
                 this.rolesByName.set(rol.nombre_rol, rol.id_rol);
                 
-                console.log(`📋 Mapeando: "${rol.nombre_rol}" -> "${normalizedName}" -> ${rol.id_rol}`);
             });
             
             this.rolesLoaded = true;
-            console.log('✅ Roles cargados exitosamente');
-            console.log('🗂️ Mapa de roles normalizados:', Object.fromEntries(this.roles));
-            console.log('🗂️ Mapa de roles por nombre original:', Object.fromEntries(this.rolesByName));
         } catch (error) {
-            console.error('❌ Error al cargar roles:', error);
             throw error;
         }
     }
@@ -134,17 +126,13 @@ class RoleManager {
     // Obtener UUID del rol por nombre normalizado
     getRoleId(roleName: string): string | null {
         const normalizedName = this.normalizeRoleName(roleName);
-        const roleId = this.roles.get(normalizedName);
-        
-        console.log(`🔍 Buscando rol: "${roleName}" -> "${normalizedName}" -> ${roleId || 'NO ENCONTRADO'}`);
-        
+        const roleId = this.roles.get(normalizedName);        
         return roleId || null;
     }
 
     // Obtener UUID del rol por nombre original
     getRoleIdByOriginalName(originalName: string): string | null {
         const roleId = this.rolesByName.get(originalName);
-        console.log(`🔍 Buscando por nombre original: "${originalName}" -> ${roleId || 'NO ENCONTRADO'}`);
         return roleId || null;
     }
 
@@ -168,15 +156,6 @@ class RoleManager {
         this.rolesLoaded = false;
         await this.loadRoles();
     }
-
-    // Método para debugging
-    debugRoles(): void {
-        console.log('=== ESTADO DE ROLES ===');
-        console.log('Roles cargados:', this.rolesLoaded);
-        console.log('Roles normalizados:', Object.fromEntries(this.roles));
-        console.log('Roles por nombre original:', Object.fromEntries(this.rolesByName));
-        console.log('========================');
-    }
 }
 
 // Instancia global del manager
@@ -189,8 +168,6 @@ export const ROLES = new Proxy({}, {
         
         const roleId = roleManager.getRoleId(prop);
         if (!roleId) {
-            console.warn(`⚠️ Rol '${prop}' no encontrado. Roles disponibles:`, roleManager.getAllRoles());
-            roleManager.debugRoles(); // Agregar debug automático
             return null;
         }
         return roleId;
@@ -205,9 +182,7 @@ export const ROLES = new Proxy({}, {
 
 // Función para inicializar los roles (debe llamarse al inicio de la app)
 export const initializeRoles = async (): Promise<void> => {
-    console.log('🚀 Inicializando roles...');
     await roleManager.loadRoles();
-    console.log('✅ Roles inicializados');
 };
 
 // Función para verificar si los roles están cargados
@@ -225,10 +200,6 @@ export const getAllRolesByOriginalName = (): Record<string, string> => {
     return roleManager.getAllRolesByOriginalName();
 };
 
-// Función para debugging
-export const debugRoles = (): void => {
-    roleManager.debugRoles();
-};
 
 // Función para obtener rol por nombre original (útil para casos especiales)
 export const getRoleIdByOriginalName = (originalName: string): string | null => {

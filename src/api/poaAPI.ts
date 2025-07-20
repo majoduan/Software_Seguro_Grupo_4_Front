@@ -29,19 +29,11 @@ export const poaAPI = {
             //id_estado_poa: poaData.id_estado_poa || null // Asegurarse de que este campo sea nulo si no se proporciona
         };
         
-        console.log("POA data being sent to API:", datosAEnviar);
-
         try {
             const response = await API.post<POA>('/poas/', datosAEnviar);
-            console.log("Respuesta del servidor:", response.data);
             return response.data;
         } catch (error) {
-            console.error("Error detallado al crear POA:", error);
-            if (typeof error === 'object' && error !== null && 'response' in error) {
-                const err = error as { response: { data: any; status: any } };
-                console.error("Respuesta del servidor:", err.response.data);
-                console.error("Status:", err.response.status);
-            }
+
             throw error;
         }
     },
@@ -65,19 +57,10 @@ export const poaAPI = {
             fecha_creacion: poaData.fecha_creacion ? poaData.fecha_creacion.split('Z')[0] : new Date().toISOString().split('Z')[0], // Eliminar la información de zona horaria
         };
         
-        console.log("POA data being sent to API for editing:", datosAEnviar);
-
         try {
             const response = await API.put<POA>(`/poas/${id}`, datosAEnviar);
-            console.log("Respuesta del servidor para edición:", response.data);
             return response.data;
         } catch (error) {
-            console.error("Error detallado al editar POA:", error);
-            if (typeof error === 'object' && error !== null && 'response' in error) {
-                const err = error as { response: { data: any; status: any } };
-                console.error("Respuesta del servidor:", err.response.data);
-                console.error("Status:", err.response.status);
-            }
             throw error;
         }
     },
@@ -99,12 +82,6 @@ export const poaAPI = {
             const response = await API.get<POA[]>(`/proyectos/${idProyecto}/poas`);
             return response.data;
         } catch (error) {
-            console.error("Error al obtener POAs por proyecto:", error);
-            if (typeof error === 'object' && error !== null && 'response' in error) {
-                const err = error as { response: { data: any; status: any } };
-                console.error("Respuesta del servidor:", err.response.data);
-                console.error("Status:", err.response.status);
-            }
             throw error;
         }
     },

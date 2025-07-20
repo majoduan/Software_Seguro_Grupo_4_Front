@@ -78,7 +78,6 @@ export const authAPI = {
         try {
             await API.post('/logout');
         } catch (error) {
-            console.error('Error en logout:', error);
             // Continuar con logout local aunque falle el servidor
         }
     }
@@ -97,7 +96,6 @@ export const userAPI = {
             id_rol: data.rol
           };
         } catch (error) {
-          console.error('Error al cargar el perfil del usuario:', error);
           throw error; // Re-lanzar para manejo en componente
         }
       },

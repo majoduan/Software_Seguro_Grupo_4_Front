@@ -69,7 +69,6 @@ const BusquedaProyecto: React.FC<BusquedaProyectoProps> = ({
             const resultado = await validarProyecto(proyecto);
             nuevasValidaciones[proyecto.id_proyecto] = resultado;
           } catch (error) {
-            console.error(`Error validando proyecto ${proyecto.codigo_proyecto}:`, error);
             nuevasValidaciones[proyecto.id_proyecto] = { esValido: true }; // En caso de error, permitir selección
           }
         });
@@ -77,7 +76,6 @@ const BusquedaProyecto: React.FC<BusquedaProyectoProps> = ({
         await Promise.all(promesasValidacion);
         setValidaciones(nuevasValidaciones);
       } catch (error) {
-        console.error('Error general validando proyectos:', error);
       } finally {
         setValidandoProyectos(false);
       }

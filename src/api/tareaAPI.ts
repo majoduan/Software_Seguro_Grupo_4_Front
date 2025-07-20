@@ -7,22 +7,14 @@ export const tareaAPI = {
     // Obtener item presupuestario por id
     getItemPresupuestarioPorId: async (idItemPresupuestario: string): Promise<ItemPresupuestario> => {
         try {
-            console.log(`Consultando item presupuestario con ID: ${idItemPresupuestario}`);
             const response = await API.get(`/item-presupuestario/${idItemPresupuestario}`);
-            console.log("Respuesta completa:", response);
             
             // Verificar explícitamente si el campo código está presente
             if (response.data && !response.data.codigo) {
-            console.warn("Código no encontrado en la respuesta:", response.data);
             }
             
             return response.data;
         } catch (error) {
-            console.error("Error al obtener item presupuestario:", error);
-            if (error.response) {
-            console.error("Respuesta del servidor:", error.response.data);
-            console.error("Status:", error.response.status);
-            }
             throw error;
         }
         },
@@ -30,16 +22,11 @@ export const tareaAPI = {
     // Obtener item presupuestario de una tarea específica
     getItemPresupuestarioDeTarea: async (idTarea: string): Promise<ItemPresupuestario> => {
         try {
-            console.log(`Consultando item presupuestario de tarea con ID: ${idTarea}`);
             const response = await API.get(`/tareas/${idTarea}/item-presupuestario`);
-            console.log("Item presupuestario de tarea obtenido:", response.data);
             return response.data as ItemPresupuestario;
         } catch (error) {
-            console.error("Error al obtener item presupuestario de tarea:", error);
             if (error && typeof error === 'object' && 'response' in error) {
                 const axiosError = error as any;
-                console.error("Respuesta del servidor:", axiosError.response.data);
-                console.error("Status:", axiosError.response.status);
                 
                 // Manejar errores específicos
                 if (axiosError.response.status === 404) {
@@ -67,11 +54,6 @@ export const tareaAPI = {
             const response = await API.post(`/actividades/${idActividad}/tareas`, tareaData);
             return response.data;
         } catch (error) {
-            console.error("Error al crear tarea:", error);
-            if (error.response) {
-                console.error("Respuesta del servidor:", error.response.data);
-                console.error("Status:", error.response.status);
-            }
             throw error;
         }
     },
@@ -82,7 +64,6 @@ export const tareaAPI = {
             const response = await API.delete(`/tareas/${idTarea}`);
             return response.data;
         } catch (error) {
-            console.error("Error al eliminar tarea:", error);
             throw error;
         }
     },
@@ -93,7 +74,6 @@ export const tareaAPI = {
             const response = await API.put(`/tareas/${idTarea}`, tareaData);
             return response.data;
         } catch (error) {
-            console.error("Error al editar tarea:", error);
             throw error;
         }
     },
@@ -107,15 +87,10 @@ export const tareaAPI = {
     // Crear programación mensual
     crearProgramacionMensual: async (programacionData: ProgramacionMensualCreate): Promise<ProgramacionMensualOut> => {
         try {
-            console.log("Creando programación mensual:", programacionData);
             const response = await API.post("/programacion-mensual", programacionData);
-            console.log("Programación mensual creada exitosamente:", response.data);
             return response.data;
         } catch (error) {
-            console.error("Error al crear programación mensual:", error);
             if (error.response) {
-                console.error("Respuesta del servidor:", error.response.data);
-                console.error("Status:", error.response.status);
                 
                 // Manejar el error específico de duplicación
                 if (error.response.status === 400 && 
@@ -130,16 +105,11 @@ export const tareaAPI = {
     // Obtener programación mensual por tarea
     getProgramacionMensualPorTarea: async (idTarea: string): Promise<ProgramacionMensualOut[]> => {
         try {
-            console.log(`Consultando programación mensual para tarea ID: ${idTarea}`);
             const response = await API.get(`/tareas/${idTarea}/programacion-mensual`);
-            console.log("Programación mensual obtenida:", response.data);
             return response.data as ProgramacionMensualOut[];
         } catch (error) {
-            console.error("Error al obtener programación mensual:", error);
             if (error && typeof error === 'object' && 'response' in error) {
                 const axiosError = error as any;
-                console.error("Respuesta del servidor:", axiosError.response.data);
-                console.error("Status:", axiosError.response.status);
                 
                 // Manejar error específico de tarea no encontrada
                 if (axiosError.response.status === 404) {
