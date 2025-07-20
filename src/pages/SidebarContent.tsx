@@ -91,7 +91,12 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
             <div className="px-3 mb-2 text-secondary text-uppercase small">Inicio</div>
 
             {/* Ver Proyectos - Solo para ADMINISTRADOR y DIRECTOR_REFORMAS */}
-            {hasAccessTo([ROLES.ADMINISTRADOR, ROLES.DIRECTOR_DE_REFORMAS]) && (
+            {hasAccessTo([
+              ROLES.ADMINISTRADOR,
+              ROLES.DIRECTOR_DE_REFORMAS,
+              ROLES.DIRECTOR_DE_PROYECTO,
+              ROLES.DIRECTOR_DE_INVESTIGACION
+            ]) && (
               <Nav.Item>
                 <Nav.Link
                   className={`text-white ${isActive("/ver-proyectos")}`}
@@ -136,7 +141,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
             )}
 
             {/* Sección ACTIVIDADES - Solo mostrar si tiene acceso */}
-            {hasAccessTo([ROLES.ADMINISTRADOR, ROLES.DIRECTOR_DE_INVESTIGACION, ROLES.DIRECTOR_DE_PROYECTO]) && (
+            {hasAccessTo([ROLES.ADMINISTRADOR, ROLES.DIRECTOR_DE_INVESTIGACION]) && (
               <>
                 {/* <div className="px-3 mt-4 mb-2 text-secondary text-uppercase small">ACTIVIDADES</div> */}
 
@@ -195,7 +200,6 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
             {hasAccessTo([
               ROLES.ADMINISTRADOR,
               ROLES.DIRECTOR_DE_INVESTIGACION,
-              ROLES.DIRECTOR_DE_PROYECTO
             ]) && (
               <>
                 {/* <div className="px-3 mt-4 mb-2 text-secondary text-uppercase small">ACTIVIDADES</div> */}
@@ -311,7 +315,12 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
         <Nav className="flex-column align-items-center mt-3">
           
           {/* Ver Proyectos */}
-          {hasAccessTo([ROLES.ADMINISTRADOR, ROLES.DIRECTOR_DE_REFORMAS]) && (
+          {hasAccessTo([
+            ROLES.ADMINISTRADOR,
+            ROLES.DIRECTOR_DE_REFORMAS,
+            ROLES.DIRECTOR_DE_PROYECTO,
+            ROLES.DIRECTOR_DE_INVESTIGACION
+          ]) && (
             <Nav.Item>
               <Nav.Link
                 className={`text-white ${isActive("/ver-proyectos")}`}
@@ -355,7 +364,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
           )}
 
           {/* Agregar Actividad */}
-          {hasAccessTo([ROLES.ADMINISTRADOR, ROLES.DIRECTOR_DE_INVESTIGACION, ROLES.DIRECTOR_DE_PROYECTO]) && (
+          {hasAccessTo([ROLES.ADMINISTRADOR, ROLES.DIRECTOR_DE_INVESTIGACION]) && (
             <Nav.Item>
               <Nav.Link
                 className={`text-white ${isActive("/agregar-actividad-tarea")}`}
@@ -408,7 +417,6 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
           {hasAccessTo([
             ROLES.ADMINISTRADOR,
             ROLES.DIRECTOR_DE_INVESTIGACION,
-            ROLES.DIRECTOR_DE_PROYECTO
           ]) && (
             <Nav.Item>
               <Nav.Link
