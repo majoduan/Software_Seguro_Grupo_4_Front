@@ -5,6 +5,7 @@ import { poaAPI } from '../api/poaAPI';
 import { Proyecto, EstadoProyecto } from '../interfaces/project';
 import { POA } from '../interfaces/poa';
 import VerPOA from '../components/VerPOA';
+import { withSanitization } from '../utils/sanitizer';
 import 'react-toastify/dist/ReactToastify.css';
 
 //Importar funcion de exportar a excel
@@ -97,12 +98,24 @@ const VerProyectos: React.FC = () => {
     loadData();
   }, []);
 
-  // Función para actualizar filtros
+  // Función para actualizar filtros con sanitización
   const updateFilter = (filterKey: keyof FilterState, value: string) => {
-    setFilters(prev => ({
-      ...prev,
-      [filterKey]: value
-    }));
+    // Crear un setter temporal para aplicar sanitización solo a los campos de texto
+    const sanitizedSetter = (newValue: string) => {
+      setFilters(prev => ({
+        ...prev,
+        [filterKey]: newValue
+      }));
+    };
+
+    // Aplicar sanitización a campos que pueden contener entrada de usuario
+    if (filterKey === 'searchTerm' || filterKey === 'minBudget' || filterKey === 'maxBudget') {
+      const sanitizedSetValue = withSanitization(sanitizedSetter, filterKey);
+      sanitizedSetValue(value);
+    } else {
+      // Para otros campos (selects), aplicar directamente
+      sanitizedSetter(value);
+    }
   };
 
   // Función para limpiar filtros

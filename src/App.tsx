@@ -1,6 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
-import { useAuth } from './context/AuthContext'; // Agregar esta importación
 import AppLayout from './AppLayout';
 import ProtectedRoute from './components/ProtectedRoute';
 import Login from './pages/Login';
@@ -30,16 +29,6 @@ import RoleProtectedRoute from './components/RoleProtectedRoute';
 import { ROLES, initializeRoles, areRolesLoaded } from './interfaces/user';
 import { useState, useEffect } from 'react';
 
-
-// Componente interno para debugging mejorado
-const DebugInfo = () => {
-  const { usuario, getUserRole, hasRole, getRoleId } = useAuth();
-  
-  useEffect(() => {
-  }, [usuario, getRoleId, hasRole, getUserRole]);
-  
-  return null;
-};
 
 // Componente para manejar la carga de roles
 const RoleInitializer = ({ children }: { children: React.ReactNode }) => {
@@ -119,7 +108,6 @@ function AppContent() {
   return (
     <AppLayout>
       <ThemeProvider theme={theme}>
-        <DebugInfo /> {/* Componente de debugging */}
         <Routes>
           {/* Rutas públicas */}
           <Route path="/login" element={<Login />} />

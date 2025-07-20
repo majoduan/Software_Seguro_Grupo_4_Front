@@ -3,6 +3,7 @@ import { poaAPI } from '../api/poaAPI';
 import { projectAPI } from '../api/projectAPI';
 import { EstadoPOA } from '../interfaces/poa';
 import { POAWithProject, FilterState, ColumnFilters } from '../interfaces/dashboard';
+import { withSanitization } from '../utils/sanitizer';
 import '../styles/Dashboard.css';
 
 const Dashboard: React.FC = () => {
@@ -67,15 +68,27 @@ const Dashboard: React.FC = () => {
     loadData();
   }, []);
 
-  // Función para actualizar filtros de una columna específica
+  // Función para actualizar filtros de una columna específica con sanitización
   const updateColumnFilter = (estadoId: string, filterKey: keyof FilterState, value: string) => {
-    setColumnFilters(prev => ({
-      ...prev,
-      [estadoId]: {
-        ...prev[estadoId],
-        [filterKey]: value
-      }
-    }));
+    // Crear un setter temporal para aplicar sanitización solo a los campos de texto
+    const sanitizedSetter = (newValue: string) => {
+      setColumnFilters(prev => ({
+        ...prev,
+        [estadoId]: {
+          ...prev[estadoId],
+          [filterKey]: newValue
+        }
+      }));
+    };
+
+    // Aplicar sanitización a campos que pueden contener entrada de usuario
+    if (filterKey === 'searchTerm' || filterKey === 'minBudget' || filterKey === 'maxBudget') {
+      const sanitizedSetValue = withSanitization(sanitizedSetter, filterKey);
+      sanitizedSetValue(value);
+    } else {
+      // Para otros campos (selects), aplicar directamente
+      sanitizedSetter(value);
+    }
   };
 
   // Función para alternar visibilidad de filtros
