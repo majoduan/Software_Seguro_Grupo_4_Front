@@ -12,6 +12,7 @@ import {
 } from "@mui/material";
 import iconoExcel from "../assets/icono-excel.png";
 import iconoPdf from "../assets/icono-pdf.png";
+import { reporteAPI } from '../api/reporteAPI';
 import "../styles/ReportePOA.css"; 
 
 const tiposProyecto = [
@@ -41,22 +42,14 @@ const ReportePOA: React.FC = () => {
     }
     setLoading(true);
     try {
-      const response = await fetch("http://localhost:8000/reporte-poa/", {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({ anio, tipo_proyecto: tipoProyecto }),
-      });
-      const data = await response.json();
-      if (response.ok) {
-        setReporteJson(data);
-        setSnackbar({ open: true, message: "Reporte generado correctamente.", severity: "success" });
-      } else {
-        setReporteJson(null);
-        setSnackbar({ open: true, message: data.detail || "Error al generar el reporte.", severity: "error" });
-      }
-    } catch (err) {
+      // Usar la API centralizada
+      const data = await reporteAPI.generarReportePOA(anio, tipoProyecto);
+      setReporteJson(data);
+      setSnackbar({ open: true, message: "Reporte generado correctamente.", severity: "success" });
+    } catch (error: any) {
       setReporteJson(null);
-      setSnackbar({ open: true, message: "Error de conexión.", severity: "error" });
+      const errorMessage = error?.response?.data?.detail || "Error al generar el reporte.";
+      setSnackbar({ open: true, message: errorMessage, severity: "error" });
     } finally {
       setLoading(false);
     }
@@ -64,15 +57,17 @@ const ReportePOA: React.FC = () => {
 
   const handleDescargar = async (tipo: "excel" | "pdf") => {
     if (!reporteJson) return;
-    const endpoint = tipo === "excel" ? "reporte-poa/excel/" : "reporte-poa/pdf/";
+    
     try {
-      const response = await fetch(`http://localhost:8000/${endpoint}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(reporteJson),
-      });
-      if (!response.ok) throw new Error("Error al descargar el archivo");
-      const blob = await response.blob();
+      let blob: Blob;
+      
+      if (tipo === "excel") {
+        blob = await reporteAPI.descargarReporteExcel(reporteJson);
+      } else {
+        blob = await reporteAPI.descargarReportePDF(reporteJson);
+      }
+      
+      // Crear y descargar el archivo
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -81,7 +76,7 @@ const ReportePOA: React.FC = () => {
       a.click();
       a.remove();
       window.URL.revokeObjectURL(url);
-    } catch {
+    } catch (error) {
       setSnackbar({ open: true, message: "No se pudo descargar el archivo.", severity: "error" });
     }
   };
