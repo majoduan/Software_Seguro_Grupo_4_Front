@@ -23,7 +23,8 @@ import theme from "./theme";
 // Importar ToastContainer y estilos
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import RoleProtectedRoute from './components/RoleProtectedRoute';
+import RoleProtectedRoute from './components/RoleProtectedRoute'; /* Objetivo:
+ * - Proteger rutas que requieren que el usuario esté autenticado antes de acceder.*/
 
 // Importar las funciones de roles actualizadas
 import { ROLES, initializeRoles, areRolesLoaded } from './interfaces/user';
@@ -31,6 +32,22 @@ import { useState, useEffect } from 'react';
 
 
 // Componente para manejar la carga de roles
+/*
+ * Objetivo:
+ * - Inicializar y cargar los roles del usuario desde el servidor antes de renderizar la aplicación,
+ *   garantizando que la información de roles esté disponible para controlar accesos.
+ * 
+ * Parámetros:
+ * - children: React.ReactNode
+ *   Contenido que se renderiza una vez los roles han sido cargados exitosamente.
+ * 
+ * Operación:
+ * - Verifica si los roles ya están cargados mediante areRolesLoaded().
+ * - Si no están cargados, llama a initializeRoles() para obtenerlos del backend.
+ * - Controla el estado de carga y errores de la petición.
+ * - Mientras carga muestra mensaje de espera, si falla muestra error con opción a reintentar.
+ * - Solo permite renderizar hijos (children) cuando los roles están correctamente cargados.
+ */
 const RoleInitializer = ({ children }: { children: React.ReactNode }) => {
   const [rolesLoaded, setRolesLoaded] = useState(false);
   const [rolesError, setRolesError] = useState<string | null>(null);
