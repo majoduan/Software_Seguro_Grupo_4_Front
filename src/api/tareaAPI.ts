@@ -5,6 +5,19 @@ import { API } from "./userAPI";
 export const tareaAPI = {
 
     // Obtener item presupuestario por id
+    /**
+     * Objetivo:Obtener un ítem presupuestario por su ID.
+     *
+     * Parámetros:
+     * - idItemPresupuestario: string — ID único del ítem.
+     *
+     * Operación:
+     * GET a `/item-presupuestario/{id}`.
+     * Valida que el ítem contenga información esperada (como el código).
+     * El backend restringe el acceso al ítem si el usuario no tiene autorización.
+     * No expone datos incompletos o inválidos.
+     */
+
     getItemPresupuestarioPorId: async (idItemPresupuestario: string): Promise<ItemPresupuestario> => {
         try {
             const response = await API.get(`/item-presupuestario/${idItemPresupuestario}`);
@@ -20,6 +33,20 @@ export const tareaAPI = {
         },
 
     // Obtener item presupuestario de una tarea específica
+    /**
+     * Objetivo:
+     * Obtener el ítem presupuestario asociado a una tarea.
+     *
+     * Parámetros:
+     * - idTarea: string — ID único de la tarea.
+     *
+     * Operación:
+     * Realiza una solicitud GET a `/tareas/{id}/item-presupuestario`.
+     * Lanza errores específicos si la tarea no existe o no tiene ítem asociado.
+     * Previene filtración de información no autorizada.
+     * El backend valida que el usuario tenga permiso para acceder a la tarea solicitada.
+     */
+
     getItemPresupuestarioDeTarea: async (idTarea: string): Promise<ItemPresupuestario> => {
         try {
             const response = await API.get(`/tareas/${idTarea}/item-presupuestario`);
@@ -85,6 +112,20 @@ export const tareaAPI = {
     },
 
     // Crear programación mensual
+    /**
+     * Objetivo:
+     * Crear una programación mensual para una tarea.
+     *
+     * Parámetros:
+     * - programacionData: ProgramacionMensualCreate — Datos necesarios para crear la programación.
+     *
+     * Operación:
+     * POST a `/programacion-mensual`.
+     * Lanza un error claro si ya existe programación para ese mes y tarea.
+     * Control contra duplicación: evita sobrescritura de datos.
+     * Backend valida consistencia de los datos ingresados y autorización del usuario.
+     */
+
     crearProgramacionMensual: async (programacionData: ProgramacionMensualCreate): Promise<ProgramacionMensualOut> => {
         try {
             const response = await API.post("/programacion-mensual", programacionData);
@@ -103,6 +144,20 @@ export const tareaAPI = {
     },
 
     // Obtener programación mensual por tarea
+    /**
+     * Objetivo: Obtener las programaciones mensuales de una tarea.
+     *
+     * Parámetros:
+     * - idTarea: string — Identificador único de la tarea.
+     *
+     * Operación:
+     * GET a `/tareas/{id}/programacion-mensual`.
+     * Lanza error si la tarea no existe.
+     * El backend valida la existencia de la tarea y los permisos del usuario.
+     * Se evita fuga de datos si la tarea no pertenece al usuario autenticado.
+     * Manejo explícito de errores 404 para evitar inferencia de información.
+     */
+
     getProgramacionMensualPorTarea: async (idTarea: string): Promise<ProgramacionMensualOut[]> => {
         try {
             const response = await API.get(`/tareas/${idTarea}/programacion-mensual`);

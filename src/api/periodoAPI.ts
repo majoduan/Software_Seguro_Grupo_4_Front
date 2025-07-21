@@ -9,6 +9,24 @@ export const periodoAPI = {
   },
 
   // Obtener un periodo específico
+  /**
+ * Función: getPeriodos
+ * Objetivo:
+ *   - Obtener la lista de todos los periodos registrados en el sistema.
+ *
+ * Operación:
+ *   - Método HTTP: GET
+ *   - Endpoint: "/periodos/"
+ *   - Autenticación: Sí – Token JWT enviado por defecto mediante `API`
+ *
+ * Parámetros: Ninguno
+ *
+ * Respuesta esperada:
+ *   - Tipo: Periodo[]
+ *   - Estructura: Lista de objetos de tipo Periodo
+ * 
+ */
+
   getPeriodo: async (id: string): Promise<Periodo> => {
     const response = await API.get<Periodo>(`/periodos/${id}`);
     return response.data as Periodo;

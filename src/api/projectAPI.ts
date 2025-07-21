@@ -16,12 +16,31 @@ export const projectAPI = {
     },
     
     // Obtener usuarios que pueden ser directores
+/* Objetivo:
+Obtener la lista de usuarios con rol de director de proyecto.
+El endpoint requiere autenticación.
+
+Parámetros:
+Sin parámetros explícitos. El token se envía implícitamente mediante API.
+Requiere autenticación (Token JWT en encabezado Authorization).
+El acceso está restringido a usuarios.
+*/
     getDirectoresProyecto: async (): Promise<PerfilUsuario[]> => {
         const response = await API.get<PerfilUsuario[]>('/usuarios/directores/');
         return response.data;
     },
     
     // Crear un nuevo proyecto
+/*
+Objetivo:
+Crear un nuevo proyecto. El endpoint puede estar restringido a usuarios con permisos de
+gestión de proyectos.
+
+Parámetros:
+    proyectoData: Omit<Proyecto, 'id_proyecto' | 'fecha_creacion' | 'id_director_proyecto'>
+    Requiere autenticación (uso de token JWT).
+    Restricción por rol
+*/
     crearProyecto: async (proyectoData: Omit<Proyecto, 'id_proyecto' | 'fecha_creacion' | 'id_director_proyecto'>): Promise<Proyecto> => {
         const datosAEnviar = {
           ...proyectoData,
@@ -33,12 +52,29 @@ export const projectAPI = {
     },
 
     // Editar un proyecto existente
+    /*
+    Objetivo:
+    Editar la información de un proyecto existente. Implica autorización sobre el recurso.
+
+    Parámetros:
+    id: string — identificador del proyecto a editar.
+    proyectoData: objeto Proyecto sin el campo id_proyecto.
+    Autenticación mediante token JWT.
+    Validación de permisos para modificar proyectos específicos.
+    */
     editarProyecto: async (id: string, proyectoData: Omit<Proyecto, 'id_proyecto'>): Promise<Proyecto> => {
         const response = await API.put<Proyecto>(`/proyectos/${id}`, proyectoData);
         return response.data;
     },
 
     // Obtener un proyecto específico por ID
+    /*
+    Objetivo:Obtener los datos detallados de un proyecto individual por ID.
+    Operación: GET /proyectos/{id}
+    Parámetros:
+        id: string — ID del proyecto.
+        Requiere autenticación (JWT).
+    */
     obtenerProyecto: async (id: string): Promise<Proyecto> => {
         const response = await API.get<Proyecto>(`/proyectos/${id}`);
         return response.data;
