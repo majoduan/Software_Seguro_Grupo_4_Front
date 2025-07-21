@@ -25,6 +25,15 @@ const CrearProyecto: React.FC = () => {
   const form = useProjectForm({ initialTipoProyecto: state?.tipoProyecto || null });
 
   // Effect to check if we have a valid project type
+  /**
+ * Objetivo: Validar que el usuario haya llegado al componente con un tipo de proyecto válido.
+ * Parámetros: Ninguno externos; utiliza `location.state` para verificar la existencia de
+ *  `tipoProyecto`.
+ * Operación: Si `tipoProyecto` no existe, se establece un error que detiene el 
+ * flujo del formulario.
+ * Previene que usuarios accedan a la creación de un proyecto sin haber seleccionado el
+ * tipo de proyecto, evitando inconsistencias en la base de datos 
+ */
   useEffect(() => {
     if (!state?.tipoProyecto) {
       form.setError('Por favor seleccione un tipo de proyecto');
@@ -32,6 +41,16 @@ const CrearProyecto: React.FC = () => {
   }, [state]);
 
   // Submit form handler that performs navigation after successful submission
+  /**
+ * Objetivo: Procesar el formulario y redirigir al usuario sólo si la creación 
+ * del proyecto fue exitosa.
+ * Parámetros: `event` del tipo React.FormEvent.
+ * Operación: Detiene el envío por defecto, llama a `handleSubmit` (validación y persistencia),
+ * y redirige si es exitoso.
+ * Controla el flujo tras el submit para evitar redirecciones forzadas. Además, delega la
+ * validación y sanitización al hook `useProjectForm`, mitigando la inyección de datos 
+ * inválidos.
+ */
   const onSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     const success = await form.handleSubmit();
@@ -49,6 +68,13 @@ const CrearProyecto: React.FC = () => {
   };
 
   // Función para manejar el toggle de tooltips
+  /**
+ * Objetivo: Brindar ayuda contextual segura y controlada para cada campo.
+ * Parámetros: `fieldName` como identificador del campo.
+ * Operación: Muestra y oculta tooltips mediante `activeTooltip`.
+ * Aporta guía al usuario para un llenado correcto del formulario,
+ * lo que reduce errores y entradas maliciosas.
+ */
   const toggleTooltip = (fieldName: string) => {
     setActiveTooltip(activeTooltip === fieldName ? null : fieldName);
   };
@@ -90,6 +116,12 @@ const CrearProyecto: React.FC = () => {
                 content="El tipo de proyecto no puede ser modificado después de seleccionado." 
               />
             </Form.Label>
+            /**
+            * Objetivo: Evitar que el usuario modifique el tipo de proyecto una vez seleccionado.
+            * Operación: Se muestra el nombre del tipo de proyecto en un campo de solo lectura (`readOnly`).
+            * Garantiza la integridad del tipo de proyecto, que influye en múltiples reglas del sistema
+            * como duración, presupuesto y código generado.
+            */
             <Form.Control
               type="text"
               size="lg"
@@ -147,6 +179,13 @@ const CrearProyecto: React.FC = () => {
                     />
                   )}
                 </Form.Label>
+                /**
+              * Objetivo: Controlar que la fecha de fin no supere el límite permitido según la duración del tipo de proyecto.
+              * Parámetros: `fecha_inicio`, `fecha_fin`, y `duracion_meses` del tipo de proyecto.
+              * Operación: Se calcula internamente la `fechaFinMaxima` y se muestra error si se supera.
+              *             Mitiga manipulación por parte del usuario para extender duración más allá del 
+                            permitido por el sistema.
+              */
                 <Form.Control
                   type="date"
                   size="lg"

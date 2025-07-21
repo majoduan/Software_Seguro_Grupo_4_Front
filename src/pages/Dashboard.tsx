@@ -69,6 +69,21 @@ const Dashboard: React.FC = () => {
   }, []);
 
   // Función para actualizar filtros de una columna específica con sanitización
+  /**
+ * Objetivo: Actualizar los filtros de una columna específica del dashboard.
+ *
+ * Parámetros:
+ * - estadoId: ID del estado POA a actualizar.
+ * - filterKey: Clave del filtro a modificar.
+ * - value: Valor nuevo a asignar al filtro.
+ *
+ * Operación:
+ * - Si el filtro es de entrada de texto, aplica sanitización (evita XSS o inyecciones).
+ * - Actualiza el estado del filtro correspondiente en `columnFilters`.
+ * - Aplica sanitización estricta con `withSanitization` a los campos `searchTerm`, `minBudget` y `maxBudget`.
+ * - Previene inyección de código o manipulación maliciosa desde el campo de búsqueda y entradas numéricas.
+ */
+
   const updateColumnFilter = (estadoId: string, filterKey: keyof FilterState, value: string) => {
     // Crear un setter temporal para aplicar sanitización solo a los campos de texto
     const sanitizedSetter = (newValue: string) => {
@@ -92,6 +107,16 @@ const Dashboard: React.FC = () => {
   };
 
   // Función para alternar visibilidad de filtros
+  /**
+ * Objetivo: Alternar la visibilidad de los filtros avanzados por columna.
+ *
+ * Parámetros:
+ * - estadoId: ID del estado POA.
+ *
+ * Operación:
+ * - Alterna el booleano en `showFilters` para mostrar u ocultar los filtros del estado correspondiente.
+ */
+
   const toggleFilters = (estadoId: string) => {
     setShowFilters(prev => ({
       ...prev,
@@ -100,6 +125,17 @@ const Dashboard: React.FC = () => {
   };
 
   // Función para limpiar filtros de una columna
+  /**
+ * Objetivo: Restablecer los filtros de una columna a sus valores predeterminados.
+ *
+ * Parámetros:
+ * - estadoId: ID del estado POA.
+ *
+ * Operación:
+ * - Asigna valores iniciales (vacíos o por defecto) a todos los filtros de la columna.
+ * - Evita mantener filtros aplicados por error o con valores maliciosos persistentes.
+ */
+
   const clearFilters = (estadoId: string) => {
     setColumnFilters(prev => ({
       ...prev,
@@ -115,6 +151,22 @@ const Dashboard: React.FC = () => {
   };
 
   // Filtrar y ordenar POAs por estado con memoización
+  /**
+ * Objetivo: Obtener y procesar dinámicamente los POAs filtrados y ordenados para un 
+ * estado dado.
+ *
+ * Parámetros:
+ * - idEstado: ID del estado POA que se desea filtrar.
+ *
+ * Operación:
+ * - Aplica múltiples filtros: texto, año, presupuesto mínimo/máximo.
+ * - Ordena los POAs por criterios como año, presupuesto, título o código.
+ * - Usa memoización para evitar cálculos innecesarios.
+ * - Asegura que solo los POAs del estado actual se consideren.
+ * - Depende de la sanitización previa (en `updateColumnFilter`) para evitar uso 
+ * indebido de filtros.
+ */
+
   const getFilteredPOAsByEstado = useMemo(() => {
     return (idEstado: string): POAWithProject[] => {
       const filters = columnFilters[idEstado];
@@ -181,6 +233,18 @@ const Dashboard: React.FC = () => {
   }, [poasWithProjects, columnFilters]);
 
   // Obtener años únicos para el filtro
+  /**
+ * Objetivo: Obtener todos los años únicos de ejecución de los POAs cargados.
+ *
+ * Parámetros: Ninguno.
+ *
+ * Operación:
+ * - Extrae el año de cada POA.
+ * - Elimina duplicados y ordena de mayor a menor.
+ * - Complementa el filtro de año asegurando que sólo se muestren valores válidos 
+ * (años existentes en datos).
+ */
+
   const getUniqueYears = useMemo(() => {
     const years = [...new Set(poasWithProjects.map(poa => Number(poa.anio_ejecucion)))];
     return years.sort((a, b) => b - a);

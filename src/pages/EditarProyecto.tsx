@@ -24,7 +24,26 @@ const EditarProyecto: React.FC = () => {
   // Estado para controlar qué tooltip está visible
   const [activeTooltip, setActiveTooltip] = useState<string | null>(null);
   
-  // Initialize our custom hook with editing mode
+  
+  /**
+ * Inicialización del formulario de edición de proyecto
+ *
+ * Objetivo:
+ *     Preparar el formulario con datos iniciales en modo edición,
+ *     reutilizando el hook `useProjectForm`, el cual gestiona validaciones
+ *     y reglas de negocio sensibles, como fechas, códigos y presupuesto.
+ *
+ * Parámetros:
+ *     - initialTipoProyecto: tipo de proyecto actual del objeto seleccionado.
+ *     - initialProyecto: objeto de proyecto que se está editando.
+ *     - isEditing: bandera que indica que el formulario está en modo edición.
+ *
+ * Operación:
+ *     - Carga validaciones específicas del formulario (fechas, presupuestos, etc.)
+ *     - Restringe modificaciones a campos que no deben cambiarse.
+ *
+ * Retorna:Objeto con funciones, valores y validaciones del formulario.
+ */
   const form = useProjectForm({ 
     initialTipoProyecto: tipoProyectoSeleccionado, 
     initialProyecto: proyectoSeleccionado,
@@ -76,6 +95,22 @@ const EditarProyecto: React.FC = () => {
   };
 
   // Submit form handler that performs navigation after successful submission
+  /**
+ * Maneja el envío del formulario de proyecto
+ *
+ * Objetivo:
+ *     Ejecutar la lógica de actualización de proyecto validando primero
+ *     todas las restricciones y condiciones impuestas por el formulario.
+ *
+ * Parámetros:
+ *     - event: evento de formulario del navegador.
+ *
+ * Operación:
+ *     - Llama a `form.handleSubmit()` para aplicar validaciones.
+ *     - Redirige si la actualización fue exitosa.
+ *     - Garantiza que no se puedan enviar valores inválidos desde el cliente
+ *       gracias a validaciones en `useProjectForm`.
+ */
   const onSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     const success = await form.handleSubmit();

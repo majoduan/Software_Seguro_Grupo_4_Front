@@ -10,6 +10,19 @@ import BusquedaProyecto from '../components/BusquedaProyecto';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import '../styles/NuevoPOA.css';
 
+/**
+ * Objetivo: Renderizar el formulario para crear un Plan Operativo Anual (POA),
+ * incluyendo la selección y validación del proyecto, configuración de periodos
+ * y manejo de presupuestos asociados.
+ * 
+ * Parámetros: No recibe props; usa hooks internos para manejar estado y navegación.
+ * 
+ * Operación: Utiliza el hook personalizado `usePOAForm` para lógica de negocio,
+ * maneja el envío del formulario con validación y redirige tras éxito.
+ * Controla que sólo se pueda enviar si un proyecto válido y periodos seleccionados existen.
+ * Maneja estados de carga para evitar envíos repetidos.
+ * Centraliza validaciones en el hook para sanitizar y validar datos antes de enviar.
+ */
 
 const CrearPOA: React.FC = () => {
   const navigate = useNavigate();

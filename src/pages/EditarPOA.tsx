@@ -14,10 +14,35 @@ const EditarPOA: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   
-  // Initialize our custom hook for editing
+  /**
+ * Inicialización del formulario de edición de POA
+ *
+ * Objetivo:
+ *     Cargar el formulario con controles y lógica para editar POAs,
+ *     asegurando validaciones de proyecto, periodos y presupuesto asignado.
+ *
+ * Parámetros:
+ *     - isEditing: indica que el formulario opera en modo de edición.
+ */
   const form = usePOAForm({ isEditing: true });
 
   // Submit form handler that performs navigation after successful submission
+  /**
+ * Maneja el envío del formulario de POA
+ *
+ * Objetivo:
+ *     Ejecutar la lógica de actualización del POA con controles activos
+ *     sobre validez de proyecto, periodos seleccionados y presupuesto.
+ *
+ * Parámetros:
+ *     - event: evento de formulario del navegador.
+ *
+ * Operación:
+ *     - Invoca `form.handleSubmit()` que contiene validaciones clave.
+ *     - Redirige al usuario al dashboard si la operación es exitosa.
+ *     - Se impide el envío si no hay proyecto seleccionado o si los periodos
+ *       no cumplen con las condiciones requeridas.
+ */
   const onSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     const success = await form.handleSubmit();

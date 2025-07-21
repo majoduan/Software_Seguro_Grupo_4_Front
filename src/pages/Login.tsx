@@ -29,11 +29,48 @@ const Login = () => {
     const [attemptsRemaining, setAttemptsRemaining] = useState<number>(LOGIN_ATTEMPT_CONFIG.MAX_ATTEMPTS);
     const { login } = useAuth();
 
+    /** 
+ * Sanitización de entradas de usuario
+ *
+ * Objetivo:
+ *     Prevenir ataques XSS u otras formas de inyección limpiando los datos ingresados
+ *     por el usuario antes de almacenarlos en el estado.
+ *
+ * Parámetros:
+ *     - setEmail / setPassword: funciones que almacenan los valores del formulario.
+ *     - 'email' / 'password': identificador del tipo de entrada a sanitizar.
+ *
+ * Operación:
+ *     - Envuelve los setters con `withSanitization` para limpiar los valores antes 
+ * de su uso.
+ *
+ * Retorna:
+ *     - void (actualiza el estado del componente con valores seguros).
+ */
+
     // Versiones sanitizadas de los setters
     const setSanitizedEmail = withSanitization(setEmail, 'email');
     const setSanitizedPassword = withSanitization(setPassword, 'password');
 
-    // Obtener los intentos de login del sessionStorage (más seguro)
+
+    
+/**
+ * Obtener el estado de intentos de login desde sessionStorage
+ *
+ * Objetivo:
+ *     Recuperar los datos de intentos fallidos almacenados en la sesión del navegador
+ *     para controlar bloqueos por fuerza bruta.
+ *
+ * Parámetros:
+ *     - Ninguno directamente.
+ *
+ * Operación:
+ *     - Lee sessionStorage.
+ *     - Si no existe, devuelve un estado inicial limpio.
+ *
+ * Retorna:
+ *     - LoginAttempt: estructura con datos de timestamp, count y bloqueo.
+ */
     const getLoginAttempts = (): LoginAttempt => {
         const stored = sessionStorage.getItem('loginAttempts');
         if (!stored) {
@@ -46,12 +83,40 @@ const Login = () => {
         return JSON.parse(stored);
     };
 
-    // Guardar los intentos de login en sessionStorage (más seguro)
+    /**
+ * Guardar el estado de intentos de login en sessionStorage
+ *
+ * Objetivo:
+ *     Registrar en el almacenamiento temporal el número de intentos fallidos y tiempos 
+ * de bloqueo.
+ *
+ * Parámetros:
+ *     - attempts: objeto LoginAttempt con los datos actualizados.
+ *
+ * Operación:
+ *     - Serializa el objeto y lo almacena en sessionStorage.
+ */
     const saveLoginAttempts = (attempts: LoginAttempt) => {
         sessionStorage.setItem('loginAttempts', JSON.stringify(attempts));
     };
 
-    // Verificar si el usuario está bloqueado
+    /*
+ * Verificar si el usuario se encuentra actualmente bloqueado
+ *
+ * Objetivo:
+ *     Determinar si debe impedirse el login por haberse alcanzado el número máximo de intentos.
+ *
+ * Parámetros:
+ *     - Ninguno.
+ *
+ * Operación:
+ *     - Compara el tiempo actual con `lockedUntil`.
+ *     - Si el bloqueo expiró o la ventana se cerró, reinicia los valores.
+ *
+ * Retorna:
+ *     - boolean: true si el usuario sigue bloqueado, false si puede intentar iniciar sesión.
+ */
+
     const checkIfBlocked = (): boolean => {
         const attempts = getLoginAttempts();
         const now = Date.now();
@@ -94,7 +159,20 @@ const Login = () => {
         return false;
     };
 
-    // Registrar un intento fallido
+    /*
+ * Registrar un intento de login fallido
+ *
+ * Objetivo:
+ *     Aumentar el contador de intentos y aplicar bloqueo si se excede el límite configurado.
+ *
+ * Parámetros:
+ *     - Ninguno.
+ *
+ * Operación:
+ *     - Incrementa `count` y aplica bloqueo si se llega al máximo.
+ *     - Calcula duración progresiva con `progressiveMultiplier`.
+ *
+ */
     const registerFailedAttempt = () => {
         const attempts = getLoginAttempts();
         const now = Date.now();
@@ -130,7 +208,21 @@ const Login = () => {
         }
     };
 
-    // Limpiar los intentos después de un login exitoso
+    /**
+ * Limpiar los intentos de login tras autenticación exitosa
+ *
+ * Objetivo:
+ *     Eliminar rastros de intentos fallidos y resetear el estado.
+ *
+ * Parámetros:
+ *     - Ninguno.
+ *
+ * Operación:
+ *     - Borra la clave 'loginAttempts' de sessionStorage.
+ *     - Restablece el estado local del componente.
+ *
+ */
+
     const clearLoginAttempts = () => {
         sessionStorage.removeItem('loginAttempts');
         setIsBlocked(false);
@@ -138,7 +230,17 @@ const Login = () => {
         setBlockTimeRemaining(0);
     };
 
-    // Actualizar el contador de tiempo de bloqueo
+   /**
+ * Temporizador de cuenta regresiva durante el estado de bloqueo
+ *
+ * Objetivo: Mostrar visualmente el tiempo restante de bloqueo al usuario.
+ *
+ * Parámetros: Ninguno.
+ *
+ * Operación:
+ *     - Ejecuta un intervalo cada segundo para reducir `blockTimeRemaining`.
+ *     - Finaliza el temporizador automáticamente y verifica el estado.
+ */
     const updateBlockTimer = () => {
         if (isBlocked && blockTimeRemaining > 0) {
             const timer = setInterval(() => {

@@ -71,12 +71,34 @@ const AgregarActividad: React.FC = () => {
   const isLoading = proyectoLoading || actividadLoading;
 
   // Función para manejar la selección de proyecto
+  /**
+ * handleSeleccionarProyecto
+ * 
+ * Objetivo: Seleccionar un proyecto y cargar sus POAs sin actividades.
+ * Parámetros:
+ * - proyecto: objeto con información del proyecto seleccionado.
+ * Operación:
+ * - Actualiza el estado del proyecto seleccionado.
+ * - Carga los POAs sin actividades asociadas para el proyecto.
+ * - Maneja correctamente la carga asíncrona para evitar estados inconsistentes.
+ */
   const handleSeleccionarProyecto = async (proyecto: any) => {
     seleccionarProyecto(proyecto);
     await cargarPoasSinActividades(proyecto.id_proyecto);
   };
 
   // Función para guardar tarea en el estado local
+  /**
+ * handleGuardarTarea
+ * 
+ * Objetivo: Guardar una tarea (nueva o editada) en el estado local del POA correspondiente.
+ * Parámetros:
+ * - tareaCompleta: objeto con la información completa de la tarea a guardar.
+ * Operación:
+ * - Actualiza el arreglo de POAs con actividades y tareas, reemplazando o agregando la 
+ * tarea según el modo.
+  * - Mantiene la integridad del estado local.
+ */
   const handleGuardarTarea = (tareaCompleta: any) => {
     setPoasConActividades(prev =>
       prev.map(poa =>
@@ -100,6 +122,19 @@ const AgregarActividad: React.FC = () => {
   };
 
   // Función para eliminar tarea
+  /**
+ * eliminarTarea
+ * 
+ * Objetivo: Eliminar una tarea específica de una actividad dentro de un POA.
+ * Parámetros:
+ * - poaId: ID del POA.
+ * - actividadId: ID de la actividad.
+ * - tareaId: ID temporal (tempId) de la tarea a eliminar.
+ * Operación:
+ * - Filtra la tarea del estado local.
+ * - Muestra mensaje de éxito tras eliminación.
+ * - Evita modificaciones erróneas al estado usando funciones inmutables.
+ */
   const eliminarTarea = (poaId: string, actividadId: string, tareaId: string) => {
     const nuevosPoasConActividades = poasConActividades.map(poa => {
       if (poa.id_poa === poaId) {
@@ -122,6 +157,17 @@ const AgregarActividad: React.FC = () => {
   };
 
   // Función para mostrar modal de tarea
+  /**
+ * handleMostrarModalTarea
+ * 
+ * Objetivo: Mostrar el modal para crear o editar una tarea.
+ * Parámetros:
+ * - poaId, actividadId: identificadores para contextualizar la tarea.
+ * - tarea (opcional): tarea a editar, si aplica.
+ * Operación:
+ * - Busca el POA y actividad correspondiente.
+ * - Carga datos necesarios con cache para optimizar performance.
+ */
   const handleMostrarModalTarea = async (poaId: string, actividadId: string, tarea?: any) => {
     const poa = poasConActividades.find(p => p.id_poa === poaId);
     const actividad = poa?.actividades.find(act => act.actividad_id === actividadId);
@@ -199,6 +245,17 @@ const AgregarActividad: React.FC = () => {
   };
 
   // Función para manejar el envío del formulario
+  /**
+ * handleSubmit
+ * 
+ * Objetivo: Manejar el envío del formulario principal para guardar actividades y tareas.
+ * Parámetros:
+ * - e: evento de envío del formulario.
+ * Operación:
+ * - Valida formulario completo con servicio `ActividadTareaService`.
+ * - Si es válido, muestra modal de confirmación para guardar.
+ * - Previene envíos inválidos.
+ */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -210,6 +267,16 @@ const AgregarActividad: React.FC = () => {
   };
 
   // Función para guardar datos
+  /**
+ * handleGuardarDatos
+ * 
+ * Objetivo: Guardar actividades y tareas definitivamente en backend.
+ * Operación:
+ * - Llama al servicio para guardar los datos.
+ * - Actualiza estados locales según el resultado.
+ * - Muestra feedback visual con modales y notificaciones.
+ * - Maneja errores y estados de carga para evitar datos corruptos o pérdidas.
+ */
   const handleGuardarDatos = async () => {
     const result = await ActividadTareaService.guardarActividades(
       poasConActividades,
