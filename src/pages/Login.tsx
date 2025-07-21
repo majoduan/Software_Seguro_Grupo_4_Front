@@ -33,9 +33,9 @@ const Login = () => {
     const setSanitizedEmail = withSanitization(setEmail, 'email');
     const setSanitizedPassword = withSanitization(setPassword, 'password');
 
-    // Obtener los intentos de login del localStorage
+    // Obtener los intentos de login del sessionStorage (más seguro)
     const getLoginAttempts = (): LoginAttempt => {
-        const stored = localStorage.getItem('loginAttempts');
+        const stored = sessionStorage.getItem('loginAttempts');
         if (!stored) {
             return {
                 timestamp: Date.now(),
@@ -46,9 +46,9 @@ const Login = () => {
         return JSON.parse(stored);
     };
 
-    // Guardar los intentos de login en localStorage
+    // Guardar los intentos de login en sessionStorage (más seguro)
     const saveLoginAttempts = (attempts: LoginAttempt) => {
-        localStorage.setItem('loginAttempts', JSON.stringify(attempts));
+        sessionStorage.setItem('loginAttempts', JSON.stringify(attempts));
     };
 
     // Verificar si el usuario está bloqueado
@@ -132,7 +132,7 @@ const Login = () => {
 
     // Limpiar los intentos después de un login exitoso
     const clearLoginAttempts = () => {
-        localStorage.removeItem('loginAttempts');
+        sessionStorage.removeItem('loginAttempts');
         setIsBlocked(false);
         setAttemptsRemaining(LOGIN_ATTEMPT_CONFIG.MAX_ATTEMPTS);
         setBlockTimeRemaining(0);

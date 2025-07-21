@@ -1,11 +1,19 @@
 import axios from 'axios';
 import { UserRegister, AuthResponse, Rol, PerfilUsuario, Usuario } from '../interfaces/user';
 import { cookieUtils } from '../utils/cookieUtils';
+import { ENV } from '../config/env';
 
-// Configuración base de axios
+// Configuración base de axios con validación de variables de entorno
 export const API = axios.create({
-    baseURL: import.meta.env.VITE_URL_BACKEND,
-    withCredentials: true // 🔧 NUEVO: Para enviar cookies automáticamente
+    baseURL: ENV.BACKEND_URL, // Usar la configuración validada
+    withCredentials: true, // Para enviar cookies automáticamente
+    timeout: 30000, // Timeout de 30 segundos
+    headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        // Headers de seguridad adicionales
+        'X-Requested-With': 'XMLHttpRequest'
+    }
 });
 
     /**

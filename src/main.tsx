@@ -2,6 +2,9 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 
+// Importar validación de variables de entorno ANTES que cualquier otra cosa
+import './config/env';
+
 // import App from './App.tsx'
 // import CrearProyecto from './components/CrearProyecto.tsx';
 // import AgregarPOA from './components/AgregarPOA.tsx';
