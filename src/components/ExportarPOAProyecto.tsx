@@ -32,6 +32,24 @@ interface ActividadConTareasYProgramacion {
   tareas: TareaConProgramacion[];
 }
 
+/**
+ * Componente ExportarPOAProyecto
+ * Objetivo:
+ * - Garantizar la seguridad y confidencialidad de los datos durante la exportación,
+ *   asegurando que la generación y descarga del archivo Excel se realice únicamente en el cliente,
+ *   sin transmisión ni almacenamiento externo de datos sensibles.
+ * 
+ * Parámetros:
+ * - codigoProyecto: string - Código único que identifica el proyecto.
+ * - poas: POA[] - Lista de POAs asociados al proyecto.
+ * 
+ * Operación:
+ * - Gestiona la exportación local en formato Excel de uno o varios POAs,
+ *   incluyendo la carga asíncrona de datos relacionados (actividades, tareas, programación).
+ * - Presenta controles UI para exportar individualmente o todos los POAs,
+ *   mostrando estados de carga y mensajes de éxito/error mediante notificaciones.
+ * 
+ */
 const ExportarPOAProyecto: React.FC<ExportarPOAProyectoProps> = ({
   codigoProyecto,
   poas
@@ -47,6 +65,18 @@ const ExportarPOAProyecto: React.FC<ExportarPOAProyectoProps> = ({
   };
 
   // Función para formatear números correctamente
+  /**
+ * Objetivo:
+ * - Evitar errores y inconsistencias en cálculos y presentación numérica
+ *   garantizando datos numéricos confiables para la generación de archivos.
+ * 
+ * Parámetros:
+ * - numero: any - Valor numérico o cadena a formatear.
+ * 
+ * Operación:
+ * - Convierte valores nulos, vacíos o inválidos a 0.
+ * - Limpia ceros a la izquierda en cadenas y convierte a número flotante.
+ */
   const formatearNumero = (numero: any): number => {
     if (numero === null || numero === undefined || numero === '') return 0;
     
@@ -145,6 +175,21 @@ const ExportarPOAProyecto: React.FC<ExportarPOAProyectoProps> = ({
   };
 
   // Función para obtener datos de un POA específico
+/**
+ * Objetivo:
+ * - Recuperar de forma segura y consistente todos los datos necesarios para la exportación del POA,
+ *   minimizando riesgos de datos incompletos y garantizando integridad en la información.
+ * 
+ * Parámetros:
+ * - poa: POA - Objeto POA del cual se extraen actividades, tareas y programación.
+ * 
+ * Operación:
+ * - Obtiene actividades ordenadas según configuración.
+ * - Para cada actividad, obtiene tareas y programación mensual.
+ * - Maneja errores recuperando al menos el código presupuestario cuando sea posible.
+ * 
+ 
+ */
   const obtenerDatosPOA = async (poa: POA): Promise<ActividadConTareasYProgramacion[]> => {
     try {
       // 1. Obtener actividades del POA
@@ -508,6 +553,20 @@ const ExportarPOAProyecto: React.FC<ExportarPOAProyectoProps> = ({
   };
 
   // Función para descargar el archivo Excel
+  /**
+ * Objetivo:
+ * - Permitir la descarga segura del archivo generado únicamente en el entorno cliente,
+ *   evitando exposiciones o filtraciones de datos sensibles a terceros.
+ * 
+ * Parámetros:
+ * - workbook: ExcelJS.Workbook - Libro de Excel generado.
+ * - nombreArchivo: string - Nombre para el archivo a descargar.
+ * 
+ * Operación:
+ * - Convierte el libro a buffer, crea un blob y dispara descarga local segura.
+ * - Notifica éxito o error mediante mensajes toast.
+ * 
+ */
   const descargarArchivo = async (workbook: ExcelJS.Workbook, nombreArchivo: string) => {
     try {
       const buffer = await workbook.xlsx.writeBuffer();
@@ -531,6 +590,20 @@ const ExportarPOAProyecto: React.FC<ExportarPOAProyectoProps> = ({
   };
 
   // Función para exportar un POA específico
+  /**
+ * Objetivo:
+ * - Facilitar la exportación segura y confiable de un solo POA,
+ *   asegurando que la operación y almacenamiento sean exclusivamente locales.
+ * 
+ * Parámetros:
+ * - poa: POA - POA específico a exportar.
+ * 
+ * Operación:
+ * - Obtiene datos completos del POA y genera el archivo Excel.
+ * - Llama a la función descargarArchivo para iniciar la descarga local.
+ * - Controla estado de carga y manejo de errores.
+ * 
+ */
   const exportarPOA = async (poa: POA) => {
     try {
       setLoading(true);
@@ -558,6 +631,20 @@ const ExportarPOAProyecto: React.FC<ExportarPOAProyectoProps> = ({
   };
 
   // Función para exportar todos los POAs
+  /**
+ * Objetivo:
+ * - Permitir la exportación segura de todos los POAs asociados al proyecto,
+ *   manteniendo privacidad y seguridad de la información durante el proceso.
+ * 
+ * Parámetros:
+ * - Ninguno.
+ * 
+ * Operación:
+ * - Itera sobre todos los POAs del proyecto, obtiene datos y genera un libro Excel con una hoja por POA.
+ * - Descarga local segura del archivo generado.
+ * - Controla estado de carga y manejo de errores.
+ * 
+ */
   const exportarTodosPOAs = async () => {
     try {
       setLoading(true);

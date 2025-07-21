@@ -20,6 +20,37 @@ interface PeriodoSelectorProps {
   isEditing?: boolean;
 }
 
+/**
+ * Componente PeriodoSelector
+ *  Objetivo:
+ * - Facilitar una selección controlada y segura de periodos por parte del usuario.
+ * - Prevenir duplicación de datos y garantizar la consistencia de las operaciones mediante
+ *  validaciones visuales y lógicas.
+ * - Minimizar errores del usuario y asegurar la integridad del presupuesto mediante indicaciones 
+ * visuales del total y del remanente.
+ * 
+ * Parámetros:
+ * - periodosCalculados: Periodo[] – Periodos existentes en el sistema que pueden ser seleccionados.
+ * - periodosSeleccionados: Periodo[] – Periodos actualmente seleccionados por el usuario.
+ * - seleccionarPeriodo: función para agregar un periodo a la lista seleccionada.
+ * - quitarPeriodo: función para eliminar un periodo seleccionado.
+ * - showCrearPeriodo: controla la visibilidad del modal para crear un nuevo periodo.
+ * - setShowCrearPeriodo: función que actualiza el estado de visibilidad del modal.
+ * - nuevoPeriodo: objeto con los datos del nuevo periodo a crear.
+ * - handleChangePeriodo: función para manejar los cambios en los campos del nuevo periodo.
+ * - handleGuardarPeriodo: función para guardar el nuevo periodo creado.
+ * - handleAbrirModalPeriodo: función para abrir el modal de creación de periodo.
+ * - presupuestoTotalAsignado: número que representa el presupuesto total asignado.
+ * - presupuestoRestante: número que representa el presupuesto aún disponible.
+ * - isEditing: booleano opcional que define si el componente se utiliza en modo edición.
+ * 
+ * Operación:
+ * - Permite seleccionar y quitar periodos dentro de un proyecto, asegurando que no se repitan.
+ * - Los datos mostrados son renderizados de forma condicional para evitar operaciones 
+ * innecesarias si no hay datos disponibles.
+ * 
+ */
+
 export const PeriodoSelector: React.FC<PeriodoSelectorProps> = ({
   periodosCalculados,
   periodosSeleccionados,

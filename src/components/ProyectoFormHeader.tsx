@@ -9,6 +9,30 @@ interface ProyectoFormHeaderProps {
   proyectoSeleccionado?: Proyecto | null;
 }
 
+/**
+ * Componente ProyectoFormHeader
+ * Objetivo:
+ * - Proveer un encabezado dinámico y claro para el formulario de creación/edición de proyectos.
+ * - Mostrar información contextual relevante para ayudar al usuario a identificar el tipo y estado del proyecto.
+ 
+ * Parámetros:
+ * - tipoProyecto: TipoProyecto | null – Tipo de proyecto seleccionado que incluye el nombre y 
+ * duración máxima permitida.
+ * - error: string | null – Mensaje de error a mostrar si ocurre un fallo en la operación o validación.
+ * - isEditing: boolean (opcional) – Indica si el formulario está en modo edición.
+ * - proyectoSeleccionado: Proyecto | null (opcional) – Objeto del proyecto que se desea editar, si aplica.
+ *
+ * Operación:
+ * - Determina el estilo del encabezado (`headerClass`) según si se está creando o editando un proyecto.
+ * - Muestra el título del formulario ("Nuevo Proyecto" o "Editar Proyecto").
+ * - Si existe `tipoProyecto`, se muestra su nombre y la duración máxima (si está disponible).
+ * - En modo edición:
+ *   - Si hay un `proyectoSeleccionado`, se muestra su código y título.
+ *   - Si no hay selección aún, se indica que debe seleccionarse un proyecto.
+ * - Si existe un error, se muestra en una alerta destacada.
+ *
+ */
+
 export const ProyectoFormHeader: React.FC<ProyectoFormHeaderProps> = ({ 
   tipoProyecto, 
   error, 

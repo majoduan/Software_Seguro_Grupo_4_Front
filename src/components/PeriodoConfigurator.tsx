@@ -16,6 +16,33 @@ interface PeriodoConfiguratorProps {
   presupuestoError: string | null;
 }
 
+/**
+ * Componente PeriodoConfigurator
+ *  Objetivo:
+ * - Garantizar que los datos ingresados por el usuario cumplan con reglas mínimas de integridad,
+ *   evitando entradas maliciosas o erróneas que puedan comprometer la lógica o persistencia de datos.
+ * - Prevenir errores que puedan afectar el backend, mediante validaciones tempranas en el frontend.
+ * 
+ * Parámetros:
+ * - periodosSeleccionados: Periodo[] – Lista de periodos disponibles para configurar.
+ * - periodoActual: number – Índice del periodo actualmente seleccionado.
+ * - setPeriodoActual: función para cambiar el periodo activo.
+ * - presupuestoPorPeriodo, codigoPorPeriodo, anioPorPeriodo: objetos que gestionan el valor de los 
+ * campos por periodo.
+ * - anioPorPeriodoError: errores de validación asociados a los años ingresados.
+ * - setCodigoPorPeriodo, setAnioPorPeriodo: funciones para actualizar los datos del estado.
+ * - handlePresupuestoChange: función manejadora para cambios de presupuesto.
+ * - presupuestoError: mensaje de error si el presupuesto es inválido.
+ * 
+ * Operación:
+ * - Renderiza formularios dinámicos para cada periodo seleccionado con campos obligatorios.
+ * - Valida que el año ingresado sea positivo y numérico.
+ * - Valida que el presupuesto tenga un formato correcto.
+ * - Muestra mensajes de error en caso de entradas inválidas, reforzando la validación de entrada.
+ * 
+
+ */
+
 export const PeriodoConfigurator: React.FC<PeriodoConfiguratorProps> = ({
   periodosSeleccionados,
   periodoActual,

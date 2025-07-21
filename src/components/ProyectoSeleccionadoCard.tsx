@@ -9,6 +9,21 @@ interface ProyectoSeleccionadoCardProps {
   periodosCalculados: Periodo[];
 }
 
+/**
+ * Componente ProyectoSeleccionadoCard
+ * Objetivo:
+ * - Presentar datos del proyecto de manera clara y legible sin exponerlos a manipulaciones indebidas
+ * 
+ * Parámetros:
+ * - proyectoSeleccionado: Proyecto – Objeto que contiene los datos del proyecto a visualizar.
+ * - periodosCalculados: Periodo[] – Lista de periodos derivados del proyecto.
+ * 
+ * Operación:
+ * - Se accede y muestra información sensible del proyecto como código, título, fechas y presupuesto.
+ * - Se convierte el presupuesto a string y se formatea usando `toLocaleString`, lo que implica 
+ * transformación de datos antes de renderizar.
+ */
+
 const ProyectoSeleccionadoCard: React.FC<ProyectoSeleccionadoCardProps> = ({ 
   proyectoSeleccionado, 
   periodosCalculados 

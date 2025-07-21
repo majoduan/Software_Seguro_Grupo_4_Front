@@ -35,6 +35,15 @@ const VerPOA: React.FC<VerPOAProps> = ({ poa }) => {
   ];
 
   // Función para formatear números correctamente
+/*
+ * Objetivo: Asegurar la integridad de los cálculos financieros evitando errores de tipo,
+ *           conversión incorrecta o datos malformateados provenientes del backend o inputs.
+ * Parámetros: `numero` - valor numérico o cadena representando un número.
+ * Operación: Intenta convertir el valor recibido a tipo `number`, utilizando `parseFloat`
+ *            y retornando 0 en caso de que el resultado no sea un número válido (`NaN`).
+ * 
+ */
+
   const formatearNumero = (numero: any): number => {
     if (numero === null || numero === undefined || numero === '') return 0;
     
@@ -52,6 +61,14 @@ const VerPOA: React.FC<VerPOAProps> = ({ poa }) => {
   };
 
   // Función para mostrar números con formato de moneda
+/*
+ * Objetivo: Presentar información financiera de forma clara y segura, previniendo errores
+ *           de interpretación o inyección visual de datos incorrectos.
+ * Parámetros: `numero` (valor numérico o cadena numérica a formatear).
+ * Operación: Sanitiza el valor usando `formatearNumero` y lo convierte en una representación
+ *            de cadena con formato de moneda, respetando la localización.
+ * 
+ */
   const formatearMoneda = (numero: any): string => {
     const num = formatearNumero(numero);
     return num.toLocaleString('es-ES', {
@@ -61,6 +78,13 @@ const VerPOA: React.FC<VerPOAProps> = ({ poa }) => {
   };
 
   // Función para obtener el item presupuestario de una tarea usando el nuevo endpoint
+  /*
+* Objetivo: Recuperar de forma segura y controlada los ítems presupuestarios asociados a cada tarea.
+ 
+ * Parámetros: `idTarea` (identificador único de una tarea registrada en el sistema).
+ * Operación: Realiza una petición asíncrona al servicio de actividades (`ActividadTareaService`)
+ *            para obtener información del ítem presupuestario vinculado a la tarea específica.
+ */
   const obtenerItemPresupuestarioDeTarea = async (idTarea: string): Promise<{ codigo: string; itemPresupuestario?: ItemPresupuestario }> => {
     try {
       const itemPresupuestario = await tareaAPI.getItemPresupuestarioDeTarea(idTarea);
@@ -200,6 +224,13 @@ const VerPOA: React.FC<VerPOAProps> = ({ poa }) => {
   };
 
   // Función simplificada para obtener el código del item presupuestario
+/*Objetivo: Permitir la visualización controlada de códigos presupuestarios ya validados,
+ *           evitando redundancia de llamadas al backend y mejorando el rendimiento.
+ 
+ * Parámetros: `tarea` (objeto de tipo `TareaConProgramacion`, conteniendo metainformación de la tarea).
+ * Operación: Accede al mapa `itemsPresupuestariosMap` para obtener el código del ítem presupuestario
+ *            previamente cargado, en base al ID único de la tarea.
+ * */
   const obtenerCodigoItemPresupuestario = (tarea: TareaConProgramacion): string => {
     // Usar el código obtenido del nuevo endpoint
     return tarea.codigo_item || 'N/A';

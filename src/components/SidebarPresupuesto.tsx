@@ -11,6 +11,29 @@ interface SidebarPresupuestoProps {
   setShowActividades: (show: boolean) => void;
 }
 
+/**
+ * SidebarPresupuesto
+ *
+ * Componente visual que muestra el estado presupuestario de un POA, incluyendo montos asignados, planificados, 
+ * saldos disponibles y uso porcentual del presupuesto. Incluye también alertas en caso de exceso de gasto o bajo saldo.
+ *
+ * Objetivo:
+ * - Garantizar una presentación clara, precisa y segura del presupuesto sin permitir modificación directa desde la interfaz.
+ * - Brindar información financiera sensible solo de forma visual y de lectura, evitando exposición innecesaria.
+ * 
+ * Parámetros:
+ * - poasConActividades: POAConActividadesYTareas[] – Lista de POAs con sus respectivas actividades y tareas.
+ * - activePoaTab: string – ID del POA actualmente seleccionado.
+ * - calcularTotalActividad: number – Función que calcula el total de presupuesto planificado para una actividad.
+ * - showActividades: boolean – Control de visibilidad del listado de actividades.
+ * - setShowActividades:  void – Función para mostrar u ocultar actividades.
+ *
+ * Operación:
+ * - Muestra datos presupuestarios del POA activo, usando lógica para calcular saldos y porcentajes.
+ * - Invoca servicios controlados (`ActividadTareaService.getDescripcionActividad`) para obtener descripciones sin exponer datos directamente.
+ * - Muestra alertas condicionales que permiten advertir visualmente al usuario sobre estados financieros críticos (presupuesto excedido o bajo saldo).
+ */
+
 const SidebarPresupuesto: React.FC<SidebarPresupuestoProps> = ({
   poasConActividades,
   activePoaTab,

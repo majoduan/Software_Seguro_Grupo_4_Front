@@ -7,6 +7,21 @@ interface InformacionProyectoProps {
   cantidadPoas: number;
 }
 
+/**
+ * Componente InformacionProyecto
+ * Objetivo:
+ * - Brindar una visualización clara y segura al usuario de los datos relevantes del proyecto,
+ *   sin exponer información sensible ni permitir modificaciones.
+ * 
+ * Parámetros:
+ * - proyecto: Proyecto - Objeto que contiene la información detallada del proyecto seleccionado.
+ * - cantidadPoas: number - Número total de POAs asociados al proyecto.
+ * 
+ * Operación:
+ * - Muestra la información principal del proyecto, como código, título, fechas de inicio y fin,
+ *   presupuesto aprobado y cantidad de POAs vinculados.
+ * 
+ */
 const InformacionProyecto: React.FC<InformacionProyectoProps> = ({ proyecto, cantidadPoas }) => {
   return (
     <Row className="mb-4">
