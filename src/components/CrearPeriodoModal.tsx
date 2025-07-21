@@ -19,6 +19,22 @@ const CrearPeriodoModal: React.FC<PeriodoModalProps> = ({
   onSave
 }) => {
   // Handler sanitizado para campos de texto
+  /**
+ * Objetivo:Prevenir inyecciones de código y asegurar que los datos ingresados por el usuario en los campos 
+ * de texto sean seguros antes de enviarlos al backend.
+ *
+ * Parámetros:
+ * React.ChangeEvent<HTMLInputElement> - Evento de cambio del campo de entrada, generado por el usuario.
+ *
+ * Operación:
+ * - Utiliza la función `sanitizeInput` para limpiar el valor ingresado y eliminar cualquier carácter 
+ *  potencialmente malicioso como etiquetas HTML o scripts.Elimina o escapa caracteres peligrosos como 
+ * `<`, `>`, `"`, `'`, `&`, y otros usados en scripts.
+ * - Se emplea antes de que el valor sea propagado al estado del componente o al backend.
+ * - Protege al sistema de posibles vectores de ejecución de código malicioso en tiempo de ejecución o al renderizar HTML.
+ * -Llama al callback `onChange` pasando este evento limpio, asegurando que el estado del formulario se actualice con datos validados.
+ */
+
   const handleSanitizedChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     const sanitizedValue = sanitizeInput(value);

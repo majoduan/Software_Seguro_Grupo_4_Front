@@ -14,6 +14,41 @@ interface BusquedaProyectoProps {
   modoEdicion?: boolean; // Nueva prop para determinar si es modo edición
 }
 
+/**
+ * Componente BusquedaProyecto
+ * Objetivo: Proveer una interfaz segura y controlada para buscar, visualizar y seleccionar proyectos.
+ * Incorpora prácticas de seguridad frontend como sanitización de entradas, control de validaciones asíncronas y 
+ * restricciones visuales de interacción para evitar manipulaciones de datos no autorizadas.
+ * 
+ * Parámetros:
+ * - proyectos: Proyecto[] -  Lista de proyectos disponibles. Es la fuente de datos para las búsquedas.
+ * 
+ * - isLoading: boolean -  Indica si la información aún se está cargando, lo cual evita interacciones prematuras.
+ * 
+ * - seleccionarProyecto: función -   Callback que se invoca cuando el usuario selecciona un proyecto válido.
+ * 
+ * - validarProyecto?: función -  Función asíncrona de validación que comprueba si el proyecto cumple condiciones de uso.
+ *   Se utiliza para asegurar que no se seleccione un proyecto no autorizado o inválido.
+ * 
+ * - mostrarValidacion?: boolean - controla si debe mostrarse el estado de validación visual.
+ * 
+ * - modoEdicion?: boolean -  Determina si el componente se utiliza para seleccionar un proyecto para editar.
+ * 
+ * Operación:
+ * - Sanitiza la entrada de búsqueda usando `withSanitization()` para prevenir inyecciones o entradas corruptas.
+ * - Filtra dinámicamente los proyectos por coincidencias en código o título, usando texto en minúscula y `trim()`.
+ * - Valida de manera asíncrona los proyectos filtrados mediante `validarProyecto` y muestra el resultado como una etiqueta visual.
+ * - En caso de error en la validación, permite la selección como fallback seguro (manejo de error controlado).
+ * - Desactiva visualmente las filas de proyectos inválidos (baja opacidad, cursor `not-allowed`) para evitar clics accidentales 
+ *   o maliciosos.
+ * - Impide explícitamente la selección de proyectos inválidos desde `manejarSeleccionProyecto`, como control adicional.
+ * 
+ * Retorna:
+ * - Renderiza un campo de búsqueda de proyectos y una lista filtrada de resultados con validación visual y controlada.
+ * - Garantiza que solo se pueda seleccionar un proyecto válido (según la validación), evitando manipulaciones inseguras.
+ */
+
+
 const BusquedaProyecto: React.FC<BusquedaProyectoProps> = ({
   proyectos,
   isLoading,

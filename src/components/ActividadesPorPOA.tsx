@@ -3,6 +3,38 @@ import { Card, Button } from 'react-bootstrap';
 import { POAConActividadesYTareas } from '../interfaces/actividad';
 import { ActividadTareaService } from '../services/actividadTareaService';
 
+/**
+ * Objetivo: Renderizar y gestionar dinámicamente las actividades y sus tareas 
+ * asociadas a un POA (Plan Operativo Anual).
+ * Incluye validaciones visuales y restricciones para asegurar que los datos financieros sean coherentes
+ *  y evitar manipulaciones erróneas desde la interfaz.
+ * 
+ * Parámetros:
+ * - poa: POAConActividadesYTareas - Objeto que contiene las actividades y tareas asociadas a un POA específico.
+ * 
+ * - onMostrarModalTarea: función - Callback que gestiona la visualización del modal para crear o editar tareas.
+ * 
+ * - onEliminarTarea: función -  Callback que permite eliminar una tarea específica, recibe los identificadores necesarios.
+ * 
+ * - onToggleTareaExpansion: función -  Permite expandir o contraer visualmente la sección de gastos mensuales por tarea.
+ * 
+ * - calcularTotalActividad: función -  Calcula el total económico asociado a una actividad completa, usado como referencia de validación.
+ * 
+ * - poasConActividades: POAConActividadesYTareas[] -  Lista global de POAs usada como fuente de datos para la descripción de actividades y validaciones cruzadas.
+ * 
+ * Operación:
+ * - Se itera sobre cada actividad del POA y se muestran sus tareas.
+ * - Las tareas pueden tener secciones expandibles con distribución mensual de gastos.
+ * - Se valida que el total de gastos mensuales no exceda el total asignado a la tarea.
+ * - Se previene mostrar valores numéricos inválidos o inconsistentes al usuario.
+ * - Se protege visualmente el flujo evitando entradas nulas, indefinidas o malformadas mediante condiciones 
+ *   y transformaciones seguras (`formatCurrency`, validación de `isNaN`, etc.).
+ * 
+ * Retorna:
+ * - Renderiza una lista de tarjetas que representan las actividades con sus tareas y controles de edición,
+ *  eliminación y validación visual.
+ */
+
 interface ActividadesPorPOAProps {
   poa: POAConActividadesYTareas;
   onMostrarModalTarea: (poaId: string, actividadId: string, tarea?: any) => void;
