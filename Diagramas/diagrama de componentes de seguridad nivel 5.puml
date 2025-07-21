@@ -1,0 +1,184 @@
+@startuml diagrama-componentes-seguridad
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+title Componentes de Seguridad - Vista Detallada
+
+Person(attacker, "Atacante", "Posibles amenazas externas")
+Person(user, "Usuario Legítimo", "Usuarios autenticados")
+
+Container_Boundary(security_boundary, "Capas de Seguridad") {
+    Component(edge_security, "Edge Security", "Vercel/Render", "HTTPS, DDoS protection, WAF")
+    Component(cors_middleware, "CORS Middleware", "FastAPI CORS", "Control origen requests")
+    Component(auth_middleware, "Auth Middleware", "JWT Middleware", "Validación tokens en cada request")
+    
+    ' Seguridad de Entrada
+    Component(sanitizer_fe, "Sanitizador Frontend", "DOMPurify", "XSS prevention en cliente")
+    Component(validator_be, "Validador Backend", "Pydantic", "Validación server-side")
+    Component(sql_protection, "Protección SQL", "SQLAlchemy ORM", "Prevención SQL injection")
+    
+    ' Seguridad de Autenticación
+    Component(jwt_handler, "JWT Handler", "jose + cryptography", "Tokens seguros con expiración")
+    Component(password_handler, "Password Handler", "bcrypt", "Hash seguro de contraseñas")
+    Component(role_enforcer, "Role Enforcer", "RBAC", "Control acceso basado en roles")
+    
+    ' Seguridad de Sesión
+    Component(cookie_manager, "Cookie Manager", "HTTP-Only Cookies", "Almacenamiento seguro de tokens")
+    Component(session_validator, "Session Validator", "Token Verification", "Validación automática de sesiones")
+    Component(auto_logout, "Auto Logout", "Session Timeout", "Cierre automático por inactividad")
+    
+    ' Seguridad de Datos
+    Component(ssl_encryption, "SSL/TLS", "Database SSL", "Cifrado en tránsito")
+    Component(env_secrets, "Secrets Manager", "Environment Variables", "Gestión segura de secretos")
+    Component(audit_logger, "Audit Logger", "Event Logging", "Registro de eventos de seguridad")
+    
+    ' Security Headers
+    Component(csp_header, "CSP", "Content Security Policy", "Prevención XSS avanzada")
+    Component(frame_protection, "Frame Protection", "X-Frame-Options", "Prevención clickjacking")
+    Component(content_protection, "Content Protection", "X-Content-Type-Options", "Prevención MIME sniffing")
+    Component(hsts_header, "HSTS", "Strict Transport Security", "Forzar HTTPS")
+}
+
+' Relaciones de entrada - Amenazas vs Usuarios legítimos
+Rel(attacker, edge_security, "Ataque", "HTTPS requests")
+Rel(user, edge_security, "Acceso legítimo", "HTTPS")
+
+' Flujo principal de seguridad - Entrada
+Rel(edge_security, cors_middleware, "Filtra origen", "CORS check")
+Rel(cors_middleware, auth_middleware, "Valida autenticación", "JWT check")
+
+' Flujo de validación de entrada
+Rel(auth_middleware, sanitizer_fe, "Input del cliente", "Sanitized data")
+Rel(sanitizer_fe, validator_be, "Validación servidor", "Pydantic validation")
+Rel(validator_be, sql_protection, "Query segura", "ORM queries")
+
+' Flujo de autenticación
+Rel(auth_middleware, jwt_handler, "Verifica token", "Token validation")
+Rel(jwt_handler, password_handler, "Valida credenciales", "bcrypt verify")
+Rel(password_handler, role_enforcer, "Autoriza acceso", "Role check")
+
+' Flujo de gestión de sesión
+Rel(role_enforcer, cookie_manager, "Gestiona sesión", "Set cookies")
+Rel(cookie_manager, session_validator, "Valida sesión", "Session check")
+Rel(session_validator, auto_logout, "Controla timeout", "Auto logout")
+
+' Flujo de seguridad de datos
+Rel(sql_protection, ssl_encryption, "Conecta BD", "SSL connection")
+Rel(ssl_encryption, env_secrets, "Usa secretos", "Environment vars")
+Rel(env_secrets, audit_logger, "Registra eventos", "Security logs")
+
+' Flujo de security headers
+Rel(auth_middleware, csp_header, "Aplica headers", "Security headers")
+Rel(csp_header, frame_protection, "Header pipeline", "HTTP headers")
+Rel(frame_protection, content_protection, "Header pipeline", "HTTP headers")
+Rel(content_protection, hsts_header, "Header pipeline", "HTTP headers")
+
+' Relaciones cruzadas - Integraciones de seguridad
+Rel(jwt_handler, cookie_manager, "Almacena tokens", "Secure cookies")
+Rel(role_enforcer, session_validator, "Valida permisos", "Role verification")
+Rel(validator_be, audit_logger, "Registra validaciones", "Security events")
+Rel(cors_middleware, csp_header, "Coordina headers", "Security policy")
+
+' Relaciones de monitoreo y auditoría
+Rel(auth_middleware, audit_logger, "Log auth events", "Authentication logs")
+Rel(auto_logout, audit_logger, "Log logout events", "Session logs")
+Rel(ssl_encryption, audit_logger, "Log DB connections", "Connection logs")
+
+' Agrupaciones visuales usando notas
+note top of sanitizer_fe : SEGURIDAD DE ENTRADA
+note top of jwt_handler : SEGURIDAD DE AUTENTICACIÓN
+note top of cookie_manager : SEGURIDAD DE SESIÓN
+note top of ssl_encryption : SEGURIDAD DE DATOS
+note top of csp_header : SECURITY HEADERS
+
+SHOW_LEGEND()
+@enduml@startuml diagrama-componentes-backend
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+title Backend FastAPI - Diagrama de Componentes
+
+Container(frontend, "Frontend React", "React App", "Aplicación web cliente")
+Container(database, "PostgreSQL", "Database", "Base de datos principal")
+System_Ext(excel_system, "Sistema Excel", "Archivos Excel")
+
+Container_Boundary(backend_boundary, "API Backend FastAPI") {
+    Component(main_app, "main.py", "FastAPI App", "Aplicación principal con endpoints REST")
+    Component(auth_module, "auth.py", "Auth Module", "JWT, bcrypt, verificación de tokens")
+    Component(middlewares, "middlewares.py", "Middleware", "CORS, Security Headers, Rate Limiting")
+    
+    ' Capa de Datos
+    Component(models, "models.py", "SQLAlchemy Models", "Usuario, Proyecto, POA, Actividad, Tarea")
+    Component(schemas, "schemas.py", "Pydantic Schemas", "Validación y serialización de datos")
+    Component(database_config, "database.py", "DB Config", "Conexión async PostgreSQL + SSL")
+    
+    ' Lógica de Negocio - Endpoints
+    Component(project_endpoints, "Endpoints Proyectos", "FastAPI Routes", "/proyectos/* - CRUD proyectos")
+    Component(poa_endpoints, "Endpoints POAs", "FastAPI Routes", "/poas/* - CRUD POAs")
+    Component(activity_endpoints, "Endpoints Actividades", "FastAPI Routes", "/actividades/* - CRUD actividades")
+    Component(user_endpoints, "Endpoints Usuarios", "FastAPI Routes", "/usuarios/* - gestión usuarios")
+    Component(report_endpoints, "Endpoints Reportes", "FastAPI Routes", "/reportes/* - generación reportes")
+    Component(excel_processor, "Procesador Excel", "Pandas + openpyxl", "transformador_excel.py")
+    
+    ' Capa de Seguridad
+    Component(role_validator, "Validador Roles", "Dependency", "Verificación permisos por endpoint")
+    Component(token_manager, "Gestor Tokens", "JWT Handler", "Creación, cifrado y validación JWT")
+    Component(input_validator, "Validador Inputs", "Pydantic", "Sanitización server-side")
+    
+    ' Inicialización de Datos
+    Component(init_data, "init_data.py", "Data Seeder", "Roles, permisos, usuarios iniciales")
+    Component(seed_script, "seed_all_data()", "Startup Script", "Población automática de BD")
+}
+
+' Relaciones de entrada y procesamiento de requests
+Rel(frontend, middlewares, "HTTP Requests", "HTTPS + CORS")
+Rel(middlewares, main_app, "Procesa requests", "Security headers")
+Rel(main_app, auth_module, "Autenticación", "JWT validation")
+
+' Relaciones de enrutamiento desde main_app
+Rel(main_app, project_endpoints, "Enruta", "/proyectos/*")
+Rel(main_app, poa_endpoints, "Enruta", "/poas/*")
+Rel(main_app, activity_endpoints, "Enruta", "/actividades/*")
+Rel(main_app, user_endpoints, "Enruta", "/usuarios/*")
+Rel(main_app, report_endpoints, "Enruta", "/reportes/*")
+
+' Relaciones de seguridad
+Rel(project_endpoints, role_validator, "Verifica permisos", "hasRole()")
+Rel(poa_endpoints, token_manager, "Valida token", "verify_token()")
+Rel(activity_endpoints, input_validator, "Valida inputs", "Pydantic")
+Rel(user_endpoints, role_validator, "Verifica permisos", "hasRole()")
+Rel(report_endpoints, token_manager, "Valida token", "verify_token()")
+
+' Relaciones con capa de datos
+Rel(project_endpoints, models, "ORM queries", "SQLAlchemy async")
+Rel(poa_endpoints, models, "ORM queries", "SQLAlchemy async")
+Rel(activity_endpoints, models, "ORM queries", "SQLAlchemy async")
+Rel(user_endpoints, models, "ORM queries", "SQLAlchemy async")
+Rel(report_endpoints, schemas, "Serializa", "Pydantic models")
+
+' Relaciones de configuración de base de datos
+Rel(models, database_config, "Conecta BD", "AsyncSession")
+Rel(schemas, database_config, "Usa conexión", "AsyncSession")
+Rel(database_config, database, "SQL queries", "PostgreSQL SSL")
+
+' Relaciones con procesamiento Excel
+Rel(excel_processor, excel_system, "Lee/Escribe", "File I/O")
+Rel(report_endpoints, excel_processor, "Genera reportes", "Excel export")
+Rel(main_app, excel_processor, "Procesa uploads", "File processing")
+
+' Relaciones de inicialización
+Rel(seed_script, init_data, "Ejecuta seeding", "startup")
+Rel(init_data, models, "Inserta datos", "bulk insert")
+Rel(seed_script, database_config, "Usa conexión", "AsyncSession")
+
+' Relaciones entre componentes de seguridad
+Rel(auth_module, token_manager, "Usa gestor", "JWT operations")
+Rel(auth_module, role_validator, "Valida roles", "Role checking")
+Rel(middlewares, input_validator, "Pre-validación", "Request validation")
+
+' Agrupaciones visuales usando notas
+note top of models : CAPA DE DATOS
+note top of project_endpoints : LÓGICA DE NEGOCIO
+note top of role_validator : CAPA DE SEGURIDAD  
+note top of init_data : INICIALIZACIÓN
+
+SHOW_LEGEND()
+@enduml

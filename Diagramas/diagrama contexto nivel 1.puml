@@ -1,0 +1,25 @@
+@startuml diagrama-contexto
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+title Sistema de Gestión de POAs (SGP) - Diagrama de Contexto
+
+Person(admin, "Administrador", "Gestiona usuarios, proyectos, POAs y genera reportes")
+Person(dir_inv, "Director de Investigación", "Crea y edita proyectos, POAs y actividades")
+Person(dir_ref, "Director de Reformas", "Supervisa proyectos y genera reportes")
+Person(dir_proy, "Director de Proyecto", "Consulta proyectos asignados")
+
+System(sgp, "Sistema de Gestión de POAs", "Plataforma web para gestión de Planes Operativos Anuales, proyectos y actividades académicas")
+
+System_Ext(excel, "Archivos Excel", "Exportación de POAs y reportes")
+System_Ext(browser, "Navegador Web", "Interfaz de acceso al sistema")
+
+Rel(admin, sgp, "Gestiona sistema", "HTTPS")
+Rel(dir_inv, sgp, "Crea contenido", "HTTPS")
+Rel(dir_ref, sgp, "Supervisa y reporta", "HTTPS")
+Rel(dir_proy, sgp, "Consulta información", "HTTPS")
+
+Rel(sgp, excel, "Exporta", "File Download")
+Rel_Back(browser, sgp, "Accede via", "HTTPS/WSS")
+
+SHOW_LEGEND()
+@enduml

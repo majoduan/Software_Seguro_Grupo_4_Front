@@ -1,0 +1,33 @@
+@startuml diagrama-contenedores
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+title Sistema de Gestión de POAs (SGP) - Diagrama de Contenedores
+
+Person(usuarios, "Usuarios del Sistema", "Administradores, Directores")
+
+System_Boundary(sgp_boundary, "Sistema SGP") {
+    Container(web_app, "Aplicación Web Frontend", "React 18 + TypeScript", "Interfaz de usuario responsiva con autenticación y control de roles")
+    Container(api_app, "API Backend", "FastAPI + Python 3.11", "API REST con autenticación JWT, validación y lógica de negocio")
+    Container(database, "Base de Datos", "PostgreSQL 15", "Almacena usuarios, proyectos, POAs, actividades y configuraciones")
+}
+
+System_Boundary(cloud_services, "Servicios Cloud") {
+    Container(cdn, "CDN Vercel", "Vercel Edge Network", "Distribución global y optimización de assets")
+    Container(app_host, "App Hosting", "Render Cloud", "Hosting y escalamiento automático")
+    Container(db_host, "Database Hosting", "Neon Cloud", "PostgreSQL gestionado con SSL")
+}
+
+System_Ext(excel_files, "Archivos Excel", "POAs y reportes")
+
+Rel(usuarios, web_app, "Interactúa", "HTTPS/443")
+Rel(web_app, api_app, "Consume API", "HTTPS/443 + CORS")
+Rel(api_app, database, "Lee/Escribe", "PostgreSQL SSL/5432")
+
+Rel(web_app, cdn, "Servido desde", "HTTPS")
+Rel(api_app, app_host, "Ejecuta en", "Docker")
+Rel(database, db_host, "Alojado en", "PostgreSQL SSL")
+
+Rel(web_app, excel_files, "Procesa", "File Download")
+
+SHOW_LEGEND()
+@enduml
