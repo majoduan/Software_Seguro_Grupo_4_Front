@@ -3,7 +3,10 @@ import { getActividadesPorTipoPOA } from './listaActividades';
 import { Actividad } from '../interfaces/actividad';
 
 /**
- * Función para extraer el número de actividad del formato "(1) Descripción"
+ * Extrae número de actividad desde descripción
+ * objetivo: Obtener número de formato "(X) Descripción"
+ * parametros: descripcionActividad: Texto con formato especial
+ * operacion: Usa regex para extraer número entre paréntesis
  */
 const extraerNumeroActividad = (descripcionActividad: string): number | null => {
   const match = descripcionActividad.match(/^\((\d+)\)/);
@@ -12,6 +15,10 @@ const extraerNumeroActividad = (descripcionActividad: string): number | null => 
 
 /**
  * Función para obtener el tipo de POA desde el código
+ * 
+ * objetivo: Extraer prefijo POA de código compuesto
+ * parametros: codigoPOA: Código completo (ej: "PIM-2024-001")
+ * operacion: Divide por guiones y retorna primera parte
  */
 export const obtenerTipoPOA = (codigoPOA: string): string => {
   // Extraer el tipo del código POA (ej: "PIM-2024-001" -> "PIM")
@@ -22,6 +29,17 @@ export const obtenerTipoPOA = (codigoPOA: string): string => {
 /**
  * Función para determinar qué actividad de configuración corresponde a una actividad del backend
  * Maneja casos de actividades con descripción duplicada usando el número de actividad y las tareas
+ * objetivo: Relacionar actividades backend con configuración local
+ * parametros:
+ *   actividad: Actividad del backend
+ *   actividadesConfiguracion: Lista de actividades predefinidas
+ * operacion:
+ *   1. Busca por coincidencia exacta de descripción
+ *   2. Para duplicados usa:
+ *      - Número de primera tarea
+ *      - Número en paréntesis de descripción
+ *   3. Retorna índice en configuración
+ 
  */
 const encontrarActividadConfiguracion = async (
   actividad: Actividad,
@@ -89,11 +107,13 @@ const encontrarActividadConfiguracion = async (
 /**
  * Función principal para ordenar actividades según la configuración del tipo de POA
  * Maneja casos especiales de actividades con descripción duplicada
+ * parametros :
+ * actividades - Array de actividades obtenidas del backend
+ * codigoPOA - Código del POA para determinar el tipo
  * 
- * @param actividades - Array de actividades obtenidas del backend
- * @param codigoPOA - Código del POA para determinar el tipo
  * @returns Array de actividades ordenadas según la configuración
  */
+
 export const ordenarActividadesSegunConfiguracion = async (
   actividades: Actividad[],
   codigoPOA: string
