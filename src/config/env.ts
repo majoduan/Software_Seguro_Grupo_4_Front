@@ -7,6 +7,25 @@ interface EnvConfig {
   BACKEND_URL: string;
 }
 
+/**
+ * EnvironmentValidator
+ *
+ * Objetivo:
+ * - Validar la existencia y formato de variables de entorno críticas para la aplicación.
+ * - Garantizar que `VITE_URL_BACKEND` sea una URL válida y segura, especialmente en producción.
+ *
+ * Parámetros:
+ * - `VITE_URL_BACKEND` (obtenido desde `import.meta.env`) – Debe ser una URL válida. Se rechaza si
+ *  está vacía, no tiene formato válido o apunta a localhost en producción.
+ *
+ * Operación:
+ * - Verifica presencia de variables necesarias al inicio de la ejecución.
+ * - Valida sintaxis de URL mediante el constructor `URL()`.
+ * - Lanza errores descriptivos si alguna variable es inválida o faltante.
+ * - Aplica políticas de seguridad condicionales en producción (HTTPS obligatorio, no localhost).
+ * - Expone configuración validada a través de `envConfig` (singleton) y `ENV` (const).
+ */
+
 class EnvironmentValidator {
   private static instance: EnvironmentValidator;
   private config: EnvConfig;
