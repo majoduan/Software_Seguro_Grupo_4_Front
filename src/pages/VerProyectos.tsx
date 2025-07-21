@@ -33,6 +33,29 @@ interface FilterState {
   yearFilter: string;
 }
 
+/** Ver Proyectos
+ * Objetivo:
+ * Visualizar, filtrar y exportar información detallada de proyectos
+ * y sus respectivos POAs, con protección frente a manipulación de datos
+ * o inyecciones en los filtros del usuario.
+ *
+ * Parámetros:
+ * - proyectos: ProyectoConPOAs[] – Lista de proyectos con sus POAs asociados.
+ * - filters: FilterState – Conjunto de filtros aplicados por el usuario.
+ * - estadosProyecto: EstadoProyecto[] – Estados válidos para los proyectos.
+ * - selectedPOA: POA | null – POA seleccionado para ver en modal.
+ * - showModal: boolean – Visibilidad del modal de detalles del POA.
+ *
+ * Operación: 
+ * 1. Al cargar el componente:
+ *    - Se consultan los proyectos, estados y POAs desde la API.
+ *    - Se vinculan POAs a su respectivo proyecto.
+ * 2. Se filtran y ordenan los proyectos en tiempo real usando `useMemo`.
+ * 3. Las entradas del usuario (búsqueda, presupuesto) son sanitizadas antes de usarse.
+ * 4. Se renderiza una tabla con la información de proyectos y sus POAs.
+ * 5. El usuario puede visualizar detalles de un POA en un modal y exportarlo a Excel.
+ */
+
 const VerProyectos: React.FC = () => {
   const [proyectos, setProyectos] = useState<ProyectoConPOAs[]>([]);
   const [estadosProyecto, setEstadosProyecto] = useState<EstadoProyecto[]>([]);

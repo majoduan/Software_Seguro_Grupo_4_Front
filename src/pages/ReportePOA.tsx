@@ -27,13 +27,40 @@ const ReportePOA: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: "success" | "error" }>({ open: false, message: "", severity: "success" });
 
+  /**
+ * useEffect para resetear el reporte cuando cambian los filtros
+ * 
+ * Objetivo:
+ *  Limpiar el reporte almacenado cuando el usuario cambia el año o tipo de proyecto,
+ *  evitando mostrar datos desactualizados.
+ * 
+ * Parámetros:
+ *  - Observa los estados `anio` y `tipoProyecto`.
+ * 
+ * Operación:
+ *  Cada vez que cambie cualquiera de los dos estados, se establece `reporteJson` a null para limpiar
+ *  el reporte mostrado.
+ */
   useEffect(() => {
     if (reporteJson) setReporteJson(null);
   }, [anio, tipoProyecto]);
 
-
   const handleCloseSnackbar = () => setSnackbar({ ...snackbar, open: false });
 
+  /**
+ * Función handleGenerarReporte
+ * 
+ * Objetivo:
+ *  Validar la selección del año y tipo de proyecto, y generar un reporte POA solicitando los datos a la API.
+ * 
+ * Parámetros:
+ *  - No recibe parámetros externos, pero usa los estados locales `anio` y `tipoProyecto`.
+ * 
+ * Operación:
+ *  Verifica que ambos campos estén seleccionados; si no, muestra un mensaje de error en snackbar.
+ *  En caso positivo, activa el estado de carga (loading), hace la llamada asíncrona a la API para obtener el reporte,
+ *  actualiza el estado con los datos recibidos y muestra un mensaje de éxito o error según corresponda.
+ */
   const handleGenerarReporte = async () => {
     if (!anio || !tipoProyecto) {
       setSnackbar({ open: true, message: "Selecciona año y tipo de proyecto.", severity: "error" });
@@ -54,6 +81,20 @@ const ReportePOA: React.FC = () => {
     }
   };
 
+  /**
+ * Función handleDescargar
+ * 
+ * Objetivo:
+ *  Permitir la descarga del reporte generado en formato Excel.
+ * 
+ * Parámetros:
+ *  - No recibe parámetros, utiliza el estado `reporteJson` que contiene los datos del reporte.
+ * 
+ * Operación:
+ *  Solicita a la API el archivo Excel correspondiente al reporte actual.
+ *  Si la descarga es exitosa, crea un enlace temporal para forzar la descarga en el navegador.
+ *  En caso de error, muestra un mensaje en snackbar indicando la falla.
+ */
   const handleDescargar = async () => {
     if (!reporteJson) return;
     

@@ -20,6 +20,18 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
   const [nombreRol, setNombreRol] = useState<string>('');
 
   // Efecto para obtener el nombre del rol
+  /* Objetivo:
+ *  Consultar de forma asíncrona el nombre descriptivo del rol asignado al usuario actual 
+  y almacenarlo en el estado local.
+ * 
+ * Parámetros:
+ *  - No recibe parámetros directos, pero depende del usuario y su propiedad id_rol.
+ * 
+ * Operación:
+ *  Realiza una llamada a la API de roles para obtener la lista completa, busca el rol 
+ * que coincida con el id del usuario, y actualiza el estado 'nombreRol' con el nombre del 
+ * rol encontrado o con el id en caso de error.
+ */
   useEffect(() => {
     const obtenerNombreRol = async () => {
       if (usuario?.id_rol) {
@@ -41,6 +53,18 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
   };
 
   // Función para manejar la navegación
+  /*
+ * Objetivo:
+ *  Controlar la navegación a una ruta específica y ejecutar una acción opcional
+ *  tras el click en un elemento del menú.
+ * 
+ * Parámetros:
+ *  @param path {string} - Ruta a la que se debe navegar.
+ * 
+ * Operación:
+ *  Utiliza el hook navigate para cambiar la ruta actual a la especificada y, si se provee, ejecuta 
+ * la función onItemClick para acciones adicionales.
+ */
   const handleNavigate = (path: string) => {
     navigate(path);
     if (onItemClick) onItemClick();
@@ -50,6 +74,19 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
   const iconSize = 18;
 
   // Función para verificar si el usuario tiene acceso a una ruta
+  /* Objetivo:
+ *  Verificar si el usuario autenticado tiene al menos uno de los roles necesarios para
+   acceder a una funcionalidad o ruta específica.
+ * 
+ * Parámetros:
+ *  @param requiredRoles {string[]} - Array de roles permitidos para la ruta o función.
+ * 
+ * Operación:
+ *  Invoca la función hasAnyRole del contexto de autenticación para determinar si 
+ * el usuario posee alguno de los roles indicados,retornando un valor booleano que indica si se
+ *  permite o no el acceso.
+ *
+ * */
   const hasAccessTo = (requiredRoles: string[]) => {
     return hasAnyRole(requiredRoles);
   };

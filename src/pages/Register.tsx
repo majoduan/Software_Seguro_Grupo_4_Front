@@ -5,6 +5,25 @@ import { Rol } from '../interfaces/user';
 import { withSanitization } from '../utils/sanitizer';
 import '../styles/Login.css';
 
+/**
+ * Componente Register
+ * 
+ * Objetivo:
+ *  Permitir a un usuario nuevo registrarse en el sistema mediante un formulario con campos
+ *  para nombre, email, contraseña, confirmación de contraseña y selección de rol.
+ *  Implementa validaciones de entrada y sanitización para prevenir inyecciones y errores.
+ * 
+ * Parámetros:
+ *  - No recibe props externos. Utiliza hooks internos para manejo de estado y navegación.
+ * 
+ * Operación:
+ *  Carga los roles disponibles desde la API al montarse el componente.
+ *  Gestiona el formulario y sus validaciones.
+ *  Al enviar el formulario, valida que todos los campos estén completos, que las contraseñas coincidan,
+ *  y que el email tenga formato válido.
+ *  Luego, llama a la API para registrar el usuario, manejando estados de carga y errores.
+ *  Finalmente redirige al login en caso de éxito.
+ */
 const Register = () => {
     const [nombre_usuario, setNombreUsuario] = useState<string>('');
     const [email, setEmail] = useState<string>('');
@@ -18,6 +37,16 @@ const Register = () => {
     const navigate = useNavigate();
 
     // Versiones sanitizadas de los setters - solo 4 líneas adicionales
+    /* Sanitización de entradas
+    *  Objetivo:
+    *  Prevenir ataques de inyección u otros problemas derivados de entradas maliciosas o incorrectas.
+    * 
+    * Parámetros:
+    *  - Cada setter de estado de entrada utiliza una versión sanitizada mediante la función `withSanitization`.
+    * 
+    * Operación:
+    *  Cada cambio en los inputs es procesado para limpiar o validar el texto antes de guardarlo en el estado,
+    */
     const setSanitizedNombreUsuario = withSanitization(setNombreUsuario, 'nombre_usuario');
     const setSanitizedEmail = withSanitization(setEmail, 'email');
     const setSanitizedPassword = withSanitization(setPassword, 'password');
@@ -44,6 +73,24 @@ const Register = () => {
         fetchRoles();
     }, []);
 
+    /**
+ * Función handleRegister
+ * 
+ * Objetivo:
+ *  Validar y procesar el formulario de registro de usuario.
+ * 
+ * Parámetros:
+ *  - e: evento de envío del formulario (FormEvent<HTMLFormElement>)
+ * 
+ * Operación:
+ *  Previene el envío por defecto.
+ *  Valida que todos los campos estén completos.
+ *  Verifica que las contraseñas coincidan.
+ *  Comprueba que el correo tenga un formato válido.
+ *  Si pasa todas las validaciones, llama al servicio authAPI.register para crear el usuario.
+ *  Maneja estados de carga y muestra mensajes de error o éxito.
+ *  En caso de éxito, redirige al login con mensaje de confirmación.
+ */
     const handleRegister = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setError('');
