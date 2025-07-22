@@ -17,29 +17,26 @@ export default defineConfig({
     }
   },
 
-  // Configuración de construcción
+  // Configuración de construcción optimizada para producción
   build: {
     // Generar source maps solo en desarrollo
     sourcemap: process.env.NODE_ENV === 'development',
     
-    // Optimizaciones de seguridad
+    // Optimizaciones de seguridad con nombres de archivos ofuscados
     rollupOptions: {
       output: {
-        // Ofuscar nombres de archivos para mayor seguridad
         entryFileNames: 'assets/[name]-[hash].js',
         chunkFileNames: 'assets/[name]-[hash].js',
         assetFileNames: 'assets/[name]-[hash].[ext]'
       }
     },
     
-    // Minificar en producción
-    minify: 'terser',
-    terserOptions: {
-      compress: {
-        // Remover console.log en producción
-        drop_console: true,
-        drop_debugger: true
-      }
-    }
+    // Usar minificación por defecto de Vite (esbuild)
+    minify: true
+  },
+
+  // Remover console.log en producción
+  esbuild: {
+    drop: process.env.NODE_ENV === 'production' ? ['console', 'debugger'] : []
   }
 })

@@ -19,9 +19,10 @@ Se han implementado las siguientes mejoras de seguridad críticas:
   - `Permissions-Policy: camera=(), microphone=(), geolocation=()`
 - **Optimizaciones**:
   - Source maps solo en desarrollo
-  - Minificación con Terser
+  - Minificación con esbuild (nativo de Vite)
   - Eliminación de console.log en producción
   - Ofuscación de nombres de archivos
+  - **Fix**: Cambiado de Terser a esbuild para compatibilidad con Vercel
 
 ### ✅ **3. Validación de Variables de Entorno**
 - **Archivo nuevo**: `src/config/env.ts`
