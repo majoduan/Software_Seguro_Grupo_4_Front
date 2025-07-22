@@ -20,6 +20,18 @@ export const usePOAForm = ({ initialProyecto, initialPeriodos = [], isEditing = 
   const [codigo_poa_base, setCodigoPoaBaseInternal] = useState('');
   
   // Setter sanitizado para código POA
+  /**
+ * Objetivo:
+ * Sanitizar la entrada de texto para evitar inyección de código y datos maliciosos antes de
+ *  almacenarlos en estado.
+ *
+ * Parámetros:
+ * value - string: Valor de entrada capturado por el usuario.
+ *
+ * Operación:
+ * - Aplica la función `sanitizeInput` para limpiar el valor.
+ * - Actualiza el estado con el valor sanitizado.
+ */
   const setCodigoPoaBase = (value: string) => setCodigoPoaBaseInternal(sanitizeInput(value));
   
   // Estado para periodos seleccionados
@@ -200,6 +212,21 @@ export const usePOAForm = ({ initialProyecto, initialPeriodos = [], isEditing = 
     }
   };
 
+  
+/**
+ * Objetivo:
+ * Validar que el proyecto tiene periodos disponibles para asignar nuevos POAs,
+ * evitando asignaciones duplicadas y manteniendo la integridad de los datos.
+ *
+ * Parámetros:
+ * proyecto - Proyecto: Objeto proyecto para validar sus periodos y POAs asociados.
+ *
+ * Operación:
+ * - Obtiene POAs existentes del proyecto.
+ * - Calcula todos los periodos fiscales del proyecto incluyendo prórrogas.
+ * - Compara periodos existentes con los POAs para detectar años ya asignados.
+ * - Retorna validación con indicación de años disponibles o razón de bloqueo.
+ */
   const validarDisponibilidadProyecto = async (proyecto: Proyecto): Promise<{ esValido: boolean; razon?: string }> => {
     try {
       const poasExistentes = await poaAPI.getPOAsByProyecto(proyecto.id_proyecto);
@@ -246,6 +273,18 @@ export const usePOAForm = ({ initialProyecto, initialPeriodos = [], isEditing = 
   };
 
   // Nueva función de validación para edición - solo permite proyectos CON POAs existentes
+  /**
+ * Objetivo:
+ * Validar que el proyecto a editar tiene POAs existentes para evitar editar proyectos sin POAs.
+ *
+ * Parámetros:
+ * proyecto - Proyecto: Proyecto a validar.
+ *
+ * Operación:
+ * - Obtiene POAs existentes asociados al proyecto.
+ * - Verifica si hay POAs para edición.
+ * - Retorna objeto indicando si es válido editar y razón en caso contrario.
+ */
   const validarProyectoParaEdicion = async (proyecto: Proyecto): Promise<{ esValido: boolean; razon?: string }> => {
     try {
       const poasExistentes = await poaAPI.getPOAsByProyecto(proyecto.id_proyecto);
@@ -483,6 +522,22 @@ export const usePOAForm = ({ initialProyecto, initialPeriodos = [], isEditing = 
   };
 
   // Manejar cambios en el presupuesto asignado para un periodo
+  /**
+ * Objetivo:
+ * Validar y controlar los cambios en el campo de presupuesto por periodo para evitar valores inválidos
+ * o que excedan el presupuesto aprobado, previniendo errores lógicos y vulnerabilidades.
+ *
+ * Parámetros:
+ * e - React.ChangeEvent<HTMLInputElement>: Evento del cambio en el input.
+ * idPeriodo - string: Identificador del periodo para asociar el presupuesto.
+ *
+ * Operación:
+ * - Valida que solo se permitan números positivos con hasta dos decimales.
+ * - Bloquea caracteres no numéricos o negativos.
+ * - Calcula el total de presupuestos asignados y compara contra el presupuesto aprobado.
+ * - Actualiza el estado y mensajes de error según validaciones.
+ */
+
   const handlePresupuestoChange = (e: React.ChangeEvent<HTMLInputElement>, idPeriodo: string) => {
     const valor = e.target.value;
     
@@ -638,6 +693,19 @@ export const usePOAForm = ({ initialProyecto, initialPeriodos = [], isEditing = 
   };
 
   // Función para manejar la edición de POAs existentes
+  /**
+ * Objetivo:
+ * Manejar la edición segura de POAs existentes, validando la existencia previa
+ * y sanitizando datos antes de actualizar en backend.
+ *
+ * Parámetros: Ninguno (usa estados y datos seleccionados).
+ *
+ * Operación:
+ * - Obtiene POAs existentes para el proyecto.
+ * - Para cada periodo seleccionado, busca POA correspondiente y actualiza con datos sanitizados.
+ * - Usa try/catch para capturar errores y evitar fallos inesperados.
+ * - Maneja el estado de error y carga para evitar condiciones de carrera o inconsistencias.
+ */
   const handleEditarPOAs = async (): Promise<boolean> => {
     try {
       const poasExistentes = await poaAPI.getPOAsByProyecto(id_proyecto);
@@ -655,6 +723,20 @@ export const usePOAForm = ({ initialProyecto, initialPeriodos = [], isEditing = 
 
           // Necesitamos usar el período real del POA existente, no el temporal
           const idPeriodoFinal = poaExistente.id_periodo; // El POA ya tiene el UUID real del período
+
+          
+/**
+ * Objetivo:
+ * Sanitizar el código POA justo antes de enviarlo al backend para prevenir inyección
+ * y asegurar la integridad de los datos enviados.
+ *
+ * Parámetros:
+ * codigo - string: Código POA capturado o generado.
+ *
+ * Operación:
+ * - Aplica `sanitizeForSubmit` para limpiar caracteres peligrosos.
+ * - Utiliza el valor sanitizado en el objeto enviado a la API.
+ */
 
           const codigoPoa = sanitizeForSubmit(codigoPorPeriodo[periodo.id_periodo] || poaExistente.codigo_poa);
           
@@ -693,6 +775,19 @@ export const usePOAForm = ({ initialProyecto, initialPeriodos = [], isEditing = 
   };
 
   // Función para manejar la creación de nuevos POAs
+  /**
+ * Objetivo:
+ * Manejar la creación segura de nuevos POAs evitando duplicados y asegurando que
+ * los datos enviados cumplen con las validaciones del frontend.
+ *
+ * Parámetros: Ninguno (usa estados y datos seleccionados).
+ *
+ * Operación:
+ * - Verifica si existen periodos temporales y los crea en backend si no existen.
+ * - Sanitiza códigos y datos antes de enviar.
+ * - Usa bloques try/catch para capturar errores y prevenir fallos inesperados.
+ * - Actualiza estados de carga y error para controlar la UI y evitar race conditions.
+ */
   const handleCrearPOAs = async (): Promise<boolean> => {
     try {
       const poaCreados = [];

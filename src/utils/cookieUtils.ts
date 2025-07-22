@@ -10,6 +10,26 @@ export interface CookieOptions {
   sameSite?: 'strict' | 'lax' | 'none';
 }
 
+/* cookieUtils
+ * Objetivo: Proporcionar una interfaz segura y consistente para el manejo de cookies 
+ * en el navegador desde el frontend, incluyendo creación, lectura, eliminación 
+ * y verificación de cookies.
+ * 
+ * parámetros:
+ * - name: Nombre de la cookie (string).
+ * - value: Valor de la cookie (string).
+ * - options: Opciones adicionales para la cookie como expiración, dominio, 
+ *   ruta, secure, sameSite, etc. (CookieOptions).
+ * 
+ * Operación:
+ * El módulo exporta un objeto `cookieUtils` con las siguientes funciones:
+ * 
+ * - set(name, value, options): Crea o actualiza una cookie con configuraciones seguras por defecto.
+ * - get(name): Recupera el valor de una cookie por su nombre.
+ * - remove(name, options): Elimina una cookie (establece fecha de expiración pasada).
+ * - exists(name): Verifica si una cookie con el nombre dado existe.
+ */
+
 export const cookieUtils = {
   // Establecer una cookie
   set: (name: string, value: string, options: CookieOptions = {}): void => {

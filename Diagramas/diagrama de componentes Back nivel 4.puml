@@ -1,0 +1,91 @@
+@startuml diagrama-componentes-backend
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+title Backend FastAPI - Diagrama de Componentes
+
+Container(frontend, "Frontend React", "React App", "Aplicación web cliente")
+Container(database, "PostgreSQL", "Database", "Base de datos principal")
+System_Ext(excel_system, "Sistema Excel", "Archivos Excel")
+
+Container_Boundary(backend_boundary, "API Backend FastAPI") {
+    Component(main_app, "main.py", "FastAPI App", "Aplicación principal con endpoints REST")
+    Component(auth_module, "auth.py", "Auth Module", "JWT, bcrypt, verificación de tokens")
+    Component(middlewares, "middlewares.py", "Middleware", "CORS, Security Headers, Rate Limiting")
+    
+    ' Capa de Datos
+    Component(models, "models.py", "SQLAlchemy Models", "Usuario, Proyecto, POA, Actividad, Tarea")
+    Component(schemas, "schemas.py", "Pydantic Schemas", "Validación y serialización de datos")
+    Component(database_config, "database.py", "DB Config", "Conexión async PostgreSQL + SSL")
+    
+    ' Lógica de Negocio - Endpoints
+    Component(project_endpoints, "Endpoints Proyectos", "FastAPI Routes", "/proyectos/* - CRUD proyectos")
+    Component(poa_endpoints, "Endpoints POAs", "FastAPI Routes", "/poas/* - CRUD POAs")
+    Component(activity_endpoints, "Endpoints Actividades", "FastAPI Routes", "/actividades/* - CRUD actividades")
+    Component(user_endpoints, "Endpoints Usuarios", "FastAPI Routes", "/usuarios/* - gestión usuarios")
+    Component(report_endpoints, "Endpoints Reportes", "FastAPI Routes", "/reportes/* - generación reportes")
+    Component(excel_processor, "Procesador Excel", "Pandas + openpyxl", "transformador_excel.py")
+    
+    ' Capa de Seguridad
+    Component(role_validator, "Validador Roles", "Dependency", "Verificación permisos por endpoint")
+    Component(token_manager, "Gestor Tokens", "JWT Handler", "Creación, cifrado y validación JWT")
+    Component(input_validator, "Validador Inputs", "Pydantic", "Sanitización server-side")
+    
+    ' Inicialización de Datos
+    Component(init_data, "init_data.py", "Data Seeder", "Roles, permisos, usuarios iniciales")
+    Component(seed_script, "seed_all_data()", "Startup Script", "Población automática de BD")
+}
+
+' Relaciones de entrada y procesamiento de requests
+Rel(frontend, middlewares, "HTTP Requests", "HTTPS + CORS")
+Rel(middlewares, main_app, "Procesa requests", "Security headers")
+Rel(main_app, auth_module, "Autenticación", "JWT validation")
+
+' Relaciones de enrutamiento desde main_app
+Rel(main_app, project_endpoints, "Enruta", "/proyectos/*")
+Rel(main_app, poa_endpoints, "Enruta", "/poas/*")
+Rel(main_app, activity_endpoints, "Enruta", "/actividades/*")
+Rel(main_app, user_endpoints, "Enruta", "/usuarios/*")
+Rel(main_app, report_endpoints, "Enruta", "/reportes/*")
+
+' Relaciones de seguridad
+Rel(project_endpoints, role_validator, "Verifica permisos", "hasRole()")
+Rel(poa_endpoints, token_manager, "Valida token", "verify_token()")
+Rel(activity_endpoints, input_validator, "Valida inputs", "Pydantic")
+Rel(user_endpoints, role_validator, "Verifica permisos", "hasRole()")
+Rel(report_endpoints, token_manager, "Valida token", "verify_token()")
+
+' Relaciones con capa de datos
+Rel(project_endpoints, models, "ORM queries", "SQLAlchemy async")
+Rel(poa_endpoints, models, "ORM queries", "SQLAlchemy async")
+Rel(activity_endpoints, models, "ORM queries", "SQLAlchemy async")
+Rel(user_endpoints, models, "ORM queries", "SQLAlchemy async")
+Rel(report_endpoints, schemas, "Serializa", "Pydantic models")
+
+' Relaciones de configuración de base de datos
+Rel(models, database_config, "Conecta BD", "AsyncSession")
+Rel(schemas, database_config, "Usa conexión", "AsyncSession")
+Rel(database_config, database, "SQL queries", "PostgreSQL SSL")
+
+' Relaciones con procesamiento Excel
+Rel(excel_processor, excel_system, "Lee/Escribe", "File I/O")
+Rel(report_endpoints, excel_processor, "Genera reportes", "Excel export")
+Rel(main_app, excel_processor, "Procesa uploads", "File processing")
+
+' Relaciones de inicialización
+Rel(seed_script, init_data, "Ejecuta seeding", "startup")
+Rel(init_data, models, "Inserta datos", "bulk insert")
+Rel(seed_script, database_config, "Usa conexión", "AsyncSession")
+
+' Relaciones entre componentes de seguridad
+Rel(auth_module, token_manager, "Usa gestor", "JWT operations")
+Rel(auth_module, role_validator, "Valida roles", "Role checking")
+Rel(middlewares, input_validator, "Pre-validación", "Request validation")
+
+' Agrupaciones visuales usando notas
+note top of models : CAPA DE DATOS
+note top of project_endpoints : LÓGICA DE NEGOCIO
+note top of role_validator : CAPA DE SEGURIDAD  
+note top of init_data : INICIALIZACIÓN
+
+SHOW_LEGEND()
+@enduml

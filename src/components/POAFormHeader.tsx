@@ -7,6 +7,24 @@ interface POAFormHeaderProps {
   poaId?: string;
 }
 
+/**
+ * Componente POAFormHeader
+ * 
+ * Objetivo:
+ * - Proporcionar contexto claro al usuario sobre la acción actual (crear o editar POA).
+ * - Mostrar mensajes de error de forma para facilitar la identificación y corrección de problemas.
+ * 
+ * Parámetros:
+ * - error: string | null – Mensaje de error que se mostrará en caso de fallo al cargar o
+ *  procesar datos del formulario.
+ * - isEditing: booleano opcional – Determina si el formulario está en modo edición (true) o creación (false).
+ * - poaId: string opcional – Identificador del POA que se está editando (si aplica).
+ * 
+ * Operación:
+ * - Renderiza un encabezado visual con estilo distinto dependiendo si se está creando o editando un POA.
+ * - Si existe un error, lo muestra de forma visible en una alerta para informar al usuario.
+ */
+
 export const POAFormHeader: React.FC<POAFormHeaderProps> = ({ 
   error, 
   isEditing = false,

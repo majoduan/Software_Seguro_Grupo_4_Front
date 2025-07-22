@@ -20,6 +20,37 @@ interface TareaModalProps {
   clearTaskError: (field: string) => void;
 }
 
+/*TareaModal
+ *Objetivo:
+ * - Asegurar integridad de datos ingresados para cada tarea presupuestaria.
+ * - Prevenir inyecciones o entradas inesperadas en campos de texto usando `sanitizeInput`.
+ * - Controlar que campos como precio y descripción no sean modificados manualmente cuando se trata de 
+ * contrataciones especiales.
+ * - Validar formato de entrada en tiempo real (regex en precios, cantidades positivas).
+ * 
+ * Parámetros:
+ * - show: boolean – Control de visibilidad del modal.
+ * - onHide: () => void – Función para cerrar el modal.
+ * - isEditing: boolean – Indica si el modal está en modo edición.
+ * - tarea: TareaForm | null – Objeto de tarea actual a modificar o agregar.
+ * - detallesFiltrados: any[] – Lista de detalles filtrados por actividad.
+ * - cargandoDetalles: boolean – Bandera que indica si se están cargando detalles.
+ * - taskErrors: { [key: string]: string } – Errores de validación específicos por campo.
+ * - onTareaChange:  Callback para actualizar la tarea.
+ * - onDetalleTareaChange:  Callback para cambio de detalle de tarea.
+ * - onItemPresupuestarioChange:  Callback para seleccionar ítem presupuestario.
+ * - onDescripcionChange:  Callback para cambiar la descripción.
+ * - onSave: () void – Callback para guardar la tarea.
+ * - clearTaskError: Limpia errores de validación para un campo.
+ *
+ * Operación:
+ * - Usa funciones internas para calcular `total` y `saldo_disponible` en función de `cantidad` y `precio_unitario`.
+ * - Desactiva campos en función del tipo de tarea.
+ * - Utiliza `sanitizeInput` para limpiar entradas de texto, especialmente en descripciones.
+ * - Valida y restringe la entrada numérica (regex en precio, parseos seguros en cantidad/saldo).
+ * - Protege contra cambios accidentales o malintencionados con validaciones y campos de solo lectura según contexto.
+ **/
+
 const TareaModal: React.FC<TareaModalProps> = ({
   show,
   onHide,

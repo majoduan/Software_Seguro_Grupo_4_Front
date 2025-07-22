@@ -6,6 +6,25 @@ import { useAuth } from './context/AuthContext';
 import SidebarContent from './pages/SidebarContent';
 import './styles/Screen.css';
 
+/**
+ * Componente AppLayout
+ * 
+ * Objetivo:
+ * - Proveer la estructura general de la aplicación con sidebar y contenido principal,
+ *   controlando la visibilidad y estado del sidebar según la autenticación y la ruta actual.
+ * 
+ * Parámetros:
+ * - children: React.ReactNode
+ *   Contenido que se renderiza dentro del layout (páginas, componentes, etc.).
+ * 
+ * Operación:
+ * - Obtiene el estado de autenticación y usuario desde el contexto AuthContext.
+ * - Detecta la ruta actual para determinar si es pública
+ * - Controla el estado de colapso del sidebar para adaptar la UI según preferencias o tamaño de pantalla.
+ * - Aplica clases CSS condicionales para ajustar el layout y evitar que contenido quede inaccesible
+ *  o mal distribuido.
+ **/
+
 const AppLayout = ({ children }: { children: React.ReactNode }) => {
   // Estado para el sidebar móvil
   const [showSidebar, setShowSidebar] = useState(false);

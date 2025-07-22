@@ -16,8 +16,12 @@ const baseConfig = {
 };
 
 /**
- * Configuración permisiva para campos que pueden necesitar formato básico
+ * Configuración permisiva para  sanitización básica.
+ * objetivo: Permitir formato básico seguro (negritas, saltos de línea).
+ * parametros: Ninguno (configuración predefinida).
+ * operacion: Permite tags inofensivos como <b> y <br>, bloquea scripts y atributos peligrosos.
  */
+
 const permissiveConfig = {
   ALLOWED_TAGS: ['b', 'i', 'strong', 'em', 'br'],
   ALLOWED_ATTR: [],
@@ -27,12 +31,19 @@ const permissiveConfig = {
 };
 
 /**
- * Sanitiza texto de entrada eliminando cualquier contenido malicioso
- * @param input - Texto a sanitizar
- * @param allowBasicFormatting - Si permite formato básico como negritas/cursivas
- * @param preserveWhitespace - Si preserva espacios en blanco (true por defecto para mejor UX)
- * @returns Texto sanitizado
+ * Sanitiza texto eliminando contenido malicioso.
+ * objetivo: Prevenir inyección de scripts y ataques XSS.
+ * parametros:
+ *   input: Texto a sanitizar
+ *   allowBasicFormatting: Permite formato HTML básico (default=false)
+ *   preserveWhitespace: Conserva espacios originales (default=true)
+ * operacion
+ *   -Verifica entrada vacía
+ *   -Selecciona configuración según formato permitido
+ *   -Aplica DOMPurify con configuración elegida
+ *   -Mantiene espacios según parámetro
  */
+ 
 export const sanitizeInput = (
   input: string, 
   allowBasicFormatting = false, 
@@ -50,11 +61,14 @@ export const sanitizeInput = (
   return DOMPurify.sanitize(textToSanitize, config);
 };
 
-/**
- * Sanitiza texto para envío al servidor (elimina espacios sobrantes)
- * @param input - Texto a sanitizar
- * @param allowBasicFormatting - Si permite formato básico
- * @returns Texto sanitizado y limpio para envío
+/*Sanitiza texto para envío a servidor.
+ * objetivo: Preparar datos para almacenamiento seguro.
+ * parametros:
+ *   input: Texto a sanitizar
+ *   allowBasicFormatting: Permite formato básico
+ * operacion
+ *   -Llama a sanitizeInput con preserveWhitespace=false
+ *   -Elimina espacios sobrantes
  */
 export const sanitizeForSubmit = (input: string, allowBasicFormatting = false): string => {
   return sanitizeInput(input, allowBasicFormatting, false); // preserveWhitespace = false
@@ -62,10 +76,16 @@ export const sanitizeForSubmit = (input: string, allowBasicFormatting = false): 
 
 /**
  * Sanitiza un objeto completo, aplicando sanitización a todas sus propiedades string
- * @param obj - Objeto a sanitizar
- * @param allowBasicFormatting - Si permite formato básico
- * @param forSubmit - Si es para envío al servidor (limpia espacios sobrantes)
- * @returns Objeto con propiedades sanitizadas
+ * 
+ * objetivo: Proteger estructuras complejas contra XSS.
+ * parametros 
+ *   obj: Objeto a sanitizar
+ *   allowBasicFormatting: Permite formato básico
+ *   forSubmit: Modo para envío (limpia espacios)
+ * operacion
+ *   -Recorre recursivamente el objeto
+ *   -Aplica sanitización a strings y arrays de strings
+ *   -Usa sanitizeForSubmit en modo envío
  */
 export const sanitizeObject = <T extends Record<string, any>>(
   obj: T, 
@@ -103,9 +123,14 @@ export const sanitizeObject = <T extends Record<string, any>>(
 
 /**
  * Hook personalizado para manejar inputs sanitizados
- * @param initialValue - Valor inicial
- * @param allowBasicFormatting - Si permite formato básico
- * @returns [value, setter] tupla similar a useState
+ 
+ * objetivo: Integrar sanitización en componentes
+ * parametros 
+ *   initialValue: Valor inicial (se sanitiza)
+ *   allowBasicFormatting: Permite formato básico
+ * operacion
+ *  -Inicializa estado con valor sanitizado
+ *  -Provee setter que sanitiza antes de actualizar
  */
 export const useSanitizedInput = (initialValue = '', allowBasicFormatting = false) => {
   const [value, setValue] = useState(() => sanitizeInput(initialValue, allowBasicFormatting));
@@ -117,11 +142,15 @@ export const useSanitizedInput = (initialValue = '', allowBasicFormatting = fals
   return [value, setSanitizedValue] as const;
 };
 
-/**
- * Función helper para crear onChange handlers sanitizados
- * @param setter - Función setter del estado
- * @param allowBasicFormatting - Si permite formato básico
- * @returns Handler de onChange sanitizado
+/* Crea manejador de eventos onChange sanitizado.
+ * objetivo: Simplificar integración en formularios.
+ * parametros: 
+ *   setter: Función setter del estado
+ *   allowBasicFormatting: Permite formato básico
+ * operacion:
+ *   - Recibe evento de cambio
+ *   - Extrae y sanitiza el valor
+ *   - Ejecuta setter con valor seguro
  */
 export const createSanitizedChangeHandler = (
   setter: (value: string) => void,
@@ -134,11 +163,14 @@ export const createSanitizedChangeHandler = (
 };
 
 /**
- * Wrapper simple para sanitizar el valor antes de llamar al setter original
- * Esta es la función más fácil de usar para reemplazar setters existentes
- * @param originalSetter - El setter original (ej: setEmail, setPassword)
- * @param fieldName - Nombre del campo (opcional, para auto-detectar formato)
- * @returns Setter que sanitiza automáticamente
+ * Envuelve un setter existente con sanitización.
+ * objetivo: Añadir seguridad a lógica existente.
+ * parametros:
+ *   originalSetter: Setter original (ej: useState)
+ *   fieldName: Nombre para auto-detectar formato
+ * operacion:
+ *   -Detecta automáticamente si permite formato
+ *   -Sanitiza valores string antes de pasar al setter
  */
 export const withSanitization = <T>(
   originalSetter: (value: T) => void,
@@ -157,9 +189,13 @@ export const withSanitization = <T>(
 
 /**
  * Función simple para envolver handlers de onChange existentes
- * @param originalHandler - Handler original de onChange
- * @param fieldName - Nombre del campo (opcional, para auto-detectar formato)  
- * @returns Handler que sanitiza automáticamente
+ * objetivo: Refactorizar componentes existentes fácilmente.
+ * parametros:
+ *   originalHandler: Manejador original onChange
+ *   fieldName: Nombre para auto-detectar formato
+ * operacion:
+ *   - Crea evento clon con valor sanitizado
+ *   - Llama al manejador original con evento seguro
  */
 export const sanitizeOnChange = (
   originalHandler: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void,
@@ -196,9 +232,12 @@ export const FIELDS_ALLOWING_BASIC_FORMAT = [
 ];
 
 /**
- * Determina automáticamente si un campo debería permitir formato básico
- * @param fieldName - Nombre del campo
- * @returns boolean
+ * Determina si un campo permite formato básico.
+ * objetivo: Automatizar política de formato por nombre de campo.
+ * parametros: fieldName: Nombre del campo (ej: "descripcion")
+ * operacion:
+ *   -Compara con lista predefinida (FIELDS_ALLOWING_BASIC_FORMAT)
+ *   -Permite formato si el nombre coincide
  */
 export const shouldAllowBasicFormatting = (fieldName: string): boolean => {
   const lowerFieldName = fieldName.toLowerCase();

@@ -36,16 +36,62 @@ const LogsCargaExcel: React.FC = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
+  /**
+ * handleChange
+ * 
+ * Objetivo:
+ *  Actualizar el estado de filtros cuando el usuario cambia un campo de texto
+ *  (fecha inicio o fecha fin).
+ * 
+ * Parámetros:
+ *  - e: evento de cambio del input (React.ChangeEvent<HTMLInputElement>)
+ * 
+ * Operación:
+ *  Extrae el nombre y valor del input y actualiza el estado `filters` manteniendo
+ *  los otros campos intactos.
+ */
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFilters((prev) => ({ ...prev, [name]: value }));
   };
 
+  
+/**
+ * handleSelectChange
+ * 
+ * Objetivo:
+ *  Actualizar el estado de filtros cuando el usuario selecciona un
+ *  valor en los selects de usuario o código POA.
+ * 
+ * Parámetros:
+ *  - e: evento de cambio del select (SelectChangeEvent<string>)
+ * 
+ * Operación:
+ *  Extrae el nombre y valor del select y actualiza el estado `filters` manteniendo
+ *  los otros campos intactos.
+ */
   const handleSelectChange = (e: SelectChangeEvent<string>) => {
     const { name, value } = e.target;
     setFilters((prev) => ({ ...prev, [name as string]: value }));
   };
 
+  /**
+ * handleBuscar
+ * 
+ * Objetivo:
+ *  Consultar la API para obtener los logs de carga de Excel según el rango de fechas 
+ * seleccionado.
+ *  Actualizar el estado con los datos recibidos y resetear la paginación.
+ * 
+ * Parámetros: No recibe parámetros externos.
+ * 
+ * Operación:
+ *  - Construye un objeto params con fechas si están definidas.
+ *  - Llama a `excelAPI.getLogsCargaExcel` pasando los params.
+ *  - Actualiza el estado `logs` con los datos obtenidos.
+ *  - Extrae usuarios y códigos POA únicos para actualizar los filtros secundarios.
+ *  - Resetea la página a 0 para mostrar resultados desde el inicio.
+ */
   const handleBuscar = async () => {
     const params: any = {};
     if (filters.fecha_inicio) params.fecha_inicio = filters.fecha_inicio;

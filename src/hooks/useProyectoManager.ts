@@ -11,6 +11,19 @@ export const useProyectoManager = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   // Cargar datos iniciales
+  /**
+ * Objetivo:
+ * Gestionar la carga segura de datos de proyectos desde el backend,
+ * mostrando información al usuario y controlando estados de carga y errores.
+ * 
+ * Parámetros: * Ninguno (usa useEffect con dependencia vacía para cargar al montar el componente).
+ * 
+ * Operación:
+ * - Llama a la API `projectAPI.getProyectos()` para obtener los proyectos.
+ * - Maneja errores mostrando mensajes amigables con `showError`.
+ * - Indica el estado de carga con `isLoading`.
+ * - Actualiza el estado `proyectos` con los datos recibidos.
+ */
   useEffect(() => {
     const cargarDatos = async () => {
       setIsLoading(true);
@@ -30,6 +43,20 @@ export const useProyectoManager = () => {
   }, []);
 
   // Función para validar si un proyecto tiene POAs disponibles (sin actividades)
+  /**
+ * Objetivo:
+ * Validar la disponibilidad de POAs sin actividades asignadas para un proyecto,
+ * asegurando que no se trabaje con datos incompletos o inconsistentes.
+ * 
+ * Parámetros:
+ * proyecto - Proyecto: Objeto proyecto a validar.
+ * 
+ * Operación:
+ * - Obtiene la lista de POAs asociadas al proyecto vía `poaAPI.getPOAsByProyecto`.
+ * - Para cada POA, consulta actividades asignadas con `actividadAPI.getActividadesPorPOA`.
+ * - Verifica que al menos uno de los POAs no tenga actividades para considerarlo válido.
+ * - Maneja posibles errores de llamada y retorna mensajes descriptivos.
+ */
   const validarProyectoSinActividades = async (proyecto: Proyecto): Promise<{ esValido: boolean; razon?: string }> => {
     try {
       const poasData = await poaAPI.getPOAsByProyecto(proyecto.id_proyecto);
@@ -77,6 +104,20 @@ export const useProyectoManager = () => {
   };
 
   // Función para validar si un proyecto tiene POAs con actividades existentes
+  /**
+ * Objetivo:
+ * Validar la existencia de POAs con actividades para un proyecto,
+ * asegurando que se trabaja solo con proyectos que contienen actividades.
+ * 
+ * Parámetros:
+ * proyecto - Proyecto: Objeto proyecto a validar.
+ * 
+ * Operación:
+ * - Obtiene las POAs del proyecto mediante `poaAPI.getPOAsByProyecto`.
+ * - Consulta actividades asociadas a cada POA con `actividadAPI.getActividadesPorPOA`.
+ * - Verifica que exista al menos una actividad en alguna POA para considerar válido.
+ * - Captura errores en llamadas API y devuelve mensajes adecuados.
+ */
   const validarProyectoConActividades = async (proyecto: Proyecto): Promise<{ esValido: boolean; razon?: string }> => {
     try {
       const poasData = await poaAPI.getPOAsByProyecto(proyecto.id_proyecto);
@@ -122,10 +163,31 @@ export const useProyectoManager = () => {
     }
   };
 
+  /**Seleccionar Proyecto
+ * Objetivo:
+ * Gestionar la selección segura de un proyecto para operaciones posteriores,
+ * evitando inconsistencias en la interfaz o manipulación de datos errónea.
+ * 
+ * Parámetros:
+ * proyecto - Proyecto: Proyecto a seleccionar.
+ * 
+ * Operación:
+ * - Actualiza el estado `proyectoSeleccionado` con el proyecto recibido.
+ */
   const seleccionarProyecto = (proyecto: Proyecto) => {
     setProyectoSeleccionado(proyecto);
   };
 
+  /**limpiar Proyecto Seleccionado
+ * Objetivo:
+ * Limpiar la selección del proyecto actual,
+ * asegurando que no se mantengan datos obsoletos o no deseados.
+ * 
+ * Parámetros: Ninguno.
+ * 
+ * Operación:
+ * - Actualiza el estado `proyectoSeleccionado` a null.
+ */
   const limpiarProyectoSeleccionado = () => {
     setProyectoSeleccionado(null);
   };

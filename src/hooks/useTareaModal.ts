@@ -16,6 +16,14 @@ export const useTareaModal = () => {
   const [taskErrors, setTaskErrors] = useState<{ [key: string]: string }>({});
 
   // Funciones para manejo de errores
+ /**
+ * Objetivo: Eliminar el mensaje de error asociado a un campo específico, para permitir corrección.
+ * Parámetros:
+ *  - field: string - Nombre del campo cuyo error debe eliminarse.
+ * Operación:
+ *  - Modifica el estado de errores para eliminar el mensaje correspondiente al campo indicado.
+ */
+
   const clearTaskError = (field: string) => {
     setTaskErrors(prev => {
       const newErrors = { ...prev };
@@ -24,6 +32,14 @@ export const useTareaModal = () => {
     });
   };
 
+  /** setTaskError
+ * Objetivo: Registrar un mensaje de error para un campo específico en el formulario.
+ * Parámetros:
+ *  - field: string - Nombre del campo a marcar con error.
+ *  - message: string - Mensaje descriptivo del error encontrado.
+ * Operación:
+ *  - Actualiza el estado de errores agregando o reemplazando el mensaje del campo indicado.
+ */
   const setTaskError = (field: string, message: string) => {
     setTaskErrors(prev => ({
       ...prev,
@@ -225,6 +241,16 @@ export const useTareaModal = () => {
   };
 
   // Validar y guardar tarea
+  /*
+ * Objetivo: Validar que los datos de la tarea cumplan con los criterios mínimos de seguridad y coherencia antes de guardar.
+ * Parámetros:
+ *  - onSave: (tarea: TareaForm) => void - Callback para guardar la tarea si la validación es exitosa.
+ * Operación:
+ *  - Verifica que campos obligatorios estén presentes y con valores adecuados (por ejemplo, cantidad y precio mayores que cero).
+ *  - Valida que la planificación mensual sea consistente con el total asignado para evitar discrepancias.
+ *  - En caso de errores, establece mensajes específicos para cada campo y bloquea el guardado.
+ *  - Si no hay errores, normaliza los datos y llama al callback de guardado, cerrando el modal y mostrando notificación de éxito.
+ */
   const validarYGuardarTarea = (onSave: (tarea: TareaForm) => void) => {
     if (!currentTarea || !currentPoa || !currentActividad) return;
 

@@ -1,6 +1,18 @@
 import { DetalleTarea, ItemPresupuestario } from '../interfaces/tarea';
 
-// Función para obtener el número de tarea según el tipo de POA
+// Función para obtener el número de tarea según el tipo de POA;
+
+/**
+ * Obtiene el número de tarea específico según el tipo de POA
+ * objetivo: Extraer el número de tarea correcto de la cadena de características
+ * parametros:
+ *   detalleTarea: Objeto DetalleTarea con propiedad 'caracteristicas'
+ *   tipoPoa: Tipo de POA (PIM, PTT, PVIF, etc.)
+ * operacion
+ *   -Valida entrada y estructura de características
+ *   -Selecciona índice según tipo de POA
+ *   -Retorna número correspondiente
+ */
 export const obtenerNumeroTarea = (detalleTarea: DetalleTarea, tipoPoa: string): string => {
   if (!detalleTarea || !detalleTarea.caracteristicas) return '';
 
@@ -32,6 +44,15 @@ export const obtenerNumeroTarea = (detalleTarea: DetalleTarea, tipoPoa: string):
 };
 
 // Función para mapear códigos de actividad a números según el tipo de POA
+/* Mapea códigos de actividad a números según tipo de POA
+ * objetivo: Normalizar códigos de actividad a números simples
+ * parametros:
+ *   codigoActividad: Código original
+ *   tipoPoa: Tipo de POA para seleccionar mapeo
+ * operacion:
+ *   - Usa diccionario de mapeo predefinido por tipo POA
+ *   - Fallback a extracción básica si no encuentra en diccionario
+ */
 export const mapearCodigoActividadANumero = (codigoActividad: string, tipoPoa: string): string => {
   const mapeos: { [key: string]: { [key: string]: string } } = {
     'PIM': {
@@ -68,6 +89,12 @@ export const mapearCodigoActividadANumero = (codigoActividad: string, tipoPoa: s
 };
 
 // Función para obtener el número de actividad del código de actividad
+/**
+ * Extrae número de actividad de código
+ * objetivo: Obtener último segmento numérico de códigos de actividad
+ * parametros: codigoActividad: Código completo (ej: 'ACT-PTT-3')
+ * operacion: Divide por guiones y retorna último segmento
+ */
 export const obtenerNumeroActividad = (codigoActividad: string): string => {
   if (codigoActividad.includes('PIM')) {
     const partes = codigoActividad.split('-');
@@ -82,6 +109,20 @@ export const obtenerNumeroActividad = (codigoActividad: string): string => {
 };
 
 // Función para filtrar detalles de tarea según la actividad y tipo de POA
+/* Filtra detalles de tarea por actividad con carga asíncrona
+ * objetivo: Filtrar y ordenar tareas según actividad específica
+ * parametros:
+ *   detallesTarea: Lista de detalles de tarea
+ *   codigoActividad: Código de actividad para filtrar
+ *   tipoPoa: Tipo de POA para interpretar números
+ *   getItemPresupuestarioPorId: Función async para obtener items
+ * operacion:
+ *   - Convierte código actividad a número
+ *   - Paraleliza carga de items presupuestarios
+ *   - Filtra tareas que coincidan con jerarquía de actividad
+ *   - Ordena resultados por número de tarea
+ 
+ */
 export const filtrarDetallesPorActividadConConsultas = async (
   detallesTarea: DetalleTarea[],
   codigoActividad: string,
@@ -169,6 +210,16 @@ export const filtrarDetallesPorActividadConConsultas = async (
 };
 
 // Función para agrupar detalles de tarea con el mismo nombre y item presupuestario
+/* Agrupa detalles duplicados consolidando items
+ * objetivo: Reducir duplicados y consolidar información relacionada
+ * parametros:
+ *   detallesFiltrados: Lista filtrada de detalles
+ *   getItemPresupuestarioPorId: Función async para obtener items
+ * operacion:
+ *  -Agrupa por nombre+descripción y consolida items
+ *  -Agrupa por nombre+item y maneja descripciones múltiples
+
+ */
 export const agruparDetallesDuplicados = async (
   detallesFiltrados: DetalleTarea[],
   getItemPresupuestarioPorId: (id: string) => Promise<ItemPresupuestario>

@@ -14,6 +14,23 @@ interface ExportarPOAProps {
   onExport?: () => void;
 }
 
+/**
+ * Componente ExportarPOA
+ * Objetivo: Permitir la exportación segura y local de la información del Plan Operativo Anual,
+ *   evitando enviar datos sensibles a terceros, garantizando que los archivos solo se creen y
+ *  descarguen en el entorno cliente,y facilitando la integridad y presentación clara de los datos.
+ * Parámetros:
+ * - codigoProyecto: string - Código único que identifica el proyecto asociado a los POAs.
+ * - poas: Array - Lista de objetos POA con información básica (id, código, año, presupuesto).
+ * - actividadesYTareas?: Array - Datos detallados de actividades y tareas con programación mensual y totales.
+ * - onExport?: () => void - Callback que se ejecuta cuando finaliza la exportación.
+ *
+ * Operación:
+ * - Genera archivos Excel con la información del POA usando ExcelJS, aplica formatos, colores y 
+ * estilos, y permite descargar el archivo generado localmente.
+ *
+ * 
+ */
 const ExportarPOA: React.FC<ExportarPOAProps> = ({
   codigoProyecto,
   poas,
@@ -369,6 +386,19 @@ const ExportarPOA: React.FC<ExportarPOAProps> = ({
   };
 
   // Función para descargar el archivo Excel
+  /**
+ * Función descargarArchivo
+ * Objetivo: Garantizar que el archivo Excel generado se descargue de forma segura en el cliente sin 
+ * exponer datos a servidores externos o almacenar información de manera insegura.
+ * 
+ * Parámetros:
+ * - workbook: ExcelJS.Workbook - Instancia de libro Excel a convertir y descargar.
+ * - nombreArchivo: string - Nombre del archivo que se descargará.
+ *
+ * Operación:
+ * - Convierte el workbook en un buffer, genera un enlace temporal y dispara la descarga automática
+ *  del archivo en el navegador, eliminando el enlace tras la descarga.
+ */
   const descargarArchivo = async (workbook: ExcelJS.Workbook, nombreArchivo: string) => {
     try {
       const buffer = await workbook.xlsx.writeBuffer();
@@ -393,6 +423,19 @@ const ExportarPOA: React.FC<ExportarPOAProps> = ({
   };
 
   // Función para exportar un POA específico
+  /**
+ * Objetivo:
+ * - Exportar un único POA a un archivo Excel descargable localmente,
+ *   manteniendo la confidencialidad y evitando procesos en servidores externos.
+ * 
+ * Parámetros:
+ * - poa: any - Objeto con información del POA específico que se desea exportar.
+ *
+ * Operación:
+ * - Crea un nuevo workbook Excel, genera una hoja con los datos del POA usando crearHojaPOA,
+ *   y llama a descargarArchivo para iniciar la descarga local del archivo.
+ */
+
   const exportarPOA = async (poa: any) => {
     const workbook = new ExcelJS.Workbook();
     
@@ -408,6 +451,19 @@ const ExportarPOA: React.FC<ExportarPOAProps> = ({
   };
 
   // Función para exportar todos los POAs
+  /**
+ * Objetivo:
+ * - Facilitar la exportación de todos los POAs de un proyecto en un solo archivo,
+ *   asegurando que la operación se realice localmente para preservar la privacidad y seguridad 
+ *   de la información.
+ *
+ * Parámetros: Ninguno.
+ *
+ * Operación:
+ * - Genera un workbook Excel con una hoja por cada POA presente en la lista poas,
+ *   y dispara la descarga local del archivo completo.
+ */
+
   const exportarTodosPOAs = async () => {
     const workbook = new ExcelJS.Workbook();
     

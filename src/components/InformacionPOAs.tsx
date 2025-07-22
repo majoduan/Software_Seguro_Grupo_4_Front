@@ -16,6 +16,22 @@ interface InformacionPOAsProps {
   poas: POAExtendido[];
 }
 
+/**
+ * Componente InformacionPOAs
+ * Objetivo:
+ * - Proporcionar una vista clara y segura para el usuario sobre los POAs del proyecto,
+ *   mostrando la información esencial sin exponer datos sensibles ni permitir modificaciones.
+ * 
+ * Parámetros:
+ * - poas: POAExtendido[] - Lista de objetos POA extendidos que contienen información
+ *   detallada de cada POA del proyecto.
+ * 
+ * Operación:
+ * - Renderiza una lista visual de los POAs con detalles clave como código, año de ejecución,
+ *   tipo, presupuesto asignado y periodo (si está disponible).
+ * - Utiliza componentes de Bootstrap para estructura y estilo responsivo.
+ * 
+ */
 const InformacionPOAs: React.FC<InformacionPOAsProps> = ({ poas }) => {
   return (
     <Row className="mb-4">

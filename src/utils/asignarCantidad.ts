@@ -1,6 +1,25 @@
 // utils/asignarCantidad.ts
 import { TareaForm } from '../interfaces/tarea';
 
+/* Asignar Cantidad
+ * Objetivo:
+ * Automatizar la asignación de precios unitarios y el cálculo de totales
+ * para tareas, manteniendo control estricto sobre el origen y la lógica de precios.
+ *
+ * Parámetros
+ * - descripcionSeleccionada: string – Descripción seleccionada por el usuario en el formulario.
+ * - tareaActual: TareaForm – Objeto de la tarea que se está procesando.
+ * - descripcion (para funciones específicas): string – Descripción del servicio profesional.
+ * - precio: number – Precio unitario asignado a una descripción (solo en agregarReglaPrecio).
+ * 
+ * Operación:
+ * - Se define un mapeo de descripciones válidas con precios fijos.
+ * - Se detecta si una tarea corresponde a un servicio profesional.
+ * - Se asigna el precio automáticamente basado en la descripción seleccionada.
+ * - Se calcula el total y se actualizan campos como saldo disponible.
+ * - Se permite extender nuevas reglas de precio de forma controlada.
+ */
+
 // Mapeo de descripciones a precios unitarios para servicios profesionales
 const PRECIOS_SERVICIOS_PROFESIONALES: { [key: string]: number } = {
   "Asistente de investigación": 986,

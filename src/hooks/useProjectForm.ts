@@ -22,6 +22,18 @@ export const useProjectForm = ({ initialTipoProyecto, initialProyecto, isEditing
   const [titulo, setTituloInternal] = useState('');
   
   // Crear setters sanitizados
+  /**
+ * Objetivo:
+ * Sanitizar automáticamente los valores de entrada para evitar inyección de código
+ * y asegurar que el estado solo almacena datos limpios.
+ *
+ * Parámetros:
+ * value - string: Texto capturado por el usuario.
+ *
+ * Operación:
+ * - Aplica `sanitizeInput` para limpiar cadenas.
+ * - Actualiza el estado correspondiente con el valor sanitizado.
+ */
   const setCodigo_proyecto = (value: string) => setCodigo_proyectoInternal(sanitizeInput(value));
   const setTitulo = (value: string) => setTituloInternal(sanitizeInput(value));
   
@@ -259,6 +271,19 @@ export const useProjectForm = ({ initialTipoProyecto, initialProyecto, isEditing
   }, [fecha_inicio, tipoProyecto, isEditing, fecha_fin]);
 
   // Handle director field change
+  /**
+ * Objetivo:
+ * Validar que el nombre del director cumpla con el formato esperado para prevenir
+ * datos erróneos o maliciosos.
+ *
+ * Parámetros:
+ * value - string: Nombre capturado del director.
+ *
+ * Operación:
+ * - Actualiza el estado del nombre del director.
+ * - Valida con `validateDirectorName`.
+ * - Actualiza el estado de error para informar de formatos inválidos.
+ */
   const handleDirectorChange = (value: string) => {
     setId_director_proyecto(value);
     
@@ -274,6 +299,19 @@ export const useProjectForm = ({ initialTipoProyecto, initialProyecto, isEditing
   };
 
   // Handle budget field change
+  /**
+ * Objetivo:
+ * Validar que el presupuesto aprobado sea válido, evitar valores inválidos o inyecciones
+ * que puedan alterar la lógica financiera o la integridad de datos.
+ *
+ * Parámetros:
+ * value - string: Valor del presupuesto introducido.
+ *
+ * Operación:
+ * - Actualiza el estado del presupuesto aprobado.
+ * - Valida el presupuesto usando `validateBudget`.
+ * - Actualiza el estado de error con el mensaje correspondiente.
+ */
   const handlePresupuestoChange = (value: string) => {
     setPresupuesto_aprobado(value);
     
@@ -304,6 +342,20 @@ export const useProjectForm = ({ initialTipoProyecto, initialProyecto, isEditing
   };
 
   // Handle end date change
+  /**
+ * Objetivo:
+ * Validar que las fechas de inicio y fin cumplan con reglas de negocio y formato,
+ * previniendo inconsistencias o entradas maliciosas que puedan afectar cálculos o
+ * integridad temporal.
+ *
+ * Parámetros:
+ * value - string: Fecha introducida por el usuario.
+ *
+ * Operación:
+ * - Actualiza estado de fecha.
+ * - Valida usando `validateEndDate` para asegurar fechas lógicas y dentro del rango permitido.
+ * - Actualiza estado de error con mensajes si hay incongruencias.
+ */
   const handleFechaFinChange = (value: string) => {
     setFecha_fin(value);
     
@@ -317,6 +369,19 @@ export const useProjectForm = ({ initialTipoProyecto, initialProyecto, isEditing
   };
 
   // Submit form handler
+  /**
+ * Objetivo:
+ * Validar todos los campos obligatorios y realizar sanitización final antes de
+ * enviar datos al backend para prevenir inyección y errores.
+ *
+ * Parámetros: Ninguno (usa estado interno).
+ *
+ * Operación:
+ * - Ejecuta validaciones de campos requeridos con `validateProjectFormRequiredFields`.
+ * - Valida nombre del director, presupuesto y fechas, mostrando errores si aplica.
+ * - Sanitiza todas las cadenas con `sanitizeForSubmit` antes de preparar el objeto.
+ * - Maneja errores, detecta errores de validación 422 de FastAPI y muestra mensajes amigables.
+ */
   const handleSubmit = async () => {
     // Reset error state
     setError(null);

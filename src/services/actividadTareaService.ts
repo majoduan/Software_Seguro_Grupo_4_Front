@@ -15,9 +15,27 @@ export interface GuardarActividadesResult {
   error?: string;
 }
 
+/**
+ * Servicio para manejo de actividades y tareas relacionadas con POAs (Planes Operativos Anuales)
+ * 
+ * Incluye métodos para obtener descripciones, validar formularios, crear y editar actividades y tareas,
+ * con validaciones para garantizar integridad de datos y manejo de errores adecuado.
+ */
 export class ActividadTareaService {
   
   // Obtener la descripción de una actividad a partir de su código
+  /* Objetivo:
+   *   Obtener la descripción de una actividad a partir del código y el POA correspondiente.
+   * 
+   * Parámetros:
+   *   - poaId: string — ID del POA.
+   *   - codigoActividad: string — Código de la actividad.
+   *   - poasConActividades: POAConActividadesYTareas[] — Lista de POAs con sus actividades y tareas.
+   * 
+   * Operación:
+   *   Busca el POA correspondiente, luego dentro de sus actividades busca la que coincida con el código dado.
+   *   Retorna la descripción si la encuentra, o mensajes predeterminados si no.
+   */
   static getDescripcionActividad = (poaId: string, codigoActividad: string, poasConActividades: POAConActividadesYTareas[]) => {
     const poa = poasConActividades.find(p => p.id_poa === poaId);
     if (!poa) return 'POA no encontrado';
@@ -29,6 +47,19 @@ export class ActividadTareaService {
   };
 
   // Validar el formulario antes de guardar
+  /* Objetivo:
+   *   Validar el formulario antes de guardar actividades y tareas para evitar errores y datos incompletos.
+   * 
+   * Parámetros:
+   *   - proyectoSeleccionado: any — Proyecto actualmente seleccionado.
+   *   - poasProyecto: any[] — POAs asociados al proyecto.
+   *   - poasConActividades: POAConActividadesYTareas[] — POAs con actividades definidas.
+   * 
+   * Operación:
+   *   Valida que haya un proyecto seleccionado, que tenga POAs, que existan actividades definidas, y que cada POA tenga actividades con código válido.
+   *   En caso de error muestra mensajes mediante toast y devuelve false para bloquear el guardado.
+   *   Retorna true si todas las validaciones pasan.
+   */
   static validarFormulario = (
     proyectoSeleccionado: any,
     poasProyecto: any[],
@@ -64,6 +95,21 @@ export class ActividadTareaService {
   };
 
   // Guardar actividades y tareas
+  /* Objetivo:
+   *   Guardar actividades y tareas relacionadas con POAs, garantizando la planificación correcta.
+   * 
+   * Parámetros:
+   *   - poasConActividades: POAConActividadesYTareas[] — POAs con actividades y tareas a guardar.
+   *   - setActivePoaTab?: Función opcional para cambiar la pestaña activa en la UI si ocurre error.
+   * 
+   * Operación:
+   *   -Valida que las tareas con cantidad > 0 tengan planificación mensual.
+   *   -Crea actividades en backend y mapea los IDs retornados.
+   *   -Crea tareas para cada actividad creada.
+   *   -Crea programaciones mensuales para tareas con gastos mensuales > 0.
+   *   -Controla errores y notifica al usuario con mensajes claros.
+   *   -Retorna un objeto con resultados de éxito o error y datos creados.
+   */
   static async guardarActividades(
     poasConActividades: POAConActividadesYTareas[],
     //proyectoSeleccionado: any,
@@ -256,6 +302,17 @@ export class ActividadTareaService {
   }
 
   // Editar tareas existentes (para EditarActividad)
+  /* Objetivo:
+   *   Editar tareas existentes y actualizar su programación mensual si corresponde.
+   * 
+   * Parámetros:
+   *   - poasConActividades: POAConActividadesYTareas[] — POAs con actividades y tareas a actualizar.
+   * 
+   * Operación:
+   *   Recorre las tareas para contar y actualizar programaciones mensuales.
+   *   Maneja errores y notifica al usuario sobre el estado de la operación.
+   *   Retorna un objeto con el resultado de la actualización.
+   */
   static async editarTareas(
     poasConActividades: POAConActividadesYTareas[]
   ): Promise<GuardarActividadesResult> {

@@ -17,6 +17,15 @@ interface POAExtendido extends POA {
   tipoPOAData?: TipoPOA;
 }
 
+/**
+ * Hook personalizado que gestiona la carga, precarga y edición de POAs, actividades y tareas
+ * dentro del contexto de un proyecto. Este hook incluye medidas de seguridad como:
+ * - control de errores en peticiones externas
+ * - sanitización de entradas
+ * - control de datos presupuestarios sensibles en memoria
+ * - uso de `Map` como caché temporal para reducir accesos innecesarios a la red
+ */
+
 export const useActividadManager = () => {
   // Estados para POAs y periodos
   const [poasProyecto, setPoasProyecto] = useState<POAExtendido[]>([]);
@@ -28,6 +37,22 @@ export const useActividadManager = () => {
 
   // Cache simple para evitar consultas repetidas
   const cacheItemsPresupuestarios = new Map<string, any>();
+
+  /**
+ * Objetivo:
+ * Obtener un ítem presupuestario desde una fuente externa utilizando una caché en memoria
+ * para evitar múltiples llamadas al mismo recurso.
+ *
+ * Parámetros:
+ * param id - string: ID del ítem presupuestario que se desea consultar.
+ * param getItemPresupuestarioPorId - función asíncrona que realiza la consulta a la API.
+ *
+ * Operación:
+ * - Verifica si el ítem existe en el Map `cacheItemsPresupuestarios`.
+ * - Si existe, lo devuelve directamente.
+ * - Si no, realiza la consulta a la API, lo guarda en caché y luego lo retorna.
+ * 
+ */
 
   const getItemPresupuestarioConCache = async (
     id: string,
@@ -62,6 +87,25 @@ export const useActividadManager = () => {
 
   // Función para precargar tareas para una actividad específica
   // FUNCIONALIDAD AGREGADA: Asignación automática de precios para servicios profesionales
+  /**
+ * Objetivo:
+ * Generar una lista de tareas precargadas (TareaForm) a partir de los detalles disponibles
+ * de una actividad y un POA, con lógica adicional para asignar precios automáticamente si
+ * se detectan servicios profesionales.
+ *
+ * Parámetros:
+ * detallesTarea - DetalleTarea[]: Lista de detalles asociados al POA.
+ * codigoActividad - string: Código de la actividad en ejecución.
+ * tipoPOA - string: Tipo de POA (PVIF, PVV, etc.).
+ * poaId - string: ID del POA en contexto.
+ *
+ * Operación:
+ * - Filtra los detalles relacionados con la actividad seleccionada.
+ * - Agrupa tareas duplicadas.
+ * - Genera objetos `TareaForm`, asignando identificadores temporales.
+ *
+ */
+
   const precargarTareasParaActividad = async (
     detallesTarea: DetalleTarea[],
     codigoActividad: string,

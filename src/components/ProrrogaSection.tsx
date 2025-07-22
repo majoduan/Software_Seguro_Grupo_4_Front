@@ -16,6 +16,31 @@ interface ProrrogaSectionProps {
   fecha_fin: string;
 }
 
+/**
+ * Componente ProrrogaSection
+ * Objetivo:
+ * - Brindar al usuario una forma opcional de registrar extensiones de tiempo para un proyecto.
+ * - Validar que las fechas de prórroga no precedan la fecha de finalización original del proyecto.
+ * 
+ * Parámetros:
+ * - prorrogaOpen: boolean – Estado actual de visibilidad de la sección de prórroga (colapsada o expandida).
+ * - setProrrogaOpen: función – Controlador para alternar el estado de visibilidad de la sección.
+ * - fecha_prorroga: string – Fecha general de la prórroga.
+ * - setFecha_prorroga: función – Establece la fecha de prórroga.
+ * - fecha_prorroga_inicio: string – Fecha de inicio de la prórroga.
+ * - setFecha_prorroga_inicio: función – Establece la fecha de inicio de la prórroga.
+ * - fecha_prorroga_fin: string – Fecha de finalización de la prórroga.
+ * - setFecha_prorroga_fin: función – Establece la fecha de fin de la prórroga.
+ * - tiempo_prorroga_meses: string – Cantidad de meses de la prórroga.
+ * - setTiempo_prorroga_meses: función – Establece el tiempo de prórroga en meses.
+ * - fecha_fin: string – Fecha final del periodo original del proyecto (usada como mínimo para validar fechas).
+ *
+ * Operación:
+ * - Renderiza una sección colapsable con campos opcionales relacionados con la prórroga de un proyecto.
+ * - Permite al usuario ingresar fechas clave y duración de la prórroga, con validaciones mínimas de fechas.
+ * - Usa `Collapse` para mostrar u ocultar los campos según el estado `prorrogaOpen`.
+ * - Las fechas están restringidas mediante el atributo `min` para evitar entradas inválidas o maliciosas.
+ */
 export const ProrrogaSection: React.FC<ProrrogaSectionProps> = ({
   prorrogaOpen,
   setProrrogaOpen,

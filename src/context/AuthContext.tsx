@@ -14,6 +14,28 @@ interface AuthProviderProps {
 }
 
 // Componente Provider
+/*
+ * Objetivo:
+ * - Administrar la autenticación del usuario de forma segura y persistente.
+ * - Proteger el acceso a rutas privadas en función del estado de sesión.
+ * - Validar la sesión periódicamente mediante comprobación del token.
+ * - Proveer funciones auxiliares para control de roles, logout, y recuperación de identidad.
+ * - Manejar almacenamiento seguro de los datos del usuario (sin token en cookies).
+ *
+ * Parámetros:
+ * - children: ReactNode – Componentes hijos que necesitan acceso al contexto de autenticación.
+ *
+ * Operación:
+ * - Usa `cookieUtils` para guardar solo los datos necesarios del usuario en una cookie segura (`user_data`).
+ * - Implementa `login()` que actualiza el estado local y redirige al dashboard.
+ * - Implementa `logout()` que borra la cookie, limpia el estado y redirige a login.
+ * - Ejecuta `verificarToken()` periódicamente (cada 5 minutos) para validar la autenticidad de la sesión.
+ * - Verifica al montar si existe una sesión previa persistida en cookies y, si es válida, la restaura.
+ * - Utiliza un interceptor de Axios para cerrar sesión automáticamente en respuestas 401 (no autorizado).
+ * - Redirige al login si se accede a rutas privadas sin estar autenticado, y al dashboard si ya está autenticado.
+ * - Expone funciones de control de rol y datos básicos como `getUserRole`, `hasRole`, `getUserId`, etc.
+ * - Expone el contexto global mediante `useAuth`, rest*
+*/
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [usuario, setUsuario] = useState<Usuario | null>(null);
   const [token, setToken] = useState<string | null>(null);

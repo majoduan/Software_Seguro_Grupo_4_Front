@@ -77,6 +77,21 @@ const EditarActividad: React.FC = () => {
     }
   }, [poasConActividades, actividadesOriginales.length]);
 
+  /**
+ * Carga segura de actividades con tareas existentes
+ *
+ * Objetivo:
+ *     Recuperar del backend únicamente las actividades y tareas existentes del proyecto.
+ *
+ * Parámetros:
+ *     - proyectoId (string): ID del proyecto seleccionado.
+ *
+ * Operación:
+ *     - Invoca el servicio `cargarActividadesPorProyecto` para obtener actividades válidas.
+ *     - Filtra y estructura las tareas en un formato editable.
+ *     - Impide la carga de tareas inexistentes, temporales o con referencias inválidas.
+ */
+
   // Función específica para cargar actividades y tareas existentes
   const cargarActividadesExistentes = async (proyectoId: string) => {
     try {
@@ -120,6 +135,23 @@ const EditarActividad: React.FC = () => {
   };
 
   // Función para mostrar modal de tarea
+  /**
+ * Control de apertura del modal de edición de tareas
+ *
+ * Objetivo:
+ *     Validar que la tarea a editar esté correctamente asociada a una actividad del POA.
+ *
+ * Parámetros:
+ *     - poaId (string): ID del POA.
+ *     - actividadId (string): ID de la actividad.
+ *     - tareaId (string): ID de la tarea.
+ *
+ * Operación:
+ *     - Verifica que la tarea exista dentro del POA y la actividad correspondiente.
+ *     - Prepara el modal con datos completos, incluyendo ítem presupuestario validado.
+ *     - Previene intentos de edición sobre tareas ajenas o mal formadas.
+ */
+
   const handleMostrarModalTarea = async (poaId: string, actividadId: string, tarea?: any) => {
     const poa = poasConActividades.find(p => p.id_poa === poaId);
     const actividad = poa?.actividades.find(act => act.actividad_id === actividadId);
@@ -158,6 +190,24 @@ const EditarActividad: React.FC = () => {
   };
 
   // Función para eliminar tareas (solo nuevas tareas agregadas en esta sesión)
+  /**
+ * Eliminación controlada de tareas nuevas
+ *
+ * Objetivo:
+ *     Permitir únicamente la eliminación de tareas agregadas en esta sesión.
+ *
+ * Parámetros:
+ *     - poaId (string): ID del POA.
+ *     - actividadId (string): ID de la actividad.
+ *     - tareaId (string): ID de la tarea a eliminar.
+ *
+ * Operación:
+ *     - Verifica si la tarea no tiene ID (tarea nueva).
+ *     - La elimina del estado temporal sin afectar la base de datos.
+ *     - Protege las tareas persistidas de ser eliminadas desde el cliente.
+ *     - Asegura que la integridad de datos en base no se vea afectada por errores del usuario.
+ */
+
   const eliminarTarea = (poaId: string, actividadId: string, tareaId: string) => {
     const poa = poasConActividades.find(p => p.id_poa === poaId);
     const actividad = poa?.actividades.find(act => act.actividad_id === actividadId);
@@ -223,6 +273,21 @@ const EditarActividad: React.FC = () => {
   };
 
   // Función para verificar si hay cambios
+  /**
+ * Detección de modificaciones en tareas
+ *
+ * Objetivo:
+ *     Determinar si existen cambios reales en las tareas editadas.
+ *
+ * Parámetros:
+ *     - Ninguno directo; se evalúa el estado de las tareas actuales.
+ *
+ * Operación:
+ *     - Compara los campos clave: detalle, cantidad, precio, ítem presupuestario, etc.
+ *     - Retorna true si alguna tarea fue modificada o agregada.
+ *     - Evita que el backend reciba solicitudes sin cambios válidos.
+ */
+
   const hayTareasCambiadas = (): boolean => {
     if (actividadesOriginales.length === 0) return false;
 
@@ -266,6 +331,22 @@ const EditarActividad: React.FC = () => {
   };
 
   // Función para manejar el envío del formulario (solo validar cambios)
+  /**
+ * Validación previa al envío de edición
+ *
+ * Objetivo:
+ *     Confirmar que existe un proyecto y que hay tareas cambiadas antes de proceder.
+ *
+ * Parámetros:
+ *     - e (React.FormEvent): Evento del formulario para prevenir el envío automático.
+ *
+ * Operación:
+ *     - Llama a `hayTareasCambiadas` para confirmar existencia de cambios.
+ *     - Si es válido, abre el modal de confirmación.
+ *     - Previene operaciones sin propósito.
+ *     - Evita manipulaciones del formulario para guardar tareas sin editar.
+ */
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -283,6 +364,22 @@ const EditarActividad: React.FC = () => {
   };
 
   // Función para guardar cambios (actualizar tareas existentes)
+  /**
+ * Guardado controlado de tareas editadas
+ *
+ * Objetivo:
+ *     Ejecutar la persistencia de tareas al backend solo si son válidas.
+ *
+ * Parámetros:
+ *     - Ninguno directo; opera sobre el estado actual de tareas.
+ *
+ * Operación:
+ *     - Prepara una lista de tareas modificadas.
+ *     - Llama al servicio `editarTareas` del backend.
+ *     - Muestra retroalimentación de éxito o error.
+ *     - Maneja errores del servidor para evitar estados inconsistentes.
+ */
+
   const handleGuardarCambios = async () => {
     const result = await ActividadTareaService.editarTareas(poasConActividades);
 

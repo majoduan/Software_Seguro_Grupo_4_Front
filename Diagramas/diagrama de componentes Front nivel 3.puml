@@ -1,0 +1,89 @@
+@startuml diagrama-componentes-frontend
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+title Frontend React - Diagrama de Componentes
+
+Container(api_backend, "API Backend", "FastAPI", "Servicios REST")
+
+Container_Boundary(frontend_boundary, "Frontend React App") {
+    Component(auth_context, "AuthContext", "React Context", "Gestión global de autenticación y roles")
+    Component(sidebar, "SidebarContent", "React Component", "Navegación principal con control de acceso por roles")
+    Component(protected_route, "ProtectedRoute", "React Component", "Control de acceso a rutas protegidas")
+    
+    ' Páginas Principales
+    Component(login_page, "Login", "React Page", "Autenticación de usuarios")
+    Component(dashboard, "Dashboard", "React Page", "VerProyectos")
+    Component(proyectos, "Gestión Proyectos", "React Pages", "CrearProyecto, EditarProyecto")
+    Component(poas, "Gestión POAs", "React Pages", "CrearPOA, EditarPOA")
+    Component(actividades, "Gestión Actividades", "React Pages", "AgregarActividad, EditarActividad")
+    Component(excel_pages, "Gestión Excel", "React Pages", "ExportarExcel, ReportePOA, LogsCarga")
+    Component(user_pages, "Gestión Usuarios", "React Pages", "Register, Perfil")
+    
+    ' Componentes Reutilizables
+    Component(forms, "Formularios", "Form Components", "TareaModal, CrearPeriodoModal, BusquedaProyecto")
+    Component(exporters, "Exportadores", "Export Components", "ExportarPOA, ExportarProyecto")
+    Component(ui_components, "UI Components", "Reusable UI", "Modales, Tablas, Botones personalizados")
+    
+    ' Hooks Personalizados
+    Component(project_hook, "useProjectManager", "Custom Hook", "Gestión estado de proyectos")
+    Component(poa_hook, "usePOAManager", "Custom Hook", "Gestión estado de POAs")
+    Component(activity_hook, "useActividadManager", "Custom Hook", "Gestión estado de actividades")
+    Component(form_hooks, "Form Hooks", "Custom Hooks", "useProjectForm, usePOAForm, useSanitizedForm")
+    
+    ' Utilidades
+    Component(sanitizer, "Sanitizer", "DOMPurify", "Sanitización XSS en formularios")
+    Component(api_client, "API Client", "Axios", "Cliente HTTP con interceptores")
+    Component(helpers, "Helpers", "Utilities", "Validadores, formatters, ordenamiento")
+}
+
+' Relaciones de Autenticación y Control
+Rel(auth_context, api_backend, "Autenticación", "POST /login, GET /perfil")
+Rel(sidebar, auth_context, "Consulta roles", "hasAccessTo()")
+Rel(protected_route, auth_context, "Verifica auth", "isAuthenticated")
+
+' Relaciones de Páginas con Contexto
+Rel(login_page, auth_context, "Login", "authenticate()")
+Rel(user_pages, auth_context, "Gestiona perfil", "updateUser()")
+
+' Relaciones de Páginas con Hooks
+Rel(proyectos, project_hook, "Usa hook", "useState, useEffect")
+Rel(poas, poa_hook, "Usa hook", "useState, useEffect")
+Rel(actividades, activity_hook, "Usa hook", "useState, useEffect")
+Rel(forms, form_hooks, "Usa hooks", "custom form logic")
+
+' Relaciones de Páginas con Componentes
+Rel(proyectos, forms, "Renderiza formularios", "JSX")
+Rel(poas, forms, "Renderiza formularios", "JSX")
+Rel(actividades, forms, "Renderiza formularios", "JSX")
+Rel(excel_pages, exporters, "Usa exportadores", "JSX")
+Rel(dashboard, ui_components, "Usa UI components", "JSX")
+
+' Relaciones con API Client
+Rel(project_hook, api_client, "CRUD proyectos", "HTTP calls")
+Rel(poa_hook, api_client, "CRUD POAs", "HTTP calls")
+Rel(activity_hook, api_client, "CRUD actividades", "HTTP calls")
+Rel(form_hooks, api_client, "Envía formularios", "HTTP calls")
+
+' Relaciones de Sanitización
+Rel(forms, sanitizer, "Sanitiza inputs", "DOMPurify")
+Rel(proyectos, sanitizer, "Sanitiza datos", "DOMPurify")
+Rel(poas, sanitizer, "Sanitiza datos", "DOMPurify")
+Rel(actividades, sanitizer, "Sanitiza datos", "DOMPurify")
+Rel(user_pages, sanitizer, "Sanitiza inputs", "DOMPurify")
+
+' Relaciones con Helpers
+Rel(forms, helpers, "Validaciones", "Validators")
+Rel(exporters, helpers, "Formateo datos", "Formatters")
+Rel(ui_components, helpers, "Ordenamiento", "Sort utils")
+
+' Relación principal con Backend
+Rel(api_client, api_backend, "HTTP requests", "REST API calls")
+
+' Agrupaciones visuales usando notas
+note top of login_page : PÁGINAS PRINCIPALES
+note top of forms : COMPONENTES REUTILIZABLES  
+note top of project_hook : HOOKS PERSONALIZADOS
+note top of sanitizer : UTILIDADES
+
+SHOW_LEGEND()
+@enduml
