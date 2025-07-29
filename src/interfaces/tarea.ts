@@ -48,12 +48,8 @@ export interface TareaCreate {
 }
 
 export interface TareaUpdate {
-    nombre?: string;
-    detalle_descripcion?: string;
     cantidad?: number;
     precio_unitario?: number;
-    total?: number;
-    saldo_disponible?: number;
     lineaPaiViiv?: number;
 }
 

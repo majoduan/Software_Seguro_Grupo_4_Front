@@ -22,7 +22,7 @@ import { TareaForm } from '../interfaces/tarea';
 
 // Mapeo de descripciones a precios unitarios para servicios profesionales
 const PRECIOS_SERVICIOS_PROFESIONALES: { [key: string]: number } = {
-  "Asistente de investigación": 986,
+  "Asistente de investigación": 986, //aumentar 817
   "Servicios profesionales 1": 1212,
   "Servicios profesionales 2": 1412,
   "Servicios profesionales 3": 1676

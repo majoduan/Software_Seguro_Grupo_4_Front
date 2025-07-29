@@ -317,9 +317,7 @@ const EditarActividad: React.FC = () => {
           if (
             tarea.cantidad !== tareaOriginal.cantidad ||
             tarea.precio_unitario !== tareaOriginal.precio_unitario ||
-            tarea.detalle_descripcion !== tareaOriginal.detalle_descripcion ||
-            tarea.lineaPaiViiv !== tareaOriginal.lineaPaiViiv ||
-            JSON.stringify(tarea.gastos_mensuales) !== JSON.stringify(tareaOriginal.gastos_mensuales)
+            tarea.lineaPaiViiv !== tareaOriginal.lineaPaiViiv
           ) {
             return true;
           }
@@ -375,13 +373,13 @@ const EditarActividad: React.FC = () => {
  *
  * Operación:
  *     - Prepara una lista de tareas modificadas.
- *     - Llama al servicio `editarTareas` del backend.
+ *     - Llama al servicio `editarTareas` del backend pasando el estado original para comparación.
  *     - Muestra retroalimentación de éxito o error.
  *     - Maneja errores del servidor para evitar estados inconsistentes.
  */
 
   const handleGuardarCambios = async () => {
-    const result = await ActividadTareaService.editarTareas(poasConActividades);
+    const result = await ActividadTareaService.editarTareas(poasConActividades, actividadesOriginales);
 
     if (result.success) {
       setShowConfirmModal(false);
