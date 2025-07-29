@@ -317,7 +317,8 @@ const EditarActividad: React.FC = () => {
           if (
             tarea.cantidad !== tareaOriginal.cantidad ||
             tarea.precio_unitario !== tareaOriginal.precio_unitario ||
-            tarea.lineaPaiViiv !== tareaOriginal.lineaPaiViiv
+            tarea.lineaPaiViiv !== tareaOriginal.lineaPaiViiv ||
+            JSON.stringify(tarea.gastos_mensuales) !== JSON.stringify(tareaOriginal.gastos_mensuales)
           ) {
             return true;
           }

@@ -1,5 +1,5 @@
 import { ActividadCreate, POAConActividadesYTareas } from '../interfaces/actividad';
-import { TareaCreate, TareaUpdate, ProgramacionMensualCreate } from '../interfaces/tarea';
+import { TareaCreate, TareaUpdate, TareaForm, ProgramacionMensualCreate, ProgramacionMensualUpdate } from '../interfaces/tarea';
 import { actividadAPI } from '../api/actividadAPI';
 import { tareaAPI } from '../api/tareaAPI';
 import { getActividadesPorTipoPOA } from '../utils/listaActividades';
@@ -392,7 +392,8 @@ export class ActividadTareaService {
                     fueModificada = (
                       tarea.cantidad !== tareaOriginal.cantidad ||
                       tarea.precio_unitario !== tareaOriginal.precio_unitario ||
-                      tarea.lineaPaiViiv !== tareaOriginal.lineaPaiViiv
+                      tarea.lineaPaiViiv !== tareaOriginal.lineaPaiViiv ||
+                      JSON.stringify(tarea.gastos_mensuales) !== JSON.stringify(tareaOriginal.gastos_mensuales)
                     );
                   } else {
                     // Si no encontramos la tarea original, asumimos que fue modificada
@@ -414,10 +415,16 @@ export class ActividadTareaService {
                   await tareaAPI.editarTarea(tarea.id_tarea_real, tareaUpdate);
                   totalTareasActualizadas++;
 
-                  // TODO: Aquí se debería manejar la actualización de programación mensual
-                  // Por ahora solo contamos las programaciones existentes
-                  if (tarea.gastos_mensuales && tarea.gastos_mensuales.length === 12) {
-                    totalProgramacionesCreadas += tarea.gastos_mensuales.filter(gasto => gasto > 0).length;
+                  // Actualizar programación mensual si fue modificada
+                  if (tarea.gastos_mensuales && tarea.programaciones_mensuales && actividadesOriginales) {
+                    const poaOriginal = actividadesOriginales.find(p => p.id_poa === poa.id_poa);
+                    const actividadOriginal = poaOriginal?.actividades.find(a => a.actividad_id === actividad.actividad_id);
+                    const tareaOriginal = actividadOriginal?.tareas.find(t => t.id_tarea_real === tarea.id_tarea_real);
+                    
+                    if (tareaOriginal && JSON.stringify(tarea.gastos_mensuales) !== JSON.stringify(tareaOriginal.gastos_mensuales)) {
+                      await this.actualizarProgramacionMensual(tarea, tareaOriginal);
+                      totalProgramacionesCreadas++;
+                    }
                   }
                 }
               }
@@ -459,6 +466,73 @@ export class ActividadTareaService {
         success: false,
         error: errorMessage
       };
+    }
+  }
+
+  // Método para actualizar programación mensual de una tarea
+  /* Objetivo:
+   *   Actualizar la programación mensual de una tarea comparando valores originales con nuevos.
+   * 
+   * Parámetros:
+   *   - tareaActual: TareaForm — Tarea con gastos mensuales actualizados.
+   *   - tareaOriginal: TareaForm — Tarea con gastos mensuales originales.
+   * 
+   * Operación:
+   *   - Compara mes por mes los gastos originales vs actuales.
+   *   - Para meses modificados, busca la programación existente y la actualiza.
+   *   - Para meses nuevos con valor > 0, crea nueva programación.
+   *   - Para meses con valor 0, elimina la programación (si fuera necesario).
+   */
+  static async actualizarProgramacionMensual(
+    tareaActual: TareaForm,
+    tareaOriginal: TareaForm
+  ): Promise<void> {
+    try {
+      if (!tareaActual.id_tarea_real) {
+        throw new Error('ID de tarea requerido para actualizar programación mensual');
+      }
+
+      const gastosActuales = tareaActual.gastos_mensuales || [];
+      const gastosOriginales = tareaOriginal.gastos_mensuales || [];
+      const programacionesExistentes = tareaActual.programaciones_mensuales || [];
+      
+      const añoActual = new Date().getFullYear();
+
+      for (let mesIndex = 0; mesIndex < 12; mesIndex++) {
+        const valorActual = gastosActuales[mesIndex] || 0;
+        const valorOriginal = gastosOriginales[mesIndex] || 0;
+
+        // Solo procesar si el valor cambió
+        if (valorActual !== valorOriginal) {
+          const mesNumero = mesIndex + 1;
+          const mesFormateado = `${mesNumero.toString().padStart(2, '0')}-${añoActual}`;
+
+          // Buscar si ya existe una programación para este mes
+          const programacionExistente = programacionesExistentes.find(
+            (prog: any) => prog.mes === mesFormateado
+          );
+
+          if (programacionExistente && valorActual > 0) {
+            // Actualizar programación existente
+            const updateData: ProgramacionMensualUpdate = {
+              valor: valorActual
+            };
+            await tareaAPI.actualizarProgramacionMensual(programacionExistente.id_programacion, updateData);
+          } else if (!programacionExistente && valorActual > 0) {
+            // Crear nueva programación
+            const createData: ProgramacionMensualCreate = {
+              id_tarea: tareaActual.id_tarea_real,
+              mes: mesFormateado,
+              valor: valorActual
+            };
+            await tareaAPI.crearProgramacionMensual(createData);
+          }
+          // Nota: No manejamos eliminación de programaciones con valor 0 
+          // porque el backend podría requerir lógica especial para eso
+        }
+      }
+    } catch (error) {
+      throw new Error(`Error al actualizar programación mensual: ${error instanceof Error ? error.message : error}`);
     }
   }
 }

@@ -1,4 +1,4 @@
-import { DetalleTarea, Tarea, TareaCreate, TareaUpdate, ItemPresupuestario, ProgramacionMensualCreate, ProgramacionMensualOut } from "../interfaces/tarea";
+import { DetalleTarea, Tarea, TareaCreate, TareaUpdate, ItemPresupuestario, ProgramacionMensualCreate, ProgramacionMensualOut, ProgramacionMensualUpdate } from "../interfaces/tarea";
 import { API } from "./userAPI";
 
     
@@ -169,6 +169,38 @@ export const tareaAPI = {
                 // Manejar error específico de tarea no encontrada
                 if (axiosError.response.status === 404) {
                     throw new Error("Tarea no encontrada");
+                }
+            }
+            throw error;
+        }
+    },
+
+    // Actualizar programación mensual
+    /**
+     * Objetivo: Actualizar el valor de una programación mensual existente.
+     *
+     * Parámetros:
+     * - idProgramacion: string — ID único de la programación mensual.
+     * - programacionData: ProgramacionMensualUpdate — Datos para actualizar.
+     *
+     * Operación:
+     * PUT a `/programacion-mensual/{id}`.
+     * Actualiza solo el valor de la programación mensual.
+     * Valida que la programación exista antes de actualizar.
+     * El backend verifica permisos del usuario sobre la tarea asociada.
+     */
+
+    actualizarProgramacionMensual: async (idProgramacion: string, programacionData: ProgramacionMensualUpdate): Promise<ProgramacionMensualOut> => {
+        try {
+            const response = await API.put(`/programacion-mensual/${idProgramacion}`, programacionData);
+            return response.data as ProgramacionMensualOut;
+        } catch (error) {
+            if (error && typeof error === 'object' && 'response' in error) {
+                const axiosError = error as any;
+                
+                // Manejar error específico de programación no encontrada
+                if (axiosError.response.status === 404) {
+                    throw new Error("Programación mensual no encontrada");
                 }
             }
             throw error;

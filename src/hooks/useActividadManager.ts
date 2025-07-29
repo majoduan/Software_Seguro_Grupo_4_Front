@@ -370,6 +370,7 @@ export const useActividadManager = () => {
                     codigo_item: itemPresupuestarioData.codigo || 'N/A', // Usar el código del item presupuestario real
                     lineaPaiViiv: tareaReal.lineaPaiViiv,
                     gastos_mensuales: gastosMensuales, // Programación mensual real
+                    programaciones_mensuales: programacionData, // Guardar información completa para actualizaciones
                     saldo_disponible: toSafeNumber(tareaReal.saldo_disponible),
                     expanded: false,
                     detalle: tareaReal.detalle_tarea
@@ -392,6 +393,7 @@ export const useActividadManager = () => {
                     codigo_item: 'Error', // Valor por defecto en caso de error
                     lineaPaiViiv: tareaReal.lineaPaiViiv,
                     gastos_mensuales: new Array(12).fill(0), // Array vacío en caso de error
+                    programaciones_mensuales: [], // Array vacío en caso de error
                     saldo_disponible: toSafeNumber(tareaReal.saldo_disponible),
                     expanded: false,
                     detalle: tareaReal.detalle_tarea

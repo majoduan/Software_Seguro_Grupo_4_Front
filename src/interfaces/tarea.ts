@@ -77,6 +77,8 @@ export interface TareaForm {
   total?: number;
   saldo_disponible?: number;
   gastos_mensuales?: number[];
+  // Información de programación mensual para actualizaciones
+  programaciones_mensuales?: ProgramacionMensualOut[];
   expanded?: boolean;
   detalle?: DetalleTarea;
   itemPresupuestario?: ItemPresupuestario;
