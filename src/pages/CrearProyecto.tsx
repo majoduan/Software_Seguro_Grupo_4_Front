@@ -116,12 +116,7 @@ const CrearProyecto: React.FC = () => {
                 content="El tipo de proyecto no puede ser modificado después de seleccionado." 
               />
             </Form.Label>
-            /**
-            * Objetivo: Evitar que el usuario modifique el tipo de proyecto una vez seleccionado.
-            * Operación: Se muestra el nombre del tipo de proyecto en un campo de solo lectura (`readOnly`).
-            * Garantiza la integridad del tipo de proyecto, que influye en múltiples reglas del sistema
-            * como duración, presupuesto y código generado.
-            */
+            
             <Form.Control
               type="text"
               size="lg"
@@ -179,13 +174,7 @@ const CrearProyecto: React.FC = () => {
                     />
                   )}
                 </Form.Label>
-                /**
-              * Objetivo: Controlar que la fecha de fin no supere el límite permitido según la duración del tipo de proyecto.
-              * Parámetros: `fecha_inicio`, `fecha_fin`, y `duracion_meses` del tipo de proyecto.
-              * Operación: Se calcula internamente la `fechaFinMaxima` y se muestra error si se supera.
-              *             Mitiga manipulación por parte del usuario para extender duración más allá del 
-                            permitido por el sistema.
-              */
+                
                 <Form.Control
                   type="date"
                   size="lg"
