@@ -462,10 +462,6 @@ const EditarActividad: React.FC = () => {
    */
   const actualizarProgramacionMensual = async (tareaCompleta: TareaForm) => {
     if (!tareaCompleta.id_tarea_real || !tareaCompleta.gastos_mensuales) {
-      console.log('❌ Sin id_tarea_real o gastos_mensuales:', {
-        id_tarea_real: tareaCompleta.id_tarea_real,
-        gastos_mensuales: tareaCompleta.gastos_mensuales
-      });
       return;
     }
 
@@ -484,29 +480,19 @@ const EditarActividad: React.FC = () => {
         }))
         .filter((prog: ProgramacionMensualCreate) => prog.valor > 0); // Solo crear programaciones con valor > 0
 
-      console.log('📊 Programaciones a crear:', {
-        tarea: tareaCompleta.nombre,
-        id_tarea_real: tareaCompleta.id_tarea_real,
-        total_programaciones: programacionesMensuales.length,
-        programaciones: programacionesMensuales
-      });
-
       if (programacionesMensuales.length > 0) {
         const { tareaAPI } = await import('../api/tareaAPI');
-        const resultado = await tareaAPI.actualizarProgramacionMensualCompleta(
+        await tareaAPI.actualizarProgramacionMensualCompleta(
           tareaCompleta.id_tarea_real,
           programacionesMensuales
         );
-        console.log('✅ Resultado programación:', resultado);
       } else {
-        console.log('🗑️ Solo eliminando programación existente (sin valores > 0)');
         // Si no hay valores, solo eliminar programación existente
         const { tareaAPI } = await import('../api/tareaAPI');
-        const resultado = await tareaAPI.eliminarProgramacionMensualCompleta(tareaCompleta.id_tarea_real);
-        console.log('✅ Eliminación completa:', resultado);
+        await tareaAPI.eliminarProgramacionMensualCompleta(tareaCompleta.id_tarea_real);
       }
     } catch (error) {
-      console.error('❌ Error al actualizar programación mensual:', error);
+      console.error('Error al actualizar programación mensual:', error);
       throw new Error('Error al actualizar la programación mensual: ' + (error instanceof Error ? error.message : 'Error desconocido'));
     }
   };
