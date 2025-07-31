@@ -113,15 +113,10 @@ const EditarActividad: React.FC = () => {
     await cargarActividadesExistentes(proyecto.id_proyecto);
   };
 
-  // Función para guardar tarea (editada o nueva)
+  // Función para guardar tarea (editada o nueva) - SOLO actualiza estado local
   const handleGuardarTarea = async (tareaCompleta: TareaForm) => {
     try {
-      // Si la tarea tiene programación mensual y es una edición, actualizar programación
-      if (tareaCompleta.gastos_mensuales && tareaCompleta.id_tarea_real && isEditingTarea) {
-        await actualizarProgramacionMensual(tareaCompleta);
-      }
-
-      // Actualizar el estado local
+      // Solo actualizar el estado local, NO la programación mensual aquí
       setPoasConActividades(prev =>
         prev.map(poa =>
           poa.id_poa === currentPoa
@@ -149,57 +144,23 @@ const EditarActividad: React.FC = () => {
     }
   };
 
-  // Nueva función para actualizar programación mensual
+  // Función para guardar cambios (actualizar tareas existentes)
   /**
-   * Actualización de programación mensual en tareas editadas
+   * Guardado controlado de tareas editadas
    *
    * Objetivo:
-   *     Reemplazar completamente la programación mensual de una tarea cuando se edita.
+   *     Ejecutar la persistencia de tareas al backend solo si son válidas.
    *
    * Parámetros:
-   *     - tareaCompleta: TareaForm — Tarea con los nuevos datos incluyendo gastos_mensuales.
+   *     - Ninguno directo; opera sobre el estado actual de tareas.
    *
    * Operación:
-   *     - Convierte el array gastos_mensuales a formato ProgramacionMensualCreate.
-   *     - Utiliza la API para eliminar la programación anterior y crear la nueva.
-   *     - Maneja errores específicos y proporciona retroalimentación al usuario.
+   *     - Prepara una lista de tareas modificadas.
+   *     - Actualiza la programación mensual de tareas editadas.
+   *     - Llama al servicio `editarTareas` del backend pasando el estado original para comparación.
+   *     - Muestra retroalimentación de éxito o error.
+   *     - Maneja errores del servidor para evitar estados inconsistentes.
    */
-  const actualizarProgramacionMensual = async (tareaCompleta: TareaForm) => {
-    if (!tareaCompleta.id_tarea_real || !tareaCompleta.gastos_mensuales) {
-      return;
-    }
-
-    try {
-      // Convertir gastos_mensuales array a formato de programación mensual
-      const meses = [
-        'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
-        'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'
-      ];
-
-      const programacionesMensuales: ProgramacionMensualCreate[] = tareaCompleta.gastos_mensuales
-        .map((valor: number, index: number) => ({
-          id_tarea: tareaCompleta.id_tarea_real!,
-          mes: meses[index],
-          valor: valor || 0
-        }))
-        .filter((prog: ProgramacionMensualCreate) => prog.valor > 0); // Solo crear programaciones con valor > 0
-
-      if (programacionesMensuales.length > 0) {
-        const { tareaAPI } = await import('../api/tareaAPI');
-        await tareaAPI.actualizarProgramacionMensualCompleta(
-          tareaCompleta.id_tarea_real,
-          programacionesMensuales
-        );
-      } else {
-        // Si no hay valores, solo eliminar programación existente
-        const { tareaAPI } = await import('../api/tareaAPI');
-        await tareaAPI.eliminarProgramacionMensualCompleta(tareaCompleta.id_tarea_real);
-      }
-    } catch (error) {
-      console.error('Error al actualizar programación mensual:', error);
-      throw new Error('Error al actualizar la programación mensual: ' + (error instanceof Error ? error.message : 'Error desconocido'));
-    }
-  };
 
   // Función para mostrar modal de tarea
   /**
@@ -428,32 +389,133 @@ const EditarActividad: React.FC = () => {
     setShowConfirmModal(true);
   };
 
-  // Función para guardar cambios (actualizar tareas existentes)
+  // Nueva función para actualizar todas las programaciones mensuales
   /**
- * Guardado controlado de tareas editadas
- *
- * Objetivo:
- *     Ejecutar la persistencia de tareas al backend solo si son válidas.
- *
- * Parámetros:
- *     - Ninguno directo; opera sobre el estado actual de tareas.
- *
- * Operación:
- *     - Prepara una lista de tareas modificadas.
- *     - Llama al servicio `editarTareas` del backend pasando el estado original para comparación.
- *     - Muestra retroalimentación de éxito o error.
- *     - Maneja errores del servidor para evitar estados inconsistentes.
- */
+   * Actualización masiva de programaciones mensuales
+   *
+   * Objetivo:
+   *     Actualizar la programación mensual de todas las tareas que han sido editadas.
+   *
+   * Operación:
+   *     - Identifica tareas con gastos_mensuales modificados.
+   *     - Actualiza la programación mensual de cada tarea editada.
+   *     - Maneja errores por tarea individual sin afectar las demás.
+   */
+  const actualizarProgramacionesMensuales = async () => {
+    const tareasConProgramacionEditada = [];
 
+    // Recopilar todas las tareas que tienen programación mensual modificada
+    for (const poa of poasConActividades) {
+      const poaOriginal = actividadesOriginales.find(p => p.id_poa === poa.id_poa);
+      if (!poaOriginal) continue;
+
+      for (const actividad of poa.actividades) {
+        const actividadOriginal = poaOriginal.actividades.find(a => a.actividad_id === actividad.actividad_id);
+        if (!actividadOriginal) continue;
+
+        for (const tarea of actividad.tareas) {
+          // Solo procesar tareas existentes con programación mensual
+          if (!tarea.id_tarea_real || !tarea.gastos_mensuales) continue;
+
+          const tareaOriginal = actividadOriginal.tareas.find(t => t.id_tarea_real === tarea.id_tarea_real);
+          if (!tareaOriginal) continue;
+
+          // Verificar si la programación mensual cambió
+          const programacionCambio = JSON.stringify(tarea.gastos_mensuales) !== JSON.stringify(tareaOriginal.gastos_mensuales);
+          
+          if (programacionCambio) {
+            tareasConProgramacionEditada.push(tarea);
+          }
+        }
+      }
+    }
+
+    // Actualizar programación mensual de cada tarea
+    if (tareasConProgramacionEditada.length > 0) {
+      showInfo(`Actualizando programación mensual de ${tareasConProgramacionEditada.length} tarea(s)...`);
+      
+      for (const tarea of tareasConProgramacionEditada) {
+        try {
+          await actualizarProgramacionMensual(tarea);
+        } catch (error) {
+          console.error(`Error al actualizar programación de tarea ${tarea.nombre}:`, error);
+          // Continuar con las demás tareas
+        }
+      }
+    }
+  };
+
+  // Función para actualizar programación mensual de una tarea específica
+  /**
+   * Actualización de programación mensual en tareas editadas
+   *
+   * Objetivo:
+   *     Reemplazar completamente la programación mensual de una tarea cuando se edita.
+   *
+   * Parámetros:
+   *     - tareaCompleta: TareaForm — Tarea con los nuevos datos incluyendo gastos_mensuales.
+   *
+   * Operación:
+   *     - Convierte el array gastos_mensuales a formato ProgramacionMensualCreate.
+   *     - Utiliza la API para eliminar la programación anterior y crear la nueva.
+   *     - Maneja errores específicos y proporciona retroalimentación al usuario.
+   */
+  const actualizarProgramacionMensual = async (tareaCompleta: TareaForm) => {
+    if (!tareaCompleta.id_tarea_real || !tareaCompleta.gastos_mensuales) {
+      return;
+    }
+
+    try {
+      // Convertir gastos_mensuales array a formato de programación mensual
+      const meses = [
+        'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+        'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'
+      ];
+
+      const programacionesMensuales: ProgramacionMensualCreate[] = tareaCompleta.gastos_mensuales
+        .map((valor: number, index: number) => ({
+          id_tarea: tareaCompleta.id_tarea_real!,
+          mes: meses[index],
+          valor: valor || 0
+        }))
+        .filter((prog: ProgramacionMensualCreate) => prog.valor > 0); // Solo crear programaciones con valor > 0
+
+      if (programacionesMensuales.length > 0) {
+        const { tareaAPI } = await import('../api/tareaAPI');
+        await tareaAPI.actualizarProgramacionMensualCompleta(
+          tareaCompleta.id_tarea_real,
+          programacionesMensuales
+        );
+      } else {
+        // Si no hay valores, solo eliminar programación existente
+        const { tareaAPI } = await import('../api/tareaAPI');
+        await tareaAPI.eliminarProgramacionMensualCompleta(tareaCompleta.id_tarea_real);
+      }
+    } catch (error) {
+      console.error('Error al actualizar programación mensual:', error);
+      throw new Error('Error al actualizar la programación mensual: ' + (error instanceof Error ? error.message : 'Error desconocido'));
+    }
+  };
+
+  // Función para guardar cambios (actualizar tareas existentes)
   const handleGuardarCambios = async () => {
-    const result = await ActividadTareaService.editarTareas(poasConActividades, actividadesOriginales);
+    try {
+      // Primero actualizar programaciones mensuales de tareas editadas
+      await actualizarProgramacionesMensuales();
+      
+      // Luego ejecutar el guardado normal de las tareas
+      const result = await ActividadTareaService.editarTareas(poasConActividades, actividadesOriginales);
 
-    if (result.success) {
+      if (result.success) {
+        setShowConfirmModal(false);
+        setShowSuccessModal(true);
+      } else {
+        setShowConfirmModal(false);
+        showError(result.error || 'Error al actualizar las tareas');
+      }
+    } catch (error) {
       setShowConfirmModal(false);
-      setShowSuccessModal(true);
-    } else {
-      setShowConfirmModal(false);
-      showError(result.error || 'Error al actualizar las tareas');
+      showError('Error al actualizar las tareas: ' + (error instanceof Error ? error.message : 'Error desconocido'));
     }
   };
 
