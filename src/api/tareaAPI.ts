@@ -53,7 +53,7 @@ export const tareaAPI = {
             return response.data as ItemPresupuestario;
         } catch (error) {
             if (error && typeof error === 'object' && 'response' in error) {
-                const axiosError = error as any;
+                const axiosError = error as { response: { status: number; data?: { detail?: string } } };
                 
                 // Manejar errores específicos
                 if (axiosError.response.status === 404) {
@@ -128,14 +128,23 @@ export const tareaAPI = {
 
     crearProgramacionMensual: async (programacionData: ProgramacionMensualCreate): Promise<ProgramacionMensualOut> => {
         try {
+            console.log('📤 Creando programación:', programacionData);
             const response = await API.post("/programacion-mensual", programacionData);
-            return response.data;
+            console.log('✅ Programación creada:', response.data);
+            return response.data as ProgramacionMensualOut;
         } catch (error) {
-            if (error.response) {
+            console.error('❌ Error al crear programación:', error);
+            if (error && typeof error === 'object' && 'response' in error) {
+                const axiosError = error as { response: { status: number; data?: { detail?: string } } };
+                console.error('📋 Detalles del error:', {
+                    status: axiosError.response.status,
+                    data: axiosError.response.data,
+                    programacionEnviada: programacionData
+                });
                 
                 // Manejar el error específico de duplicación
-                if (error.response.status === 400 && 
-                    error.response.data?.detail === "Ya existe programación para ese mes y tarea.") {
+                if (axiosError.response.status === 400 && 
+                    axiosError.response.data?.detail === "Ya existe programación para ese mes y tarea.") {
                     throw new Error("Ya existe una programación para ese mes y tarea");
                 }
             }
@@ -228,23 +237,43 @@ export const tareaAPI = {
         idTarea: string, 
         programacionesMensuales: ProgramacionMensualCreate[]
     ): Promise<{ message: string; programaciones_creadas: number }> => {
-        // 1. Eliminar programación existente
-        await tareaAPI.eliminarProgramacionMensualCompleta(idTarea);
-        
-        // 2. Crear nuevas programaciones
-        const programacionesCreadas = [];
-        for (const programacion of programacionesMensuales) {
-            const nuevaProgramacion = await tareaAPI.crearProgramacionMensual({
-                ...programacion,
-                id_tarea: idTarea
+        try {
+            console.log('🔄 Iniciando actualización programación completa:', {
+                idTarea,
+                cantidadProgramaciones: programacionesMensuales.length,
+                programaciones: programacionesMensuales
             });
-            programacionesCreadas.push(nuevaProgramacion);
-        }
 
-        return {
-            message: "Programación mensual actualizada exitosamente",
-            programaciones_creadas: programacionesCreadas.length
-        };
+            // 1. Eliminar programación existente
+            console.log('🗑️ Eliminando programación existente...');
+            const eliminacionResult = await tareaAPI.eliminarProgramacionMensualCompleta(idTarea);
+            console.log('✅ Eliminación completada:', eliminacionResult);
+            
+            // 2. Crear nuevas programaciones (sin duplicar id_tarea)
+            console.log('📝 Creando nuevas programaciones...');
+            const programacionesCreadas = [];
+            for (let i = 0; i < programacionesMensuales.length; i++) {
+                const programacion = programacionesMensuales[i];
+                console.log(`📤 Creando programación ${i + 1}/${programacionesMensuales.length}:`, programacion);
+                
+                // NO duplicar id_tarea - ya viene en el objeto programacion
+                const nuevaProgramacion = await tareaAPI.crearProgramacionMensual(programacion);
+                programacionesCreadas.push(nuevaProgramacion);
+                console.log(`✅ Programación ${i + 1} creada exitosamente`);
+            }
+
+            const resultado = {
+                message: "Programación mensual actualizada exitosamente",
+                programaciones_creadas: programacionesCreadas.length
+            };
+
+            console.log('🎉 Actualización completa exitosa:', resultado);
+            return resultado;
+        } catch (error) {
+            console.error('❌ Error en actualizarProgramacionMensualCompleta:', error);
+            // Si falla la creación, intentar limpiar el estado
+            throw new Error(`Error al actualizar programación mensual: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+        }
     },
 
 }
