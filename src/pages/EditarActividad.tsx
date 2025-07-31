@@ -16,6 +16,8 @@ import ActividadesPorPOA from '../components/ActividadesPorPOA';
 import SidebarPresupuesto from '../components/SidebarPresupuesto';
 
 import { POAConActividadesYTareas } from '../interfaces/actividad';
+import { TareaForm, ProgramacionMensualCreate } from '../interfaces/tarea';
+import { Proyecto } from '../interfaces/project';
 import { showError, showInfo } from '../utils/toast';
 import '../styles/AgregarActividad.css';
 
@@ -106,32 +108,97 @@ const EditarActividad: React.FC = () => {
   };
 
   // Función para manejar la selección de proyecto
-  const handleSeleccionarProyecto = async (proyecto: any) => {
+  const handleSeleccionarProyecto = async (proyecto: Proyecto) => {
     seleccionarProyecto(proyecto);
     await cargarActividadesExistentes(proyecto.id_proyecto);
   };
 
   // Función para guardar tarea (editada o nueva)
-  const handleGuardarTarea = (tareaCompleta: any) => {
-    setPoasConActividades(prev =>
-      prev.map(poa =>
-        poa.id_poa === currentPoa
-          ? {
-            ...poa,
-            actividades: poa.actividades.map(act =>
-              act.actividad_id === currentActividad
-                ? {
-                  ...act,
-                  tareas: isEditingTarea
-                    ? act.tareas.map(t => t.tempId === currentTarea?.tempId ? tareaCompleta : t)
-                    : [...act.tareas, tareaCompleta] // Agregar nueva tarea
-                }
-                : act
-            )
-          }
-          : poa
-      )
-    );
+  const handleGuardarTarea = async (tareaCompleta: TareaForm) => {
+    try {
+      // Si la tarea tiene programación mensual y es una edición, actualizar programación
+      if (tareaCompleta.gastos_mensuales && tareaCompleta.id_tarea_real && isEditingTarea) {
+        await actualizarProgramacionMensual(tareaCompleta);
+      }
+
+      // Actualizar el estado local
+      setPoasConActividades(prev =>
+        prev.map(poa =>
+          poa.id_poa === currentPoa
+            ? {
+              ...poa,
+              actividades: poa.actividades.map(act =>
+                act.actividad_id === currentActividad
+                  ? {
+                    ...act,
+                    tareas: isEditingTarea
+                      ? act.tareas.map(t => t.tempId === currentTarea?.tempId ? tareaCompleta : t)
+                      : [...act.tareas, tareaCompleta] // Agregar nueva tarea
+                  }
+                  : act
+              )
+            }
+            : poa
+        )
+      );
+
+      showInfo('Tarea guardada exitosamente');
+    } catch (error) {
+      console.error('Error al guardar tarea:', error);
+      showError('Error al guardar la tarea: ' + (error instanceof Error ? error.message : 'Error desconocido'));
+    }
+  };
+
+  // Nueva función para actualizar programación mensual
+  /**
+   * Actualización de programación mensual en tareas editadas
+   *
+   * Objetivo:
+   *     Reemplazar completamente la programación mensual de una tarea cuando se edita.
+   *
+   * Parámetros:
+   *     - tareaCompleta: TareaForm — Tarea con los nuevos datos incluyendo gastos_mensuales.
+   *
+   * Operación:
+   *     - Convierte el array gastos_mensuales a formato ProgramacionMensualCreate.
+   *     - Utiliza la API para eliminar la programación anterior y crear la nueva.
+   *     - Maneja errores específicos y proporciona retroalimentación al usuario.
+   */
+  const actualizarProgramacionMensual = async (tareaCompleta: TareaForm) => {
+    if (!tareaCompleta.id_tarea_real || !tareaCompleta.gastos_mensuales) {
+      return;
+    }
+
+    try {
+      // Convertir gastos_mensuales array a formato de programación mensual
+      const meses = [
+        'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+        'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'
+      ];
+
+      const programacionesMensuales: ProgramacionMensualCreate[] = tareaCompleta.gastos_mensuales
+        .map((valor: number, index: number) => ({
+          id_tarea: tareaCompleta.id_tarea_real!,
+          mes: meses[index],
+          valor: valor || 0
+        }))
+        .filter((prog: ProgramacionMensualCreate) => prog.valor > 0); // Solo crear programaciones con valor > 0
+
+      if (programacionesMensuales.length > 0) {
+        const { tareaAPI } = await import('../api/tareaAPI');
+        await tareaAPI.actualizarProgramacionMensualCompleta(
+          tareaCompleta.id_tarea_real,
+          programacionesMensuales
+        );
+      } else {
+        // Si no hay valores, solo eliminar programación existente
+        const { tareaAPI } = await import('../api/tareaAPI');
+        await tareaAPI.eliminarProgramacionMensualCompleta(tareaCompleta.id_tarea_real);
+      }
+    } catch (error) {
+      console.error('Error al actualizar programación mensual:', error);
+      throw new Error('Error al actualizar la programación mensual: ' + (error instanceof Error ? error.message : 'Error desconocido'));
+    }
   };
 
   // Función para mostrar modal de tarea
@@ -152,7 +219,7 @@ const EditarActividad: React.FC = () => {
  *     - Previene intentos de edición sobre tareas ajenas o mal formadas.
  */
 
-  const handleMostrarModalTarea = async (poaId: string, actividadId: string, tarea?: any) => {
+  const handleMostrarModalTarea = async (poaId: string, actividadId: string, tarea?: TareaForm) => {
     const poa = poasConActividades.find(p => p.id_poa === poaId);
     const actividad = poa?.actividades.find(act => act.actividad_id === actividadId);
 

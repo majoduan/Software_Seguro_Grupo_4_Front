@@ -92,7 +92,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     try {
       // Verificar el token con el servidor
-      //const response = await API.get('/perfil');
+      await API.get('/perfil');
       
       // Si llegamos aquí, el token es válido
       return true;

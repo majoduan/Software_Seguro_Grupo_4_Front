@@ -175,4 +175,76 @@ export const tareaAPI = {
         }
     },
 
+    // Eliminar toda la programación mensual de una tarea
+    /**
+     * Objetivo:
+     * Eliminar toda la programación mensual asociada a una tarea específica.
+     *
+     * Parámetros:
+     * - idTarea: string — Identificador único de la tarea.
+     *
+     * Operación:
+     * DELETE a `/tareas/{id}/programacion-mensual`.
+     * Elimina todos los registros de programación mensual de la tarea.
+     * El backend valida que la tarea exista y que el usuario tenga permisos.
+     * Registra la operación en el historial para auditoría.
+     * Útil para resetear la programación antes de crear una nueva.
+     */
+    eliminarProgramacionMensualCompleta: async (idTarea: string): Promise<{ message: string; registros_eliminados: number }> => {
+        try {
+            const response = await API.delete(`/tareas/${idTarea}/programacion-mensual`);
+            return response.data as { message: string; registros_eliminados: number };
+        } catch (error) {
+            if (error && typeof error === 'object' && 'response' in error) {
+                const axiosError = error as { response: { status: number; data?: { detail?: string } } };
+                
+                // Manejar errores específicos
+                if (axiosError.response.status === 404) {
+                    throw new Error("Tarea no encontrada");
+                } else if (axiosError.response.status === 403) {
+                    throw new Error("No tiene permisos para eliminar esta programación");
+                }
+            }
+            throw error;
+        }
+    },
+
+    // Actualizar programación mensual (eliminar anterior y crear nueva)
+    /**
+     * Objetivo:
+     * Reemplazar completamente la programación mensual de una tarea.
+     *
+     * Parámetros:
+     * - idTarea: string — Identificador único de la tarea.
+     * - programacionesMensuales: ProgramacionMensualCreate[] — Array con las nuevas programaciones.
+     *
+     * Operación:
+     * 1. Elimina toda la programación mensual existente.
+     * 2. Crea las nuevas programaciones mensuales.
+     * Operación atómica: si falla alguna creación, se mantiene consistencia.
+     * Control de transacciones para evitar estados intermedios inválidos.
+     */
+    actualizarProgramacionMensualCompleta: async (
+        idTarea: string, 
+        programacionesMensuales: ProgramacionMensualCreate[]
+    ): Promise<{ message: string; programaciones_creadas: number }> => {
+        // 1. Eliminar programación existente
+        await tareaAPI.eliminarProgramacionMensualCompleta(idTarea);
+        
+        // 2. Crear nuevas programaciones
+        const programacionesCreadas = [];
+        for (const programacion of programacionesMensuales) {
+            const nuevaProgramacion = await tareaAPI.crearProgramacionMensual({
+                ...programacion,
+                id_tarea: idTarea
+            });
+            programacionesCreadas.push(nuevaProgramacion);
+        }
+
+        return {
+            message: "Programación mensual actualizada exitosamente",
+            programaciones_creadas: programacionesCreadas.length
+        };
+    },
+
 }

@@ -262,6 +262,8 @@ function AppContent() {
               <RoleProtectedRoute requiredRoles={[
                 ROLES.ADMINISTRADOR,
                 ROLES.DIRECTOR_DE_REFORMAS,
+                ROLES.DIRECTOR_DE_INVESTIGACION,
+                ROLES.DIRECTOR_DE_PROYECTO,
               ]}>
               <VerProyectos />
               </RoleProtectedRoute>
