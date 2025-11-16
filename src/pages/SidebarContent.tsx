@@ -3,7 +3,7 @@ import { Nav, Button } from 'react-bootstrap';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { SidebarContentProps } from '../interfaces/bar';
-import { TableProperties, FolderKanban, FileChartLine, CircleUserRound, UserPlus, LogOut, Icon, History,FileSpreadsheet } from 'lucide-react';
+import { TableProperties, FolderKanban, FileChartLine, CircleUserRound, UserPlus, LogOut, Icon, History,FileSpreadsheet, FileUp } from 'lucide-react';
 import { owl } from '@lucide/lab';
 import { ROLES } from '../interfaces/user';
 import { rolAPI } from '../api/userAPI';
@@ -261,6 +261,22 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
                   Excel
                 </div>
 
+                {/* Subir POA desde Excel - ADMINISTRADOR y DIRECTOR_REFORMAS */}
+                {hasAccessTo([
+                  ROLES.ADMINISTRADOR,
+                  ROLES.DIRECTOR_DE_REFORMAS,
+                ]) && (
+                  <Nav.Item>
+                    <Nav.Link
+                      className={`text-white ${isActive("/subir-excel")}`}
+                      onClick={() => handleNavigate("/subir-excel")}
+                    >
+                      <FileUp size={iconSize} className="me-2" />
+                      Subir POA desde Excel
+                    </Nav.Link>
+                  </Nav.Item>
+                )}
+
                 {/* Reporte Anual - ADMINISTRADOR y DIRECTOR_REFORMAS */}
                 {hasAccessTo([
                   ROLES.ADMINISTRADOR,
@@ -467,6 +483,23 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
           )}
 
           <div className="px-3 mt-4 mb-2 text-secondary text-uppercase small">XLSX</div>
+
+          {/* Subir POA desde Excel */}
+          {hasAccessTo([
+            ROLES.ADMINISTRADOR,
+            ROLES.DIRECTOR_DE_REFORMAS,
+          ]) && (
+            <Nav.Item>
+              <Nav.Link
+                className={`text-white ${isActive("/subir-excel")}`}
+                onClick={() => handleNavigate("/subir-excel")}
+                title="Subir POA desde Excel"
+              >
+                <FileUp size={iconSize} className="me-2" />
+                {/* Subir POA desde Excel */}
+              </Nav.Link>
+            </Nav.Item>
+          )}
 
           {/* Reporte Anual */}
           {hasAccessTo([

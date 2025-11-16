@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider } from './context/AuthContext';
 import AppLayout from './AppLayout';
 import ProtectedRoute from './components/ProtectedRoute';
+import SubirExcel from './pages/SubirExcel';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
@@ -232,6 +233,17 @@ function AppContent() {
           <Route path="/perfil" element={
             <ProtectedRoute>
               <Perfil />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/subir-excel" element={
+            <ProtectedRoute>
+              <RoleProtectedRoute requiredRoles={[
+                ROLES.ADMINISTRADOR,
+                ROLES.DIRECTOR_DE_REFORMAS,                
+              ]}>
+                <SubirExcel />
+              </RoleProtectedRoute>
             </ProtectedRoute>
           } />
 
