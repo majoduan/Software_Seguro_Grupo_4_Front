@@ -77,6 +77,11 @@ const VerProyectos: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
   const [selectedPOA, setSelectedPOA] = useState<POA | null>(null);
 
+  // Estados para modal de confirmación de eliminación
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [proyectoAEliminar, setProyectoAEliminar] = useState<ProyectoConPOAs | null>(null);
+  const [eliminando, setEliminando] = useState(false);
+
   // Cargar datos iniciales
   useEffect(() => {
     const loadData = async () => {
@@ -251,6 +256,37 @@ const VerProyectos: React.FC = () => {
     setSelectedPOA(null);
   };
 
+  // Función para abrir modal de confirmación de eliminación
+  const openDeleteModal = (proyecto: ProyectoConPOAs) => {
+    setProyectoAEliminar(proyecto);
+    setShowDeleteModal(true);
+  };
+
+  // Función para cerrar modal de eliminación
+  const closeDeleteModal = () => {
+    setShowDeleteModal(false);
+    setProyectoAEliminar(null);
+  };
+
+  // Función para eliminar proyecto
+  const handleEliminarProyecto = async () => {
+    if (!proyectoAEliminar) return;
+
+    try {
+      setEliminando(true);
+      const response = await projectAPI.eliminarProyecto(proyectoAEliminar.id_proyecto);
+      showSuccess(response.msg);
+
+      // Actualizar la lista de proyectos removiendo el eliminado
+      setProyectos(prev => prev.filter(p => p.id_proyecto !== proyectoAEliminar.id_proyecto));
+      closeDeleteModal();
+    } catch (err) {
+      showError(err instanceof Error ? err.message : 'Error al eliminar el proyecto');
+    } finally {
+      setEliminando(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '400px' }}>
@@ -401,12 +437,13 @@ const VerProyectos: React.FC = () => {
                 <th>Año de Ejecución</th>
                 <th>Presupuesto Aprobado</th>
                 <th>Exportar Excel</th>
+                <th>Acciones</th>
               </tr>
             </thead>
             <tbody>
               {filteredProyectos.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="text-center py-4">
+                  <td colSpan={8} className="text-center py-4">
                     <div className="text-muted">
                       {filters.searchTerm || filters.estadoFilter || filters.yearFilter || filters.minBudget || filters.maxBudget
                         ? 'No hay proyectos que coincidan con los filtros aplicados'
@@ -468,6 +505,16 @@ const VerProyectos: React.FC = () => {
                           poas={proyecto.poas || []}
                         />
                       </td>
+                      <td>
+                        <Button
+                          variant="outline-danger"
+                          size="sm"
+                          onClick={() => openDeleteModal(proyecto)}
+                          title="Eliminar proyecto y todos sus POAs"
+                        >
+                          <i className="bi bi-trash"></i> Eliminar
+                        </Button>
+                      </td>
                     </tr>
                   );
                 })
@@ -490,6 +537,76 @@ const VerProyectos: React.FC = () => {
         <Modal.Body>
           {selectedPOA && <VerPOA poa={selectedPOA} onClose={closeModal} />}
         </Modal.Body>
+      </Modal>
+
+      {/* Modal de confirmación para eliminar proyecto */}
+      <Modal
+        show={showDeleteModal}
+        onHide={closeDeleteModal}
+        centered
+        backdrop="static"
+      >
+        <Modal.Header closeButton>
+          <Modal.Title className="text-danger">
+            <i className="bi bi-exclamation-triangle-fill me-2"></i>
+            Confirmar Eliminación
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {proyectoAEliminar && (
+            <div>
+              <Alert variant="danger">
+                <Alert.Heading>¡Advertencia! Esta acción no se puede deshacer.</Alert.Heading>
+                <p>
+                  Está a punto de eliminar permanentemente el proyecto <strong>{proyectoAEliminar.titulo}</strong>
+                  (Código: <code>{proyectoAEliminar.codigo_proyecto}</code>).
+                </p>
+              </Alert>
+              <p><strong>Se eliminarán también:</strong></p>
+              <ul>
+                <li><strong>{proyectoAEliminar.poas?.length || 0}</strong> POA(s) asociados</li>
+                <li>Todas las actividades y tareas de cada POA</li>
+                <li>Toda la programación mensual</li>
+                <li>Todo el historial de cambios del proyecto y sus POAs</li>
+                <li>Todas las reformas y logs de carga</li>
+              </ul>
+              <p className="text-muted">
+                <small>
+                  Presupuesto del proyecto: <strong>${proyectoAEliminar.presupuesto_aprobado?.toLocaleString() || 'N/A'}</strong>
+                </small>
+              </p>
+            </div>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={closeDeleteModal} disabled={eliminando}>
+            Cancelar
+          </Button>
+          <Button
+            variant="danger"
+            onClick={handleEliminarProyecto}
+            disabled={eliminando}
+          >
+            {eliminando ? (
+              <>
+                <Spinner
+                  as="span"
+                  animation="border"
+                  size="sm"
+                  role="status"
+                  aria-hidden="true"
+                  className="me-2"
+                />
+                Eliminando...
+              </>
+            ) : (
+              <>
+                <i className="bi bi-trash me-2"></i>
+                Sí, eliminar proyecto
+              </>
+            )}
+          </Button>
+        </Modal.Footer>
       </Modal>
     </div>
   );

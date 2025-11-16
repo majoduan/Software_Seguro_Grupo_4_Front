@@ -84,7 +84,7 @@ Parámetros:
     //TODO: Realizar el filtrado de proyecto en el servidor
     getProyectos: async (filtro?: { codigo?: string, titulo?: string }): Promise<Proyecto[]> => {
     const response = await API.get<Proyecto[]>('/proyectos/');
-    
+
     // Filtrado en el cliente
     let proyectos: Proyecto[] = response.data;
     if (filtro) {
@@ -97,5 +97,21 @@ Parámetros:
         });
     }
     return proyectos;
-    },    
+    },
+
+    // Eliminar un proyecto y todos sus POAs
+    /*
+    Objetivo:
+    Eliminar un proyecto completo junto con todos sus POAs, actividades y tareas asociadas.
+    Esta es una operación destructiva que requiere confirmación del usuario.
+
+    Parámetros:
+    id: string — identificador del proyecto a eliminar.
+    Autenticación mediante token JWT.
+    Validación de permisos para eliminar proyectos.
+    */
+    eliminarProyecto: async (id: string): Promise<{ msg: string }> => {
+        const response = await API.delete<{ msg: string }>(`/proyectos/${id}`);
+        return response.data;
+    },
 };
