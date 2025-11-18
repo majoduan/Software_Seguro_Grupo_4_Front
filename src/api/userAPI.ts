@@ -1,6 +1,5 @@
 import axios from 'axios';
 import { UserRegister, AuthResponse, Rol, PerfilUsuario, Usuario } from '../interfaces/user';
-import { cookieUtils } from '../utils/cookieUtils';
 import { ENV } from '../config/env';
 
 // Configuración base de axios con validación de variables de entorno
