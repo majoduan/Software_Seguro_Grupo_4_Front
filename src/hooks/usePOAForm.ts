@@ -6,6 +6,7 @@ import { poaAPI } from '../api/poaAPI';
 import { periodoAPI } from '../api/periodoAPI';
 import { projectAPI } from '../api/projectAPI';
 import { sanitizeInput, sanitizeForSubmit } from '../utils/sanitizer';
+import { presupuestoAPI, PresupuestoProyecto } from '../api/presupuestoAPI';
 
 interface UsePOAFormProps {
   initialProyecto?: Proyecto | null;
@@ -62,6 +63,7 @@ export const usePOAForm = ({ initialProyecto, initialPeriodos = [], isEditing = 
   const [presupuestoRestante, setPresupuestoRestante] = useState<number>(0);
   const [presupuestoError, setPresupuestoError] = useState<string | null>(null);
   const [presupuestoTotalAsignado, setPresupuestoTotalAsignado] = useState<number>(0);
+  const [presupuestoProyecto, setPresupuestoProyecto] = useState<PresupuestoProyecto | null>(null);
 
   // Estado para modal de creación de periodo
   const [showCrearPeriodo, setShowCrearPeriodo] = useState(false);
@@ -902,6 +904,26 @@ export const usePOAForm = ({ initialProyecto, initialPeriodos = [], isEditing = 
     }
   };
 
+  // Cargar información de presupuesto del proyecto
+  const cargarPresupuestoProyecto = async (id_proyecto: string) => {
+    try {
+      const datos = await presupuestoAPI.getPresupuestoProyecto(id_proyecto);
+      setPresupuestoProyecto(datos);
+      // También actualizar el presupuesto restante con los datos del servidor
+      setPresupuestoRestante(datos.presupuesto_disponible);
+    } catch (err) {
+      console.error('Error al cargar presupuesto del proyecto:', err);
+      // No mostrar error al usuario, es información auxiliar
+    }
+  };
+
+  // Cargar presupuesto cuando se selecciona un proyecto
+  useEffect(() => {
+    if (proyectoSeleccionado?.id_proyecto) {
+      cargarPresupuestoProyecto(proyectoSeleccionado.id_proyecto);
+    }
+  }, [proyectoSeleccionado?.id_proyecto]);
+
   return {
     // Estados del formulario
     id_proyecto,
@@ -953,6 +975,8 @@ export const usePOAForm = ({ initialProyecto, initialPeriodos = [], isEditing = 
     setPresupuestoError,
     presupuestoTotalAsignado,
     setPresupuestoTotalAsignado,
+    presupuestoProyecto,
+    cargarPresupuestoProyecto,
     
     // Modal de periodo
     showCrearPeriodo,

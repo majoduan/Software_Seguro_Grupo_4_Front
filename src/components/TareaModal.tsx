@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal, Form, Button, InputGroup, Row, Col, Alert } from 'react-bootstrap';
 import { TareaForm } from '../interfaces/tarea';
 import { esContratacionServiciosProfesionales } from '../utils/asignarCantidad';
 import { sanitizeInput } from '../utils/sanitizer';
+import { presupuestoAPI, PresupuestoActividad } from '../api/presupuestoAPI';
+import PresupuestoIndicador from './PresupuestoIndicador';
 
 interface TareaModalProps {
   show: boolean;
@@ -18,6 +20,7 @@ interface TareaModalProps {
   onDescripcionChange: (descripcion: string) => void;
   onSave: () => void;
   clearTaskError: (field: string) => void;
+  actividadId?: string; // Nuevo prop para cargar presupuesto de actividad
 }
 
 /*TareaModal
@@ -64,8 +67,26 @@ const TareaModal: React.FC<TareaModalProps> = ({
   onItemPresupuestarioChange,
   onDescripcionChange,
   onSave,
-  clearTaskError
+  clearTaskError,
+  actividadId
 }) => {
+  const [presupuestoActividad, setPresupuestoActividad] = useState<PresupuestoActividad | null>(null);
+
+  // Cargar presupuesto de la actividad cuando se abre el modal
+  useEffect(() => {
+    const cargarPresupuesto = async () => {
+      if (show && actividadId) {
+        try {
+          const datos = await presupuestoAPI.getPresupuestoActividad(actividadId);
+          setPresupuestoActividad(datos);
+        } catch (error) {
+          console.error('Error al cargar presupuesto de la actividad:', error);
+          setPresupuestoActividad(null);
+        }
+      }
+    };
+    cargarPresupuesto();
+  }, [show, actividadId]);
 
   const handleTareaFieldChange = (field: keyof TareaForm, value: any) => {
     if (!tarea) return;
@@ -103,6 +124,18 @@ const TareaModal: React.FC<TareaModalProps> = ({
         <Modal.Title>{isEditing ? 'Editar Tarea' : 'Agregar Nueva Tarea'}</Modal.Title>
       </Modal.Header>
       <Modal.Body>
+        {/* Indicador de presupuesto de la actividad */}
+        {presupuestoActividad && (
+          <PresupuestoIndicador
+            titulo="Presupuesto de la Actividad"
+            presupuestoTotal={presupuestoActividad.total_por_actividad}
+            presupuestoUtilizado={presupuestoActividad.suma_tareas}
+            presupuestoDisponible={presupuestoActividad.presupuesto_disponible}
+            porcentajeUtilizado={presupuestoActividad.porcentaje_utilizado}
+            mostrarDetalles={false}
+          />
+        )}
+
         <Form.Group className="mb-3">
           <Form.Label>Detalle de Tarea</Form.Label>
           <Form.Select
