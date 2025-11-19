@@ -313,9 +313,15 @@ export const usePOAForm = ({ initialProyecto, initialPeriodos = [], isEditing = 
   const calcularPeriodos = (fechaInicio: string, fechaFin: string): Periodo[] => {
     if (!fechaInicio || !fechaFin) return [];
     const periodos: Periodo[] = [];
-    const fechaInicioObj = new Date(fechaInicio);
-    const fechaFinObj = new Date(fechaFin);
-    
+
+    // Parsear fechas como fechas locales (sin timezone) para evitar problemas con UTC
+    // Esto garantiza consistencia independiente del timezone del navegador
+    const [yearInicio, monthInicio, dayInicio] = fechaInicio.split('-').map(Number);
+    const [yearFin, monthFin, dayFin] = fechaFin.split('-').map(Number);
+
+    const fechaInicioObj = new Date(yearInicio, monthInicio - 1, dayInicio);
+    const fechaFinObj = new Date(yearFin, monthFin - 1, dayFin);
+
     const anioInicio = fechaInicioObj.getFullYear();
     const anioFin = fechaFinObj.getFullYear();
     
@@ -328,15 +334,23 @@ export const usePOAForm = ({ initialProyecto, initialPeriodos = [], isEditing = 
       } else {
         periodoInicio = new Date(anio, 0, 1);
       }
-      
+
       if (anio === anioFin) {
         periodoFin = new Date(fechaFinObj);
       } else {
         periodoFin = new Date(anio, 11, 31);
       }
-      
-      const inicioStr = periodoInicio.toISOString().split('T')[0];
-      const finStr = periodoFin.toISOString().split('T')[0];
+
+      // Convertir fechas a formato YYYY-MM-DD usando timezone local
+      const formatearFechaLocal = (fecha: Date): string => {
+        const year = fecha.getFullYear();
+        const month = String(fecha.getMonth() + 1).padStart(2, '0');
+        const day = String(fecha.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      };
+
+      const inicioStr = formatearFechaLocal(periodoInicio);
+      const finStr = formatearFechaLocal(periodoFin);
       
       const mesInicio = periodoInicio.getMonth();
       const mesFin = periodoFin.getMonth();
