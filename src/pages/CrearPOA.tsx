@@ -64,6 +64,7 @@ const CrearPOA: React.FC = () => {
               <ProyectoSeleccionadoCard
                 proyectoSeleccionado={form.proyectoSeleccionado}
                 periodosCalculados={form.periodosCalculados}
+                departamentos={form.departamentos}
               />
             )}
 

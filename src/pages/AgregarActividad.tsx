@@ -29,7 +29,8 @@ const AgregarActividad: React.FC = () => {
     proyectoSeleccionado,
     isLoading: proyectoLoading,
     seleccionarProyecto,
-    validarProyectoSinActividades
+    validarProyectoSinActividades,
+    departamentos
   } = useProyectoManager();
 
   const {
@@ -345,6 +346,7 @@ const AgregarActividad: React.FC = () => {
               <InformacionProyecto
                 proyecto={proyectoSeleccionado}
                 cantidadPoas={poasProyecto.length}
+                departamentos={departamentos}
               />
             )}
 

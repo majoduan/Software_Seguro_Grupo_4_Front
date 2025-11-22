@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Proyecto } from '../interfaces/project';
+import { Proyecto, Departamento } from '../interfaces/project';
 import { projectAPI } from '../api/projectAPI';
 import { actividadAPI } from '../api/actividadAPI';
 import { poaAPI } from '../api/poaAPI';
@@ -9,6 +9,7 @@ export const useProyectoManager = () => {
   const [proyectos, setProyectos] = useState<Proyecto[]>([]);
   const [proyectoSeleccionado, setProyectoSeleccionado] = useState<Proyecto | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [departamentos, setDepartamentos] = useState<Departamento[]>([]);
 
   // Cargar datos iniciales
   /**
@@ -29,8 +30,13 @@ export const useProyectoManager = () => {
       setIsLoading(true);
 
       try {
-        const proyectosData = await projectAPI.getProyectos();
+        // Cargar proyectos y departamentos en paralelo
+        const [proyectosData, departamentosData] = await Promise.all([
+          projectAPI.getProyectos(),
+          projectAPI.getDepartamentos()
+        ]);
         setProyectos(proyectosData);
+        setDepartamentos(departamentosData);
         showInfo('Proyectos cargados exitosamente');
       } catch (err) {
         showError(err instanceof Error ? err.message : 'Error desconocido');
@@ -197,6 +203,7 @@ export const useProyectoManager = () => {
     proyectos,
     proyectoSeleccionado,
     isLoading,
+    departamentos,
 
     // Funciones
     seleccionarProyecto,

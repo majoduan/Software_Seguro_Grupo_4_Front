@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Proyecto, TipoProyecto } from '../interfaces/project';
+import { Proyecto, TipoProyecto, Departamento } from '../interfaces/project';
 import { EstadoPOA, TipoPOA, PoaCreate, POA } from '../interfaces/poa';
 import { Periodo, PeriodoCreate } from '../interfaces/periodo';
 import { poaAPI } from '../api/poaAPI';
@@ -52,6 +52,7 @@ export const usePOAForm = ({ initialProyecto, initialPeriodos = [], isEditing = 
   const [tiposPoa, setTiposPoa] = useState<TipoPOA[]>([]);
   const [tiposProyecto, setTiposProyecto] = useState<TipoProyecto[]>([]);
   const [tipoPoaSeleccionado, setTipoPoaSeleccionado] = useState<TipoPOA | null>(null);
+  const [departamentos, setDepartamentos] = useState<Departamento[]>([]);
   
   // Estado para el proyecto seleccionado
   const [proyectoSeleccionado, setProyectoSeleccionado] = useState<Proyecto | null>(initialProyecto || null);
@@ -102,7 +103,11 @@ export const usePOAForm = ({ initialProyecto, initialPeriodos = [], isEditing = 
         // Cargar tipos de proyecto desde la API
         const tiposProyectoData = await projectAPI.getTiposProyecto();
         setTiposProyecto(tiposProyectoData);
-        
+
+        // Cargar departamentos desde la API
+        const departamentosData = await projectAPI.getDepartamentos();
+        setDepartamentos(departamentosData);
+
         // Cargar periodos desde la API
         const periodosData = await periodoAPI.getPeriodos();
         setPeriodos(periodosData);
@@ -963,7 +968,9 @@ export const usePOAForm = ({ initialProyecto, initialPeriodos = [], isEditing = 
     setTiposProyecto,
     tipoPoaSeleccionado,
     setTipoPoaSeleccionado,
-    
+    departamentos,
+    setDepartamentos,
+
     // Proyecto seleccionado
     proyectoSeleccionado,
     setProyectoSeleccionado,

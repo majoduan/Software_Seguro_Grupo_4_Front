@@ -73,9 +73,10 @@ const EditarPOA: React.FC = () => {
             
             {/* Información sobre el proyecto seleccionado */}
             {form.proyectoSeleccionado && (
-              <ProyectoSeleccionadoCard 
-                proyectoSeleccionado={form.proyectoSeleccionado} 
-                periodosCalculados={form.periodosCalculados} 
+              <ProyectoSeleccionadoCard
+                proyectoSeleccionado={form.proyectoSeleccionado}
+                periodosCalculados={form.periodosCalculados}
+                departamentos={form.departamentos}
               />
             )}
             

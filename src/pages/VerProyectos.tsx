@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Table, Modal, Button, Form, InputGroup, Spinner, Alert, Badge } from 'react-bootstrap';
 import { projectAPI } from '../api/projectAPI';
 import { poaAPI } from '../api/poaAPI';
-import { Proyecto, EstadoProyecto } from '../interfaces/project';
+import { Proyecto, EstadoProyecto, Departamento } from '../interfaces/project';
 import { POA } from '../interfaces/poa';
 import VerPOA from '../components/VerPOA';
 import { withSanitization } from '../utils/sanitizer';
@@ -28,6 +28,7 @@ interface FilterState {
   sortBy: 'codigo' | 'titulo' | 'estado' | 'presupuesto' | 'anio';
   sortOrder: 'asc' | 'desc';
   estadoFilter: string;
+  departamentoFilter: string;
   minBudget: string;
   maxBudget: string;
   yearFilter: string;
@@ -68,10 +69,14 @@ const VerProyectos: React.FC = () => {
     sortBy: 'codigo',
     sortOrder: 'asc',
     estadoFilter: '',
+    departamentoFilter: '',
     minBudget: '',
     maxBudget: '',
     yearFilter: ''
   });
+
+  // Estado para departamentos
+  const [departamentos, setDepartamentos] = useState<Departamento[]>([]);
 
   // Estados para modal
   const [showModal, setShowModal] = useState(false);
@@ -88,11 +93,14 @@ const VerProyectos: React.FC = () => {
       try {
         setLoading(true);
 
-        // Obtener proyectos y estados en paralelo
-        const [proyectosResponse, estadosResponse] = await Promise.all([
+        // Obtener proyectos, estados y departamentos en paralelo
+        const [proyectosResponse, estadosResponse, departamentosResponse] = await Promise.all([
           projectAPI.getProyectos(),
-          projectAPI.getEstadosProyecto()
+          projectAPI.getEstadosProyecto(),
+          projectAPI.getDepartamentos()
         ]);
+
+        setDepartamentos(departamentosResponse);
 
         // Crear estados proyecto con descripción vacía para evitar errores de tipo
         const estadosConDescripcion: EstadoProyecto[] = estadosResponse.map(estado => ({
@@ -153,6 +161,7 @@ const VerProyectos: React.FC = () => {
       sortBy: 'codigo',
       sortOrder: 'asc',
       estadoFilter: '',
+      departamentoFilter: '',
       minBudget: '',
       maxBudget: '',
       yearFilter: ''
@@ -176,6 +185,13 @@ const VerProyectos: React.FC = () => {
     if (filters.estadoFilter) {
       filteredProyectos = filteredProyectos.filter(proyecto =>
         proyecto.id_estado_proyecto === filters.estadoFilter
+      );
+    }
+
+    // Aplicar filtro por departamento
+    if (filters.departamentoFilter) {
+      filteredProyectos = filteredProyectos.filter(proyecto =>
+        proyecto.id_departamento === filters.departamentoFilter
       );
     }
 
@@ -351,6 +367,22 @@ const VerProyectos: React.FC = () => {
               </Form.Select>
             </div>
 
+            {/* Filtro por departamento */}
+            <div className="col-md-2">
+              <Form.Label>Departamento</Form.Label>
+              <Form.Select
+                value={filters.departamentoFilter}
+                onChange={(e) => updateFilter('departamentoFilter', e.target.value)}
+              >
+                <option value="">Todos los departamentos</option>
+                {departamentos.map(depto => (
+                  <option key={depto.id_departamento} value={depto.id_departamento}>
+                    {depto.nombre}
+                  </option>
+                ))}
+              </Form.Select>
+            </div>
+
             {/* Filtro por año */}
             <div className="col-md-2">
               <Form.Label>Año</Form.Label>
@@ -432,6 +464,7 @@ const VerProyectos: React.FC = () => {
               <tr>
                 <th>Proyecto</th>
                 <th>Código del Proyecto</th>
+                <th>Departamento</th>
                 <th>Estado del Proyecto</th>
                 <th>POA's Asignados</th>
                 <th>Año de Ejecución</th>
@@ -443,9 +476,9 @@ const VerProyectos: React.FC = () => {
             <tbody>
               {filteredProyectos.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="text-center py-4">
+                  <td colSpan={9} className="text-center py-4">
                     <div className="text-muted">
-                      {filters.searchTerm || filters.estadoFilter || filters.yearFilter || filters.minBudget || filters.maxBudget
+                      {filters.searchTerm || filters.estadoFilter || filters.departamentoFilter || filters.yearFilter || filters.minBudget || filters.maxBudget
                         ? 'No hay proyectos que coincidan con los filtros aplicados'
                         : 'No hay proyectos disponibles'
                       }
@@ -458,6 +491,10 @@ const VerProyectos: React.FC = () => {
                     ? Array.from(new Set(proyecto.poas.map(poa => poa.anio_ejecucion))).sort().join(', ')
                     : 'N/A';
 
+                  // Obtener el nombre del departamento
+                  const departamento = departamentos.find(d => d.id_departamento === proyecto.id_departamento);
+                  const nombreDepartamento = departamento?.nombre || 'No asignado';
+
                   return (
                     <tr key={proyecto.id_proyecto}>
                       <td>
@@ -465,6 +502,9 @@ const VerProyectos: React.FC = () => {
                       </td>
                       <td>
                         <code className="bg-light px-2 py-1 rounded">{proyecto.codigo_proyecto}</code>
+                      </td>
+                      <td>
+                        <span className="text-muted">{nombreDepartamento}</span>
                       </td>
                       <td>
                         <Badge

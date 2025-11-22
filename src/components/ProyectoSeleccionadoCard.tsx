@@ -1,12 +1,13 @@
 import React from 'react';
 import { Row, Col, Card } from 'react-bootstrap';
-import { Proyecto } from '../interfaces/project';
+import { Proyecto, Departamento } from '../interfaces/project';
 import { Periodo } from '../interfaces/periodo';
 
 // Definir la interfaz para las props
 interface ProyectoSeleccionadoCardProps {
   proyectoSeleccionado: Proyecto;
   periodosCalculados: Periodo[];
+  departamentos?: Departamento[];
 }
 
 /**
@@ -24,10 +25,15 @@ interface ProyectoSeleccionadoCardProps {
  * transformación de datos antes de renderizar.
  */
 
-const ProyectoSeleccionadoCard: React.FC<ProyectoSeleccionadoCardProps> = ({ 
-  proyectoSeleccionado, 
-  periodosCalculados 
+const ProyectoSeleccionadoCard: React.FC<ProyectoSeleccionadoCardProps> = ({
+  proyectoSeleccionado,
+  periodosCalculados,
+  departamentos = []
 }) => {
+  // Obtener el nombre del departamento
+  const departamento = departamentos.find(d => d.id_departamento === proyectoSeleccionado.id_departamento);
+  const nombreDepartamento = departamento?.nombre || 'No asignado';
+
   return (
     <Row className="mb-4">
       <Col md={12}>
@@ -39,6 +45,7 @@ const ProyectoSeleccionadoCard: React.FC<ProyectoSeleccionadoCardProps> = ({
                 <p><strong>Código:</strong> {proyectoSeleccionado.codigo_proyecto}</p>
                 <p><strong>Título:</strong> {proyectoSeleccionado.titulo}</p>
                 <p><strong>Fecha Inicio:</strong> {proyectoSeleccionado.fecha_inicio}</p>
+                <p><strong>Departamento:</strong> {nombreDepartamento}</p>
               </Col>
               <Col md={6}>
                 <p><strong>Fecha Fin:</strong> {proyectoSeleccionado.fecha_fin}</p>

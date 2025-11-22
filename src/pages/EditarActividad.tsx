@@ -30,7 +30,8 @@ const EditarActividad: React.FC = () => {
     proyectoSeleccionado,
     isLoading: proyectoLoading,
     seleccionarProyecto,
-    validarProyectoConActividades // Diferente validación para editar
+    validarProyectoConActividades, // Diferente validación para editar
+    departamentos
   } = useProyectoManager();
 
   const {
@@ -551,6 +552,7 @@ const EditarActividad: React.FC = () => {
               <InformacionProyecto
                 proyecto={proyectoSeleccionado}
                 cantidadPoas={poasProyecto.length}
+                departamentos={departamentos}
               />
             )}
 
