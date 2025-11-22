@@ -131,7 +131,33 @@ const CrearProyecto: React.FC = () => {
               onFocus={() => toggleTooltip('tipo_proyecto')}
             />
           </Form.Group>
-          
+
+          {/* Departamento */}
+          <Form.Group controlId="id_departamento" className="form-group-custom">
+            <Form.Label className="form-label-custom">
+              Departamento
+              <HelpTooltip
+                fieldName="departamento"
+                content="Seleccione el departamento responsable del proyecto."
+              />
+            </Form.Label>
+            <Form.Control
+              as="select"
+              size="lg"
+              value={form.id_departamento}
+              onChange={(e) => form.setId_departamento(e.target.value)}
+              disabled={form.isLoading}
+              className="form-control-custom"
+            >
+              <option value="">Seleccione...</option>
+              {form.departamentos.map(departamento => (
+                <option key={departamento.id_departamento} value={departamento.id_departamento}>
+                  {departamento.nombre}
+                </option>
+              ))}
+            </Form.Control>
+          </Form.Group>
+
           {/* Título */}
           <Form.Group controlId="titulo" className="form-group-custom">
             <Form.Label className="form-label-custom">Título <span className="required-field">*</span></Form.Label>

@@ -1,5 +1,5 @@
 import { API } from './userAPI';
-import { Proyecto, TipoProyecto } from '../interfaces/project';
+import { Proyecto, TipoProyecto, Departamento } from '../interfaces/project';
 import { PerfilUsuario } from '../interfaces/user';
 
 export const projectAPI = {
@@ -14,7 +14,13 @@ export const projectAPI = {
         const response = await API.get<{ id_estado_proyecto: string, nombre: string }[]>('/estados-proyecto/');
         return response.data;
     },
-    
+
+    // Obtener departamentos
+    getDepartamentos: async (): Promise<Departamento[]> => {
+        const response = await API.get<Departamento[]>('/departamentos/');
+        return response.data;
+    },
+
     // Obtener usuarios que pueden ser directores
 /* Objetivo:
 Obtener la lista de usuarios con rol de director de proyecto.

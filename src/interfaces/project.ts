@@ -4,6 +4,7 @@ export interface Proyecto {
   titulo: string;
   id_tipo_proyecto: string;
   id_estado_proyecto: string;
+  id_departamento?: string;
   id_director_proyecto: string;
   presupuesto_aprobado: number;
   fecha_creacion: string;
@@ -28,6 +29,12 @@ export interface TipoProyecto {
 
 export interface EstadoProyecto {
   id_estado_proyecto: string;
+  nombre: string;
+  descripcion?: string;
+}
+
+export interface Departamento {
+  id_departamento: string;
   nombre: string;
   descripcion?: string;
 }

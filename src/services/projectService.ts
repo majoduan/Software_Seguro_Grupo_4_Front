@@ -1,5 +1,5 @@
 import { projectAPI } from '../api/projectAPI';
-import { EstadoProyecto, Proyecto, TipoProyecto } from '../interfaces/project';
+import { EstadoProyecto, Proyecto, TipoProyecto, Departamento } from '../interfaces/project';
 
 export const projectService = {
   /**
@@ -16,6 +16,19 @@ export const projectService = {
   getEstadosProyecto: async (): Promise<EstadoProyecto[]> => {
     try {
       return await projectAPI.getEstadosProyecto();
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
+   * Get all departments from API
+   * Objetivo:
+   *   Obtener todos los departamentos disponibles desde la API.
+   */
+  getDepartamentos: async (): Promise<Departamento[]> => {
+    try {
+      return await projectAPI.getDepartamentos();
     } catch (error) {
       throw error;
     }

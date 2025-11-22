@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Proyecto, TipoProyecto, EstadoProyecto } from '../interfaces/project';
+import { Proyecto, TipoProyecto, EstadoProyecto, Departamento } from '../interfaces/project';
 import { projectService } from '../services/projectService';
 import { projectAPI } from '../api/projectAPI';
 import { 
@@ -41,6 +41,7 @@ export const useProjectForm = ({ initialTipoProyecto, initialProyecto, isEditing
   const [codigoModificadoManualmente, setCodigoModificadoManualmente] = useState(false);
   const [tipoProyecto, setTipoProyecto] = useState<TipoProyecto | null>(initialTipoProyecto);
   const [id_estado_proyecto, setId_estado_proyecto] = useState('');
+  const [id_departamento, setId_departamento] = useState('');
   const [id_director_proyecto, setId_director_proyecto] = useState('');
   const [directorError, setDirectorError] = useState<string | null>(null);
   const [presupuesto_aprobado, setPresupuesto_aprobado] = useState('');
@@ -60,7 +61,8 @@ export const useProjectForm = ({ initialTipoProyecto, initialProyecto, isEditing
   
   // Options lists
   const [estadosProyecto, setEstadosProyecto] = useState<EstadoProyecto[]>([]);
-  
+  const [departamentos, setDepartamentos] = useState<Departamento[]>([]);
+
   // Status states
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -207,14 +209,19 @@ export const useProjectForm = ({ initialTipoProyecto, initialProyecto, isEditing
       setError(null);
       
       try {
-        const estadosData = await projectService.getEstadosProyecto();
+        const [estadosData, departamentosData] = await Promise.all([
+          projectService.getEstadosProyecto(),
+          projectService.getDepartamentos()
+        ]);
         setEstadosProyecto(estadosData);
-        
+        setDepartamentos(departamentosData);
+
         // Si estamos editando, cargar los datos del proyecto
         if (isEditing && initialProyecto) {
           setCodigo_proyecto(initialProyecto.codigo_proyecto);
           setTitulo(initialProyecto.titulo);
           setId_estado_proyecto(initialProyecto.id_estado_proyecto);
+          setId_departamento(initialProyecto.id_departamento || '');
           setId_director_proyecto(initialProyecto.id_director_proyecto);
           setPresupuesto_aprobado(initialProyecto.presupuesto_aprobado?.toString() || '');
           setFecha_inicio(initialProyecto.fecha_inicio);
@@ -238,6 +245,7 @@ export const useProjectForm = ({ initialTipoProyecto, initialProyecto, isEditing
           setCodigoModificadoManualmente(true);
         } else {
           setId_estado_proyecto('');
+          setId_departamento('');
         }
         
         setIsLoading(false);
@@ -454,6 +462,7 @@ export const useProjectForm = ({ initialTipoProyecto, initialProyecto, isEditing
           titulo: sanitizeForSubmit(titulo),
           id_tipo_proyecto: tipoProyecto!.id_tipo_proyecto,
           id_estado_proyecto,
+          id_departamento: id_departamento || undefined,
           id_director_proyecto: sanitizeForSubmit(id_director_proyecto),
           presupuesto_aprobado: presupuesto_aprobado ? parseFloat(presupuesto_aprobado) : 0,
           fecha_inicio,
@@ -482,6 +491,7 @@ export const useProjectForm = ({ initialTipoProyecto, initialProyecto, isEditing
           titulo: sanitizeForSubmit(titulo),
           id_tipo_proyecto: tipoProyecto!.id_tipo_proyecto,
           id_estado_proyecto,
+          id_departamento: id_departamento || undefined,
           id_director_proyecto: sanitizeForSubmit(id_director_proyecto),
           presupuesto_aprobado: presupuesto_aprobado ? parseFloat(presupuesto_aprobado) : 0,
           fecha_inicio,
@@ -561,6 +571,8 @@ export const useProjectForm = ({ initialTipoProyecto, initialProyecto, isEditing
     tipoProyecto,
     id_estado_proyecto,
     setId_estado_proyecto,
+    id_departamento,
+    setId_departamento,
     id_director_proyecto,
     directorError,
     presupuesto_aprobado,
@@ -569,7 +581,7 @@ export const useProjectForm = ({ initialTipoProyecto, initialProyecto, isEditing
     fecha_fin,
     fechaFinError,
     fechaFinMaxima,
-    
+
     // Prorroga states
     prorrogaOpen,
     setProrrogaOpen: handleSetProrrogaOpen, // Usar el manejador personalizado
@@ -581,16 +593,17 @@ export const useProjectForm = ({ initialTipoProyecto, initialProyecto, isEditing
     setFecha_prorroga_fin: handleFechaProrrogaFinChange,
     tiempo_prorroga_meses,
     setTiempo_prorroga_meses: handleTiempoProrrogaMesesChange,
-    
+
     // Lists
     estadosProyecto,
-    
+    departamentos,
+
     // Status
     isLoading,
     error,
     setError,
     isEditing, // Agregar esta propiedad
-    
+
     // Handlers
     handleDirectorChange,
     handlePresupuestoChange,
