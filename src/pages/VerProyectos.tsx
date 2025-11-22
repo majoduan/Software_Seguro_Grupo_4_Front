@@ -32,6 +32,7 @@ interface FilterState {
   minBudget: string;
   maxBudget: string;
   yearFilter: string;
+  poaFilter: 'todos' | 'con_poas' | 'sin_poas';
 }
 
 /** Ver Proyectos
@@ -72,7 +73,8 @@ const VerProyectos: React.FC = () => {
     departamentoFilter: '',
     minBudget: '',
     maxBudget: '',
-    yearFilter: ''
+    yearFilter: '',
+    poaFilter: 'todos'
   });
 
   // Estado para departamentos
@@ -164,7 +166,8 @@ const VerProyectos: React.FC = () => {
       departamentoFilter: '',
       minBudget: '',
       maxBudget: '',
-      yearFilter: ''
+      yearFilter: '',
+      poaFilter: 'todos'
     });
   };
 
@@ -215,6 +218,17 @@ const VerProyectos: React.FC = () => {
     if (filters.yearFilter) {
       filteredProyectos = filteredProyectos.filter(proyecto =>
         proyecto.poas?.some(poa => poa.anio_ejecucion === filters.yearFilter)
+      );
+    }
+
+    // Aplicar filtro por POAs asignados
+    if (filters.poaFilter === 'sin_poas') {
+      filteredProyectos = filteredProyectos.filter(proyecto =>
+        !proyecto.poas || proyecto.poas.length === 0
+      );
+    } else if (filters.poaFilter === 'con_poas') {
+      filteredProyectos = filteredProyectos.filter(proyecto =>
+        proyecto.poas && proyecto.poas.length > 0
       );
     }
 
@@ -397,6 +411,19 @@ const VerProyectos: React.FC = () => {
               </Form.Select>
             </div>
 
+            {/* Filtro por POAs */}
+            <div className="col-md-2">
+              <Form.Label>POAs</Form.Label>
+              <Form.Select
+                value={filters.poaFilter}
+                onChange={(e) => updateFilter('poaFilter', e.target.value)}
+              >
+                <option value="todos">Todos</option>
+                <option value="con_poas">Con POAs</option>
+                <option value="sin_poas">Sin POAs</option>
+              </Form.Select>
+            </div>
+
             {/* Ordenamiento */}
             <div className="col-md-2">
               <Form.Label>Ordenar por</Form.Label>
@@ -478,7 +505,7 @@ const VerProyectos: React.FC = () => {
                 <tr>
                   <td colSpan={9} className="text-center py-4">
                     <div className="text-muted">
-                      {filters.searchTerm || filters.estadoFilter || filters.departamentoFilter || filters.yearFilter || filters.minBudget || filters.maxBudget
+                      {filters.searchTerm || filters.estadoFilter || filters.departamentoFilter || filters.yearFilter || filters.minBudget || filters.maxBudget || filters.poaFilter !== 'todos'
                         ? 'No hay proyectos que coincidan con los filtros aplicados'
                         : 'No hay proyectos disponibles'
                       }
