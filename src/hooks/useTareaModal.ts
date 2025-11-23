@@ -273,7 +273,8 @@ export const useTareaModal = () => {
       hasErrors = true;
     }
 
-    if (!currentTarea.precio_unitario || currentTarea.precio_unitario <= 0) {
+    // Solo validar precio_unitario si cantidad > 0
+    if (currentTarea.cantidad > 0 && (!currentTarea.precio_unitario || currentTarea.precio_unitario <= 0)) {
       setTaskError('precio_unitario', 'El precio unitario debe ser mayor que cero');
       hasErrors = true;
     }
@@ -283,22 +284,27 @@ export const useTareaModal = () => {
       hasErrors = true;
     }
 
-    // Validar planificación mensual
-    const totalPlanificado = currentTarea.gastos_mensuales?.reduce((sum, val) => sum + (val || 0), 0) || 0;
-    if (totalPlanificado != (currentTarea.total || 0)) {
-      const diferencia = (currentTarea.total || 0) - totalPlanificado;
-      const mensaje = `La planificación mensual no coincide con el total asignado a la tarea. Diferencia: ${diferencia > 0 ? `faltan ${diferencia}` : `se excedió por ${Math.abs(diferencia)}`}`;
-      setTaskError('gastos_mensuales', mensaje);
-      hasErrors = true;
+    // Solo validar planificación mensual si cantidad > 0
+    if (currentTarea.cantidad > 0) {
+      const totalPlanificado = currentTarea.gastos_mensuales?.reduce((sum, val) => sum + (val || 0), 0) || 0;
+      if (totalPlanificado != (currentTarea.total || 0)) {
+        const diferencia = (currentTarea.total || 0) - totalPlanificado;
+        const mensaje = `La planificación mensual no coincide con el total asignado a la tarea. Diferencia: ${diferencia > 0 ? `faltan ${diferencia}` : `se excedió por ${Math.abs(diferencia)}`}`;
+        setTaskError('gastos_mensuales', mensaje);
+        hasErrors = true;
+      }
     }
 
     if (hasErrors) return;
 
     // Crear objeto de tarea para guardar
+    // Si cantidad = 0, limpiar precio_unitario y gastos_mensuales para evitar inconsistencias
     const tareaCompleta = {
       ...currentTarea,
       cantidad: Math.floor(currentTarea.cantidad),
-      precio_unitario: parseFloat(currentTarea.precio_unitario.toString()),
+      precio_unitario: currentTarea.cantidad === 0 ? 0 : parseFloat(currentTarea.precio_unitario.toString()),
+      total: currentTarea.cantidad === 0 ? 0 : currentTarea.total,
+      gastos_mensuales: currentTarea.cantidad === 0 ? new Array(12).fill(0) : currentTarea.gastos_mensuales,
       id_detalle_tarea: currentTarea.detalle?.tiene_multiples_items
         ? currentTarea.id_detalle_tarea
         : currentTarea.id_detalle_tarea
