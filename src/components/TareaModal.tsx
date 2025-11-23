@@ -75,7 +75,10 @@ const TareaModal: React.FC<TareaModalProps> = ({
   // Cargar presupuesto de la actividad cuando se abre el modal
   useEffect(() => {
     const cargarPresupuesto = async () => {
-      if (show && actividadId) {
+      // Solo cargar presupuesto si es un UUID válido (no IDs temporales que comienzan con "pre-")
+      const esUuidValido = actividadId && !actividadId.startsWith('pre-');
+
+      if (show && esUuidValido) {
         try {
           const datos = await presupuestoAPI.getPresupuestoActividad(actividadId);
           setPresupuestoActividad(datos);
@@ -83,6 +86,9 @@ const TareaModal: React.FC<TareaModalProps> = ({
           console.error('Error al cargar presupuesto de la actividad:', error);
           setPresupuestoActividad(null);
         }
+      } else if (show && !esUuidValido) {
+        // Para actividades temporales, no hay presupuesto disponible aún
+        setPresupuestoActividad(null);
       }
     };
     cargarPresupuesto();
