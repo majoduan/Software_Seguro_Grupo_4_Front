@@ -20,6 +20,7 @@ export const useProjectForm = ({ initialTipoProyecto, initialProyecto, isEditing
   // Form states con sanitización automática
   const [codigo_proyecto, setCodigo_proyectoInternal] = useState('');
   const [titulo, setTituloInternal] = useState('');
+  const [tituloError, setTituloError] = useState<string | null>(null);
   
   // Crear setters sanitizados
   /**
@@ -35,7 +36,17 @@ export const useProjectForm = ({ initialTipoProyecto, initialProyecto, isEditing
  * - Actualiza el estado correspondiente con el valor sanitizado.
  */
   const setCodigo_proyecto = (value: string) => setCodigo_proyectoInternal(sanitizeInput(value));
-  const setTitulo = (value: string) => setTituloInternal(sanitizeInput(value));
+  const setTitulo = (value: string) => {
+    const sanitized = sanitizeInput(value);
+    setTituloInternal(sanitized);
+
+    // Validar límite de 100 caracteres
+    if (sanitized.length > 100) {
+      setTituloError('El nombre del proyecto no puede exceder 100 caracteres');
+    } else {
+      setTituloError(null);
+    }
+  };
   
   // Estados que no necesitan sanitización (selectores, fechas, números)
   const [codigoModificadoManualmente, setCodigoModificadoManualmente] = useState(false);
@@ -409,6 +420,13 @@ export const useProjectForm = ({ initialTipoProyecto, initialProyecto, isEditing
       return false;
     }
 
+    // Validate project name length (max 100 characters)
+    if (titulo.length > 100) {
+      setTituloError('El nombre del proyecto no puede exceder 100 caracteres');
+      setError('El nombre del proyecto no puede exceder 100 caracteres');
+      return false;
+    }
+
     // Validate director name format
     if (!validateDirectorName(id_director_proyecto)) {
       setDirectorError('El formato debe ser: Nombre Apellido como mínimo y hasta un máximo de 8 palabras para nombres complejos');
@@ -534,12 +552,19 @@ export const useProjectForm = ({ initialTipoProyecto, initialProyecto, isEditing
       if (err && typeof err === 'object' && 'response' in err) {
         const response = (err as any).response;
         
-        if (response?.status === 422) {
+        if (response?.status === 400) {
+          // Error de negocio del servidor (ej: título duplicado)
+          if (response.data && response.data.detail) {
+            errorMessage = response.data.detail;
+          } else {
+            errorMessage = 'Error de validación del servidor';
+          }
+        } else if (response?.status === 422) {
           // Error de validación del servidor
           if (response.data && response.data.detail) {
             if (Array.isArray(response.data.detail)) {
               // FastAPI devuelve errores de validación como array
-              const errorDetails = response.data.detail.map((error: any) => 
+              const errorDetails = response.data.detail.map((error: any) =>
                 `${error.loc.join('.')}: ${error.msg}`
               ).join(', ');
               errorMessage = `Error de validación: ${errorDetails}`;
@@ -568,6 +593,7 @@ export const useProjectForm = ({ initialTipoProyecto, initialProyecto, isEditing
     setCodigo_proyecto: handleCodigoProyectoChange,
     titulo,
     setTitulo,
+    tituloError,
     tipoProyecto,
     id_estado_proyecto,
     setId_estado_proyecto,

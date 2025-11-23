@@ -160,7 +160,13 @@ const CrearProyecto: React.FC = () => {
 
           {/* Título */}
           <Form.Group controlId="titulo" className="form-group-custom">
-            <Form.Label className="form-label-custom">Título <span className="required-field">*</span></Form.Label>
+            <Form.Label className="form-label-custom">
+              Título <span className="required-field">*</span>
+              <HelpTooltip
+                fieldName="titulo"
+                content="El nombre del proyecto debe tener máximo 100 caracteres."
+              />
+            </Form.Label>
             <Form.Control
               type="text"
               placeholder="Ingrese el título"
@@ -168,8 +174,18 @@ const CrearProyecto: React.FC = () => {
               value={form.titulo}
               onChange={(e) => form.setTitulo(e.target.value)}
               required
+              maxLength={100}
+              isInvalid={!!form.tituloError}
               className="form-control-custom"
             />
+            {form.tituloError && (
+              <Form.Control.Feedback type="invalid">
+                {form.tituloError}
+              </Form.Control.Feedback>
+            )}
+            <Form.Text className="text-muted">
+              {form.titulo.length}/100 caracteres
+            </Form.Text>
           </Form.Group>
 
           {/* Fechas: Inicio y Fin */}
