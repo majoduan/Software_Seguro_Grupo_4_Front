@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Form, Button, Container, Card, Row, Col, Tabs, Tab, Spinner, Modal } from 'react-bootstrap';
+import React, { useState } from 'react';
+import { Form, Button, Container, Card, Tabs, Tab, Spinner, Modal, Col } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 
 import { useProyectoManager } from '../hooks/useProyectoManager';
@@ -14,10 +14,8 @@ import TareaModal from '../components/TareaModal';
 import ExportarPOA from '../components/ExportarPOA';
 import ActividadesPorPOA from '../components/ActividadesPorPOA';
 import SidebarPresupuesto from '../components/SidebarPresupuesto';
-import PresupuestoIndicador from '../components/PresupuestoIndicador';
 
 import { showSuccess, showError } from '../utils/toast';
-import { presupuestoAPI, PresupuestoPOA } from '../api/presupuestoAPI';
 import '../styles/AgregarActividad.css';
 
 const AgregarActividad: React.FC = () => {
@@ -70,25 +68,8 @@ const AgregarActividad: React.FC = () => {
   const [datosGuardados, setDatosGuardados] = useState(false);
   const [actividadesYTareasCreadas, setActividadesYTareasCreadas] = useState<any[]>([]);
   const [showActividades, setShowActividades] = useState(false);
-  const [presupuestoPOA, setPresupuestoPOA] = useState<PresupuestoPOA | null>(null);
 
   const isLoading = proyectoLoading || actividadLoading;
-
-  // Cargar presupuesto del POA activo
-  useEffect(() => {
-    const cargarPresupuestoPoaActivo = async () => {
-      if (activePoaTab) {
-        try {
-          const datos = await presupuestoAPI.getPresupuestoPOA(activePoaTab);
-          setPresupuestoPOA(datos);
-        } catch (error) {
-          console.error('Error al cargar presupuesto del POA:', error);
-          setPresupuestoPOA(null);
-        }
-      }
-    };
-    cargarPresupuestoPoaActivo();
-  }, [activePoaTab, poasConActividades]); // Recargar cuando cambien las actividades
 
   // Función para manejar la selección de proyecto
   /**
@@ -378,22 +359,6 @@ const AgregarActividad: React.FC = () => {
                             eventKey={poa.id_poa}
                             title={`${poa.codigo_poa} - ${poa.tipo_poa}`}
                           >
-                            {/* Indicador de presupuesto del POA */}
-                            {activePoaTab === poa.id_poa && presupuestoPOA && (
-                              <Row className="mb-3">
-                                <Col>
-                                  <PresupuestoIndicador
-                                    titulo={`Presupuesto del POA: ${poa.codigo_poa}`}
-                                    presupuestoTotal={presupuestoPOA.presupuesto_asignado}
-                                    presupuestoUtilizado={presupuestoPOA.suma_actividades}
-                                    presupuestoDisponible={presupuestoPOA.presupuesto_disponible}
-                                    porcentajeUtilizado={presupuestoPOA.porcentaje_utilizado}
-                                    mostrarDetalles={true}
-                                  />
-                                </Col>
-                              </Row>
-                            )}
-
                             <ActividadesPorPOA
                               poa={poa}
                               onMostrarModalTarea={handleMostrarModalTarea}

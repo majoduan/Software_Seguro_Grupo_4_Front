@@ -7,7 +7,6 @@ import { PeriodoSelector } from '../components/PeriodoSelector';
 import { PeriodoConfigurator } from '../components/PeriodoConfigurator';
 import ProyectoSeleccionadoCard from '../components/ProyectoSeleccionadoCard';
 import BusquedaProyecto from '../components/BusquedaProyecto';
-import PresupuestoIndicador from '../components/PresupuestoIndicador';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import '../styles/NuevoPOA.css';
 
@@ -66,22 +65,6 @@ const CrearPOA: React.FC = () => {
                 periodosCalculados={form.periodosCalculados}
                 departamentos={form.departamentos}
               />
-            )}
-
-            {/* Indicador de Presupuesto Disponible */}
-            {form.proyectoSeleccionado && form.presupuestoProyecto && (
-              <Row className="mb-3">
-                <Col>
-                  <PresupuestoIndicador
-                    titulo="Presupuesto del Proyecto"
-                    presupuestoTotal={form.presupuestoProyecto.presupuesto_aprobado}
-                    presupuestoUtilizado={form.presupuestoProyecto.suma_poas_asignados}
-                    presupuestoDisponible={form.presupuestoProyecto.presupuesto_disponible}
-                    porcentajeUtilizado={form.presupuestoProyecto.porcentaje_utilizado}
-                    mostrarDetalles={true}
-                  />
-                </Col>
-              </Row>
             )}
 
             {/* Sección de Selección de Periodos */}
