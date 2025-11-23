@@ -268,8 +268,8 @@ export const useTareaModal = () => {
       hasErrors = true;
     }
 
-    if (!currentTarea.cantidad || currentTarea.cantidad <= 0) {
-      setTaskError('cantidad', 'La cantidad debe ser mayor que cero');
+    if (currentTarea.cantidad === undefined || currentTarea.cantidad === null || currentTarea.cantidad < 0) {
+      setTaskError('cantidad', 'La cantidad debe ser mayor o igual a cero');
       hasErrors = true;
     }
 
