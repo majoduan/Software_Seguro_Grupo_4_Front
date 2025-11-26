@@ -1,30 +1,260 @@
-import React from "react";
-import { Container, Typography } from "@mui/material";
+import React, { useState, useEffect } from "react";
+import {
+  Box,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  Typography,
+  TablePagination,
+  CircularProgress,
+  Alert,
+  Tabs,
+  Tab,
+} from "@mui/material";
+import { historicoAPI, HistoricoProyecto, HistoricoPoa } from "../api/historicoAPI";
 
 /**
- * Página de Logs
+ * Página de Logs del Sistema
  * 
  * Objetivo:
- *  Mostrar logs del sistema (página en blanco para implementación futura)
+ *  Mostrar los históricos de modificaciones de proyectos y POAs
  * 
  * Parámetros:
  *  - No recibe parámetros
  * 
  * Operación:
- *  Renderiza una página básica con título para mostrar logs del sistema.
+ *  Renderiza dos tablas: una para histórico de proyectos y otra para histórico de POAs.
+ *  Permite cambiar entre ambas mediante tabs y muestra paginación.
  */
 const Logs: React.FC = () => {
+  const [tabValue, setTabValue] = useState(0);
+  const [historicoProyectos, setHistoricoProyectos] = useState<HistoricoProyecto[]>([]);
+  const [historicoPoas, setHistoricoPoas] = useState<HistoricoPoa[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Paginación para proyectos
+  const [pageProyectos, setPageProyectos] = useState(0);
+  const [rowsPerPageProyectos, setRowsPerPageProyectos] = useState(10);
+
+  // Paginación para POAs
+  const [pagePoas, setPagePoas] = useState(0);
+  const [rowsPerPagePoas, setRowsPerPagePoas] = useState(10);
+
+  // Cargar datos al montar el componente
+  useEffect(() => {
+    cargarDatos();
+  }, []);
+
+  const cargarDatos = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const [proyectosData, poasData] = await Promise.all([
+        historicoAPI.getHistoricoProyectos(0, 1000),
+        historicoAPI.getHistoricoPoas(0, 1000)
+      ]);
+      setHistoricoProyectos(proyectosData);
+      setHistoricoPoas(poasData);
+    } catch (err: any) {
+      setError(err?.response?.data?.detail || "Error al cargar los históricos");
+      console.error("Error al cargar históricos:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
+    setTabValue(newValue);
+  };
+
+  // Formatear fecha
+  const formatearFecha = (fecha: string) => {
+    try {
+      const date = new Date(fecha);
+      return date.toLocaleString("es-ES", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    } catch {
+      return fecha;
+    }
+  };
+
+  // Paginación de proyectos
+  const proyectosPaginados = historicoProyectos.slice(
+    pageProyectos * rowsPerPageProyectos,
+    pageProyectos * rowsPerPageProyectos + rowsPerPageProyectos
+  );
+
+  // Paginación de POAs
+  const poasPaginados = historicoPoas.slice(
+    pagePoas * rowsPerPagePoas,
+    pagePoas * rowsPerPagePoas + rowsPerPagePoas
+  );
+
   return (
-    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-      <Typography variant="h3" component="h1" gutterBottom>
+    <Box sx={{ p: 4 }}>
+      <Typography
+        variant="h3"
+        align="center"
+        gutterBottom
+        sx={{ color: "#1d3557", fontWeight: 600, mb: 3 }}
+      >
         Logs del Sistema
       </Typography>
-      <Typography variant="body1" color="text.secondary">
-        Esta página está en desarrollo.
-      </Typography>
-    </Container>
+
+      {error && (
+        <Alert severity="error" sx={{ mb: 3 }}>
+          {error}
+        </Alert>
+      )}
+
+      <Tabs
+        value={tabValue}
+        onChange={handleTabChange}
+        sx={{ mb: 3, borderBottom: 1, borderColor: "divider" }}
+      >
+        <Tab label={`Histórico de Proyectos (${historicoProyectos.length})`} />
+        <Tab label={`Histórico de POAs (${historicoPoas.length})`} />
+      </Tabs>
+
+      {loading ? (
+        <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
+          <CircularProgress />
+        </Box>
+      ) : (
+        <>
+          {/* Tabla de Histórico de Proyectos */}
+          {tabValue === 0 && (
+            <TableContainer component={Paper}>
+              <Table>
+                <TableHead>
+                  <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
+                    <TableCell><strong>Fecha</strong></TableCell>
+                    <TableCell><strong>Usuario</strong></TableCell>
+                    <TableCell><strong>Código Proyecto</strong></TableCell>
+                    <TableCell><strong>Campo Modificado</strong></TableCell>
+                    <TableCell><strong>Valor Anterior</strong></TableCell>
+                    <TableCell><strong>Valor Nuevo</strong></TableCell>
+                    <TableCell><strong>Justificación</strong></TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {proyectosPaginados.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={7} align="center">
+                        No hay registros históricos de proyectos
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    proyectosPaginados.map((historico) => (
+                      <TableRow key={historico.id_historico} hover>
+                        <TableCell>{formatearFecha(historico.fecha_modificacion)}</TableCell>
+                        <TableCell>{historico.usuario}</TableCell>
+                        <TableCell>{historico.codigo_proyecto || "N/A"}</TableCell>
+                        <TableCell>{historico.campo_modificado}</TableCell>
+                        <TableCell sx={{ maxWidth: 200, wordBreak: "break-word" }}>
+                          {historico.valor_anterior || "N/A"}
+                        </TableCell>
+                        <TableCell sx={{ maxWidth: 200, wordBreak: "break-word" }}>
+                          {historico.valor_nuevo || "N/A"}
+                        </TableCell>
+                        <TableCell sx={{ maxWidth: 300, wordBreak: "break-word" }}>
+                          {historico.justificacion}
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+              <TablePagination
+                component="div"
+                count={historicoProyectos.length}
+                page={pageProyectos}
+                onPageChange={(_, newPage) => setPageProyectos(newPage)}
+                rowsPerPage={rowsPerPageProyectos}
+                onRowsPerPageChange={(e) => {
+                  setRowsPerPageProyectos(parseInt(e.target.value, 10));
+                  setPageProyectos(0);
+                }}
+                rowsPerPageOptions={[10, 25, 50, 100]}
+                labelRowsPerPage="Filas por página:"
+              />
+            </TableContainer>
+          )}
+
+          {/* Tabla de Histórico de POAs */}
+          {tabValue === 1 && (
+            <TableContainer component={Paper}>
+              <Table>
+                <TableHead>
+                  <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
+                    <TableCell><strong>Fecha</strong></TableCell>
+                    <TableCell><strong>Usuario</strong></TableCell>
+                    <TableCell><strong>Código Proyecto</strong></TableCell>
+                    <TableCell><strong>Código POA</strong></TableCell>
+                    <TableCell><strong>Campo Modificado</strong></TableCell>
+                    <TableCell><strong>Valor Anterior</strong></TableCell>
+                    <TableCell><strong>Valor Nuevo</strong></TableCell>
+                    <TableCell><strong>Justificación</strong></TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {poasPaginados.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={8} align="center">
+                        No hay registros históricos de POAs
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    poasPaginados.map((historico) => (
+                      <TableRow key={historico.id_historico} hover>
+                        <TableCell>{formatearFecha(historico.fecha_modificacion)}</TableCell>
+                        <TableCell>{historico.usuario}</TableCell>
+                        <TableCell>{historico.codigo_proyecto || "N/A"}</TableCell>
+                        <TableCell>{historico.codigo_poa || "N/A"}</TableCell>
+                        <TableCell>{historico.campo_modificado}</TableCell>
+                        <TableCell sx={{ maxWidth: 200, wordBreak: "break-word" }}>
+                          {historico.valor_anterior || "N/A"}
+                        </TableCell>
+                        <TableCell sx={{ maxWidth: 200, wordBreak: "break-word" }}>
+                          {historico.valor_nuevo || "N/A"}
+                        </TableCell>
+                        <TableCell sx={{ maxWidth: 300, wordBreak: "break-word" }}>
+                          {historico.justificacion}
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+              <TablePagination
+                component="div"
+                count={historicoPoas.length}
+                page={pagePoas}
+                onPageChange={(_, newPage) => setPagePoas(newPage)}
+                rowsPerPage={rowsPerPagePoas}
+                onRowsPerPageChange={(e) => {
+                  setRowsPerPagePoas(parseInt(e.target.value, 10));
+                  setPagePoas(0);
+                }}
+                rowsPerPageOptions={[10, 25, 50, 100]}
+                labelRowsPerPage="Filas por página:"
+              />
+            </TableContainer>
+          )}
+        </>
+      )}
+    </Box>
   );
 };
 
 export default Logs;
-
