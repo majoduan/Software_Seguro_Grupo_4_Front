@@ -12,6 +12,8 @@ import {
 } from "@mui/material";
 import iconoExcel from "../assets/icono-excel.png";
 import { reporteAPI } from '../api/reporteAPI';
+import { projectAPI } from '../api/projectAPI';
+import { Departamento } from '../interfaces/project';
 import "../styles/ReportePOA.css"; 
 
 const tiposProyecto = [
@@ -23,27 +25,42 @@ const tiposProyecto = [
 const ReportePOA: React.FC = () => {
   const [anio, setAnio] = useState("");
   const [tipoProyecto, setTipoProyecto] = useState("");
+  const [departamento, setDepartamento] = useState("");
+  const [departamentos, setDepartamentos] = useState<Departamento[]>([]);
   const [reporteJson, setReporteJson] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: "success" | "error" }>({ open: false, message: "", severity: "success" });
+
+  // Cargar departamentos al montar el componente
+  useEffect(() => {
+    const loadDepartamentos = async () => {
+      try {
+        const departamentosData = await projectAPI.getDepartamentos();
+        setDepartamentos(departamentosData);
+      } catch (err) {
+        console.error("Error al cargar departamentos:", err);
+      }
+    };
+    loadDepartamentos();
+  }, []);
 
   /**
  * useEffect para resetear el reporte cuando cambian los filtros
  * 
  * Objetivo:
- *  Limpiar el reporte almacenado cuando el usuario cambia el año o tipo de proyecto,
+ *  Limpiar el reporte almacenado cuando el usuario cambia el año, tipo de proyecto o departamento,
  *  evitando mostrar datos desactualizados.
  * 
  * Parámetros:
- *  - Observa los estados `anio` y `tipoProyecto`.
+ *  - Observa los estados `anio`, `tipoProyecto` y `departamento`.
  * 
  * Operación:
- *  Cada vez que cambie cualquiera de los dos estados, se establece `reporteJson` a null para limpiar
+ *  Cada vez que cambie cualquiera de los estados, se establece `reporteJson` a null para limpiar
  *  el reporte mostrado.
  */
   useEffect(() => {
     if (reporteJson) setReporteJson(null);
-  }, [anio, tipoProyecto]);
+  }, [anio, tipoProyecto, departamento]);
 
   const handleCloseSnackbar = () => setSnackbar({ ...snackbar, open: false });
 
@@ -68,8 +85,9 @@ const ReportePOA: React.FC = () => {
     }
     setLoading(true);
     try {
-      // Usar la API centralizada
-      const data = await reporteAPI.generarReportePOA(anio, tipoProyecto);
+      // Usar la API centralizada, incluyendo departamento si está seleccionado
+      const idDepartamento = departamento || undefined;
+      const data = await reporteAPI.generarReportePOA(anio, tipoProyecto, idDepartamento);
       setReporteJson(data);
       setSnackbar({ open: true, message: "Reporte generado correctamente.", severity: "success" });
     } catch (error: any) {
@@ -162,6 +180,25 @@ const ReportePOA: React.FC = () => {
                   </MenuItem>
                 );
               })}
+            </Select>
+          </FormControl>
+          <FormControl fullWidth className="input-margin">
+            <InputLabel id="departamento-label" className="custom-label">
+              Departamento
+            </InputLabel>
+            <Select
+              labelId="departamento-label"
+              value={departamento}
+              onChange={(e) => setDepartamento(e.target.value)}
+              label="Departamento"
+              className="custom-select"
+            >
+              <MenuItem value="">Todos los departamentos</MenuItem>
+              {departamentos.map((depto) => (
+                <MenuItem key={depto.id_departamento} value={depto.id_departamento}>
+                  {depto.nombre}
+                </MenuItem>
+              ))}
             </Select>
           </FormControl>
         </div>

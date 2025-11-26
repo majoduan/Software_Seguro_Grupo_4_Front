@@ -2,10 +2,13 @@ import { API } from './userAPI';
 
 export const reporteAPI = {
   // Generar reporte POA
-  generarReportePOA: async (anio: string, tipoProyecto: string): Promise<any> => {
+  generarReportePOA: async (anio: string, tipoProyecto: string, idDepartamento?: string): Promise<any> => {
     const formData = new URLSearchParams();
     formData.append('anio', anio);
     formData.append('tipo_proyecto', tipoProyecto);
+    if (idDepartamento) {
+      formData.append('id_departamento', idDepartamento);
+    }
     
     const response = await API.post('/reporte-poa/', formData, {
       headers: {
