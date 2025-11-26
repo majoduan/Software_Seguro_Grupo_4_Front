@@ -3,7 +3,7 @@ import { Nav, Button } from 'react-bootstrap';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { SidebarContentProps } from '../interfaces/bar';
-import { TableProperties, FolderKanban, FileChartLine, CircleUserRound, UserPlus, LogOut, Icon, History,FileSpreadsheet, FileUp } from 'lucide-react';
+import { TableProperties, FolderKanban, FileChartLine, CircleUserRound, UserPlus, LogOut, Icon, History,FileSpreadsheet, FileUp, ScrollText } from 'lucide-react';
 import { owl } from '@lucide/lab';
 import { ROLES } from '../interfaces/user';
 import { rolAPI } from '../api/userAPI';
@@ -308,6 +308,21 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
                     </Nav.Link>
                   </Nav.Item>
                 )}
+
+                {/* Logs del Sistema - ADMINISTRADOR y DIRECTOR_REFORMAS */}
+                {hasAccessTo([
+                  ROLES.ADMINISTRADOR,
+                  ROLES.DIRECTOR_DE_REFORMAS]) && (
+                  <Nav.Item>
+                    <Nav.Link
+                      className={`text-white ${isActive("/logs")}`}
+                      onClick={() => handleNavigate("/logs")}
+                    >
+                      <ScrollText size={iconSize} className="me-2" />
+                      Logs del Sistema
+                    </Nav.Link>
+                  </Nav.Item>
+                )}
               </>
             )}
 
@@ -531,6 +546,23 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
               >
                 <History size={iconSize} className="me-2" />
                 {/* Control de cambios - Subir POA */}
+              </Nav.Link>
+            </Nav.Item>
+          )}
+
+          {/* Logs del Sistema */}
+          {hasAccessTo([
+            ROLES.ADMINISTRADOR,
+            ROLES.DIRECTOR_DE_REFORMAS,
+          ]) && (
+            <Nav.Item>
+              <Nav.Link
+                className={`text-white ${isActive("/logs")}`}
+                onClick={() => handleNavigate("/logs")}
+                title="Logs del Sistema"
+              >
+                <ScrollText size={iconSize} className="me-2" />
+                {/* Logs del Sistema */}
               </Nav.Link>
             </Nav.Item>
           )}

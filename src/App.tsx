@@ -13,6 +13,7 @@ import TiposProyecto from './pages/TiposProyecto';
 import AgregarActividad from './pages/AgregarActividad';
 import ReportePOA from './pages/ReportePOA';
 import LogsCargaExcel from './pages/LogsCargaExcel';
+import Logs from './pages/Logs';
 import VerProyectos from './pages/VerProyectos';
 import EditarProyecto from './pages/EditarProyecto';
 import EditarPOA from './pages/EditarPOA';
@@ -265,6 +266,17 @@ function AppContent() {
                 ROLES.DIRECTOR_DE_REFORMAS,
               ]}>
                 <LogsCargaExcel />
+              </RoleProtectedRoute>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/logs" element={
+            <ProtectedRoute>
+              <RoleProtectedRoute requiredRoles={[
+                ROLES.ADMINISTRADOR,
+                ROLES.DIRECTOR_DE_REFORMAS,
+              ]}>
+                <Logs />
               </RoleProtectedRoute>
             </ProtectedRoute>
           } />
