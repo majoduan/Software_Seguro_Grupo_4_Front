@@ -165,8 +165,20 @@ export const useTareaModal = () => {
             detalle_descripcion: primeraDescripcion
           };
 
-          // Aplicar precio automático si existe precio_unitario en el detalle
-          if (detalleTarea.precio_unitario !== undefined && detalleTarea.precio_unitario !== null) {
+          // Aplicar precio automático del primer elemento si existen precios disponibles
+          if (detalleTarea.precios_disponibles && detalleTarea.precios_disponibles.length > 0) {
+            const primerPrecio = detalleTarea.precios_disponibles[0];
+            if (primerPrecio !== undefined && primerPrecio !== null) {
+              const nuevoTotal = (tareaActualizada.cantidad || 0) * primerPrecio;
+              tareaActualizada = {
+                ...tareaActualizada,
+                precio_unitario: primerPrecio,
+                total: nuevoTotal,
+                saldo_disponible: nuevoTotal
+              };
+            }
+          } else if (detalleTarea.precio_unitario !== undefined && detalleTarea.precio_unitario !== null) {
+            // Fallback: usar precio_unitario si no hay precios_disponibles
             const nuevoTotal = (tareaActualizada.cantidad || 0) * detalleTarea.precio_unitario;
             tareaActualizada = {
               ...tareaActualizada,
@@ -220,8 +232,29 @@ export const useTareaModal = () => {
         detalle_descripcion: descripcionSeleccionada
       };
 
-      // Si el detalle tiene precio_unitario, aplicarlo
-      if (currentTarea.detalle?.precio_unitario !== undefined && currentTarea.detalle?.precio_unitario !== null) {
+      // Buscar el precio correspondiente a la descripción seleccionada
+      if (currentTarea.detalle?.tiene_multiples_descripciones &&
+          currentTarea.detalle?.descripciones_disponibles &&
+          currentTarea.detalle?.precios_disponibles) {
+
+        // Encontrar el índice de la descripción seleccionada
+        const indiceDescripcion = currentTarea.detalle.descripciones_disponibles.indexOf(descripcionSeleccionada);
+
+        if (indiceDescripcion !== -1 && indiceDescripcion < currentTarea.detalle.precios_disponibles.length) {
+          const precioCorrespondiente = currentTarea.detalle.precios_disponibles[indiceDescripcion];
+
+          if (precioCorrespondiente !== undefined && precioCorrespondiente !== null) {
+            const nuevoTotal = (tareaActualizada.cantidad || 0) * precioCorrespondiente;
+            tareaActualizada = {
+              ...tareaActualizada,
+              precio_unitario: precioCorrespondiente,
+              total: nuevoTotal,
+              saldo_disponible: nuevoTotal
+            };
+          }
+        }
+      } else if (currentTarea.detalle?.precio_unitario !== undefined && currentTarea.detalle?.precio_unitario !== null) {
+        // Si no tiene múltiples descripciones, usar el precio_unitario del detalle
         const nuevoTotal = (tareaActualizada.cantidad || 0) * currentTarea.detalle.precio_unitario;
         tareaActualizada = {
           ...tareaActualizada,

@@ -306,11 +306,19 @@ export const agruparDetallesDuplicados = async (
 
       if (descripciones.length > 1) {
         const detalleBase = detallesGrupo[0];
+
+        // Mapear precios correspondientes a cada descripción
+        const precios = descripciones.map(desc => {
+          const detalleConPrecio = detallesGrupo.find(d => d.descripcion === desc);
+          return detalleConPrecio?.precio_unitario;
+        }).filter((precio): precio is number => precio !== undefined);
+
         detallesFinales.push({
           ...detalleBase,
           descripciones_disponibles: descripciones,
           tiene_multiples_descripciones: true,
-          descripcion: descripciones[0]
+          descripcion: descripciones[0],
+          precios_disponibles: precios.length > 0 ? precios : undefined
         });
       } else {
         detallesFinales.push({

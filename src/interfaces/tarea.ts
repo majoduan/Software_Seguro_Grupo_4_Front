@@ -21,6 +21,7 @@ export interface DetalleTarea {
     // NUEVOS campos para múltiples descripciones
     descripciones_disponibles?: string[];
     tiene_multiples_descripciones?: boolean;
+    precios_disponibles?: number[];  // Precios correspondientes a cada descripción
 }
 
 export interface Tarea {

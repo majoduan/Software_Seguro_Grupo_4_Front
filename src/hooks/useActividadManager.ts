@@ -166,8 +166,13 @@ export const useActividadManager = () => {
           tarea.descripcion_seleccionada = detalle.descripciones_disponibles[0];
           tarea.detalle_descripcion = detalle.descripciones_disponibles[0];
 
-          // Aplicar precio automático si el detalle tiene precio_unitario
-          if (detalle.precio_unitario !== undefined && detalle.precio_unitario !== null) {
+          // Aplicar precio del primer elemento si existen precios disponibles
+          if (detalle.precios_disponibles && detalle.precios_disponibles.length > 0) {
+            const primerPrecio = detalle.precios_disponibles[0];
+            if (primerPrecio !== undefined && primerPrecio !== null) {
+              tarea.precio_unitario = primerPrecio;
+            }
+          } else if (detalle.precio_unitario !== undefined && detalle.precio_unitario !== null) {
             tarea.precio_unitario = detalle.precio_unitario;
           }
         } else {
