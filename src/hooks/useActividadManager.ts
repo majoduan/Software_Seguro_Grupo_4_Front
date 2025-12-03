@@ -8,7 +8,7 @@ import { tareaAPI } from '../api/tareaAPI';
 import { getActividadesPorTipoPOA } from '../utils/listaActividades';
 import { showError, showInfo, showWarning } from '../utils/toast';
 import { filtrarDetallesPorActividadConConsultas, agruparDetallesDuplicados, obtenerNumeroTarea } from '../utils/tareaUtils';
-import { esContratacionServiciosProfesionales, obtenerPrecioPorDescripcion } from '../utils/asignarCantidad';
+import { esContratacionServiciosProfesionales } from '../utils/asignarCantidad';
 import { sanitizeInput, sanitizeObject } from '../utils/sanitizer';
 
 // Extender la interfaz POA para incluir los datos del tipo
@@ -165,21 +165,15 @@ export const useActividadManager = () => {
         if (detalle.tiene_multiples_descripciones && detalle.descripciones_disponibles && detalle.descripciones_disponibles.length > 0) {
           tarea.descripcion_seleccionada = detalle.descripciones_disponibles[0];
           tarea.detalle_descripcion = detalle.descripciones_disponibles[0];
-          
-          // Aplicar precio automático si es contratación de servicios profesionales
-          if (esContratacionServiciosProfesionales(tarea)) {
-            const precioAutomatico = obtenerPrecioPorDescripcion(tarea.descripcion_seleccionada);
-            if (precioAutomatico !== null) {
-              tarea.precio_unitario = precioAutomatico;
-            }
+
+          // Aplicar precio automático si el detalle tiene precio_unitario
+          if (detalle.precio_unitario !== undefined && detalle.precio_unitario !== null) {
+            tarea.precio_unitario = detalle.precio_unitario;
           }
         } else {
-          // Si no tiene múltiples descripciones, verificar la descripción principal
-          if (esContratacionServiciosProfesionales(tarea) && tarea.detalle_descripcion) {
-            const precioAutomatico = obtenerPrecioPorDescripcion(tarea.detalle_descripcion);
-            if (precioAutomatico !== null) {
-              tarea.precio_unitario = precioAutomatico;
-            }
+          // Si no tiene múltiples descripciones, aplicar precio si existe
+          if (detalle.precio_unitario !== undefined && detalle.precio_unitario !== null) {
+            tarea.precio_unitario = detalle.precio_unitario;
           }
         }
 
