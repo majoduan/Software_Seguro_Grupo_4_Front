@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { TareaForm, DetalleTarea, ItemPresupuestario } from '../interfaces/tarea';
 import { obtenerNumeroTarea, filtrarDetallesPorActividadConConsultas, agruparDetallesDuplicados } from '../utils/tareaUtils';
-import { manejarCambioDescripcionConPrecio, esContratacionServiciosProfesionales, obtenerPrecioPorDescripcion } from '../utils/asignarCantidad';
+import { esContratacionServiciosProfesionales } from '../utils/asignarCantidad';
 import { showSuccess } from '../utils/toast';
 
 export const useTareaModal = () => {
@@ -158,26 +158,22 @@ export const useTareaModal = () => {
         // Manejar múltiples descripciones
         if (detalleTarea.tiene_multiples_descripciones && detalleTarea.descripciones_disponibles && detalleTarea.descripciones_disponibles.length > 0) {
           const primeraDescripcion = detalleTarea.descripciones_disponibles[0];
-          
+
           tareaActualizada = {
             ...tareaActualizada,
             descripcion_seleccionada: primeraDescripcion,
             detalle_descripcion: primeraDescripcion
           };
 
-          // Aplicar precio automático si es contratación de servicios profesionales
-          const esServiciosProfesionales = tareaActualizada.detalle?.nombre?.toLowerCase().includes('contratación de servicios profesionales');
-          if (esServiciosProfesionales) {
-            const precio = obtenerPrecioPorDescripcion(primeraDescripcion);
-            if (precio !== null) {
-              const nuevoTotal = (tareaActualizada.cantidad || 0) * precio;
-              tareaActualizada = {
-                ...tareaActualizada,
-                precio_unitario: precio,
-                total: nuevoTotal,
-                saldo_disponible: nuevoTotal
-              };
-            }
+          // Aplicar precio automático si existe precio_unitario en el detalle
+          if (detalleTarea.precio_unitario !== undefined && detalleTarea.precio_unitario !== null) {
+            const nuevoTotal = (tareaActualizada.cantidad || 0) * detalleTarea.precio_unitario;
+            tareaActualizada = {
+              ...tareaActualizada,
+              precio_unitario: detalleTarea.precio_unitario,
+              total: nuevoTotal,
+              saldo_disponible: nuevoTotal
+            };
           }
         }
 
@@ -217,10 +213,23 @@ export const useTareaModal = () => {
     if (!currentTarea) return;
 
     try {
-      const tareaActualizada = manejarCambioDescripcionConPrecio(
-        descripcionSeleccionada,
-        currentTarea
-      );
+      // Actualizar la tarea con la nueva descripción
+      let tareaActualizada = {
+        ...currentTarea,
+        descripcion_seleccionada: descripcionSeleccionada,
+        detalle_descripcion: descripcionSeleccionada
+      };
+
+      // Si el detalle tiene precio_unitario, aplicarlo
+      if (currentTarea.detalle?.precio_unitario !== undefined && currentTarea.detalle?.precio_unitario !== null) {
+        const nuevoTotal = (tareaActualizada.cantidad || 0) * currentTarea.detalle.precio_unitario;
+        tareaActualizada = {
+          ...tareaActualizada,
+          precio_unitario: currentTarea.detalle.precio_unitario,
+          total: nuevoTotal,
+          saldo_disponible: nuevoTotal
+        };
+      }
 
       setCurrentTarea(tareaActualizada);
 

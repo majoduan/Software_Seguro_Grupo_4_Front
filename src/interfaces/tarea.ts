@@ -12,6 +12,7 @@ export interface DetalleTarea {
     nombre: string;
     descripcion?: string;
     caracteristicas?: string;
+    precio_unitario?: number;  // Precio predefinido (solo para servicios profesionales)
     codigo_item?: string;
     item_presupuestario?: ItemPresupuestario;
     // Campos existentes para múltiples items
