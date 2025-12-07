@@ -18,6 +18,7 @@ import VerProyectos from './pages/VerProyectos';
 import EditarProyecto from './pages/EditarProyecto';
 import EditarPOA from './pages/EditarPOA';
 import EditarActividad from './pages/EditarActividad';
+import GestionPrecios from './pages/GestionPrecios';
 import { ThemeProvider } from "@mui/material/styles";
 
 import theme from "./theme";
@@ -162,7 +163,16 @@ function AppContent() {
               </RoleProtectedRoute>
             </ProtectedRoute>
           } />
-          
+
+          {/* Ruta para Gestión de Precios Predefinidos (solo ADMINISTRADOR) */}
+          <Route path="/gestion-precios" element={
+            <ProtectedRoute>
+              <RoleProtectedRoute requiredRoles={[ROLES.ADMINISTRADOR]}>
+                <GestionPrecios />
+              </RoleProtectedRoute>
+            </ProtectedRoute>
+          } />
+
           <Route path="/crear-proyecto" element={
             <ProtectedRoute>
               <RoleProtectedRoute requiredRoles={[

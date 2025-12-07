@@ -3,7 +3,7 @@ import { Nav, Button } from 'react-bootstrap';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { SidebarContentProps } from '../interfaces/bar';
-import { TableProperties, FolderKanban, FileChartLine, CircleUserRound, UserPlus, LogOut, Icon, History,FileSpreadsheet, FileUp, ScrollText } from 'lucide-react';
+import { TableProperties, FolderKanban, FileChartLine, CircleUserRound, UserPlus, LogOut, Icon, History,FileSpreadsheet, FileUp, ScrollText, DollarSign } from 'lucide-react';
 import { owl } from '@lucide/lab';
 import { ROLES } from '../interfaces/user';
 import { rolAPI } from '../api/userAPI';
@@ -156,6 +156,19 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
                 >
                   <FolderKanban size={iconSize} className="me-2" />
                   Nuevo Proyecto
+                </Nav.Link>
+              </Nav.Item>
+            )}
+
+            {/* Gestión de Precios Predefinidos - Solo para ADMINISTRADOR */}
+            {hasAccessTo([ROLES.ADMINISTRADOR]) && (
+              <Nav.Item>
+                <Nav.Link
+                  className={`text-white ${isActive("/gestion-precios")}`}
+                  onClick={() => handleNavigate("/gestion-precios")}
+                >
+                  <DollarSign size={iconSize} className="me-2" />
+                  Gestión de Precios
                 </Nav.Link>
               </Nav.Item>
             )}
@@ -417,6 +430,19 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
             </Nav.Item>
           )}
 
+          {/* Gestión de Precios Predefinidos */}
+          {hasAccessTo([ROLES.ADMINISTRADOR]) && (
+            <Nav.Item>
+              <Nav.Link
+                className={`text-white ${isActive("/gestion-precios")}`}
+                onClick={() => handleNavigate("/gestion-precios")}
+                style={{ cursor: 'pointer' }}
+                title="Gestión de Precios"
+              >
+                <DollarSign size={iconSize} />
+              </Nav.Link>
+            </Nav.Item>
+          )}
 
           {/* Nuevo POA */}
           {hasAccessTo([ROLES.ADMINISTRADOR, ROLES.DIRECTOR_DE_INVESTIGACION]) && (

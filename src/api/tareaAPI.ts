@@ -1,4 +1,4 @@
-import { DetalleTarea, Tarea, TareaCreate, TareaUpdate, ItemPresupuestario, ProgramacionMensualCreate, ProgramacionMensualOut } from "../interfaces/tarea";
+import { DetalleTarea, Tarea, TareaCreate, TareaUpdate, ItemPresupuestario, ProgramacionMensualCreate, ProgramacionMensualOut, DetalleTareaPrecio, DetalleTareaUpdatePrecio } from "../interfaces/tarea";
 import { API } from "./userAPI";
 
     
@@ -245,6 +245,138 @@ export const tareaAPI = {
             message: "Programación mensual actualizada exitosamente",
             programaciones_creadas: programacionesCreadas.length
         };
+    },
+
+    // ==================== GESTIÓN DE PRECIOS PREDEFINIDOS ====================
+
+    /**
+     * Objetivo:
+     * Obtener todos los detalles de tarea que tienen precios predefinidos.
+     *
+     * Operación:
+     * GET a `/detalles-tarea/con-precios`.
+     * Retorna únicamente los 4 servicios profesionales con precio predefinido.
+     * Incluye información del item presupuestario asociado.
+     * Solo accesible para usuarios con rol ADMINISTRADOR.
+     *
+     * Retorna:
+     * - DetalleTareaPrecio[] — Array con los 4 servicios profesionales
+     *
+     * Errores:
+     * - 401: Usuario no autenticado
+     * - 403: Usuario no es ADMINISTRADOR
+     */
+    getDetallesConPrecios: async (): Promise<DetalleTareaPrecio[]> => {
+        try {
+            const response = await API.get('/detalles-tarea/con-precios');
+            return response.data as DetalleTareaPrecio[];
+        } catch (error) {
+            if (error && typeof error === 'object' && 'response' in error) {
+                const axiosError = error as any;
+
+                if (axiosError.response?.status === 403) {
+                    throw new Error('Solo los administradores pueden acceder a la gestión de precios');
+                }
+            }
+            throw error;
+        }
+    },
+
+    /**
+     * Objetivo:
+     * Obtener un detalle de tarea específico con información de precio.
+     *
+     * Parámetros:
+     * - idDetalleTarea: string — ID único del detalle de tarea
+     *
+     * Operación:
+     * GET a `/detalles-tarea/{id}`.
+     * Retorna información completa del detalle incluyendo item presupuestario.
+     *
+     * Retorna:
+     * - DetalleTareaPrecio — Objeto con información completa
+     *
+     * Errores:
+     * - 401: Usuario no autenticado
+     * - 404: Detalle de tarea no encontrado
+     */
+    getDetalleTareaPrecio: async (idDetalleTarea: string): Promise<DetalleTareaPrecio> => {
+        try {
+            const response = await API.get(`/detalles-tarea/${idDetalleTarea}`);
+            return response.data as DetalleTareaPrecio;
+        } catch (error) {
+            if (error && typeof error === 'object' && 'response' in error) {
+                const axiosError = error as any;
+
+                if (axiosError.response?.status === 404) {
+                    throw new Error('Detalle de tarea no encontrado');
+                }
+            }
+            throw error;
+        }
+    },
+
+    /**
+     * Objetivo:
+     * Actualizar el precio predefinido de un servicio profesional.
+     *
+     * Parámetros:
+     * - idDetalleTarea: string — ID único del detalle de tarea
+     * - precio: number — Nuevo precio (rango: $100 - $5,000)
+     *
+     * Operación:
+     * PUT a `/detalles-tarea/{id}/precio`.
+     * Actualiza el campo precio_unitario en la base de datos.
+     * Solo afecta tareas creadas DESPUÉS del cambio.
+     * Valida que el precio esté en el rango permitido.
+     *
+     * Retorna:
+     * - DetalleTareaPrecio — Detalle actualizado con el nuevo precio
+     *
+     * Errores:
+     * - 401: Usuario no autenticado
+     * - 403: Usuario no es ADMINISTRADOR
+     * - 404: Detalle de tarea no encontrado
+     * - 400: Precio fuera de rango o detalle no es servicio profesional
+     * - 422: Validación de precio fallida (formato incorrecto)
+     */
+    updatePrecioDetalleTarea: async (idDetalleTarea: string, precio: number): Promise<DetalleTareaPrecio> => {
+        try {
+            const data: DetalleTareaUpdatePrecio = {
+                precio_unitario: precio
+            };
+
+            const response = await API.put(`/detalles-tarea/${idDetalleTarea}/precio`, data);
+            return response.data as DetalleTareaPrecio;
+        } catch (error) {
+            if (error && typeof error === 'object' && 'response' in error) {
+                const axiosError = error as any;
+
+                // Manejar errores específicos
+                if (axiosError.response?.status === 403) {
+                    throw new Error('Solo los administradores pueden actualizar precios predefinidos');
+                } else if (axiosError.response?.status === 404) {
+                    throw new Error('Detalle de tarea no encontrado');
+                } else if (axiosError.response?.status === 400) {
+                    // El backend puede retornar mensajes específicos
+                    const detail = axiosError.response?.data?.detail;
+                    if (detail) {
+                        throw new Error(detail);
+                    }
+                    throw new Error('Precio inválido o detalle no es un servicio profesional');
+                } else if (axiosError.response?.status === 422) {
+                    // Errores de validación de Pydantic
+                    const detail = axiosError.response?.data?.detail;
+                    if (Array.isArray(detail) && detail.length > 0) {
+                        // Pydantic retorna array de errores
+                        const firstError = detail[0];
+                        throw new Error(firstError.msg || 'Error de validación en el precio');
+                    }
+                    throw new Error('El precio debe estar entre $100 y $5,000');
+                }
+            }
+            throw error;
+        }
     },
 
 }

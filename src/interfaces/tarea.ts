@@ -132,3 +132,27 @@ export interface ProgramacionMensualOut {
     mes: string;             // Formato "MM-AAAA"
     valor: number;           // Decimal como number
 }
+
+// ==================== GESTIÓN DE PRECIOS PREDEFINIDOS ====================
+
+/**
+ * Interfaz para gestión de precios predefinidos de servicios profesionales
+ *
+ * Uso: Página de administración para editar los 4 precios predefinidos
+ * Backend: DetalleTareaPrecioOut schema
+ */
+export interface DetalleTareaPrecio {
+    id_detalle_tarea: string;
+    nombre: string;
+    descripcion: string | null;
+    precio_unitario: number | null;
+    item_presupuestario?: ItemPresupuestario;
+}
+
+/**
+ * Schema para actualizar precio predefinido
+ * Backend: DetalleTareaUpdatePrecio schema
+ */
+export interface DetalleTareaUpdatePrecio {
+    precio_unitario: number;  // Rango validado: $100 - $5,000
+}
