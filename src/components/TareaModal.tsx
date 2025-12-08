@@ -112,10 +112,12 @@ const TareaModal: React.FC<TareaModalProps> = ({
 
   const handleGastoMensualChange = (index: number, valor: number) => {
     if (!tarea) return;
-    
+
     const gastosMensuales = [...(tarea.gastos_mensuales || new Array(12).fill(0))];
-    gastosMensuales[index] = valor;
-    
+    // Asegurar que el valor sea numérico y con máximo 2 decimales
+    const valorNumerico = typeof valor === 'string' ? parseFloat(valor) : valor;
+    gastosMensuales[index] = isNaN(valorNumerico) ? 0 : Number(valorNumerico.toFixed(2));
+
     onTareaChange({
       ...tarea,
       gastos_mensuales: gastosMensuales
@@ -458,7 +460,11 @@ const TareaModal: React.FC<TareaModalProps> = ({
             </div>
             <div className="mt-2 text-end">
               <Form.Text className="text-muted">
-                <strong>Total planificado: ${tarea.gastos_mensuales?.reduce((sum, val) => sum + (val || 0), 0)?.toFixed(2) || '0.00'}</strong>
+                <strong>Total planificado: ${tarea.gastos_mensuales?.reduce((sum, val) => {
+                  // Asegurar conversión correcta de decimales (pueden venir como string del backend)
+                  const valorNumerico = typeof val === 'string' ? parseFloat(val) : val;
+                  return sum + (isNaN(valorNumerico) ? 0 : valorNumerico);
+                }, 0)?.toFixed(2) || '0.00'}</strong>
               </Form.Text>
             </div>
             {taskErrors.gastos_mensuales && (
