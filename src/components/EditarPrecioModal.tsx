@@ -46,11 +46,23 @@ const EditarPrecioModal: React.FC<EditarPrecioModalProps> = ({
     const [loading, setLoading] = useState<boolean>(false);
     const [showConfirm, setShowConfirm] = useState<boolean>(false);
 
+    /**
+     * Convertir precio_unitario a número
+     * El backend puede enviar Decimal como string o number
+     */
+    const normalizarPrecio = (precio: number | string | null): number | null => {
+        if (precio === null) return null;
+        return typeof precio === 'string' ? parseFloat(precio) : precio;
+    };
+
     // Cargar precio actual cuando se abre el modal
     useEffect(() => {
         if (detalle && detalle.precio_unitario !== null) {
-            setPrecio(detalle.precio_unitario.toFixed(2));
-            setError(null);
+            const precioNumerico = normalizarPrecio(detalle.precio_unitario);
+            if (precioNumerico !== null) {
+                setPrecio(precioNumerico.toFixed(2));
+                setError(null);
+            }
         } else {
             setPrecio('');
         }
@@ -223,7 +235,7 @@ const EditarPrecioModal: React.FC<EditarPrecioModalProps> = ({
                                     <Form.Label className="fw-bold">Precio Actual:</Form.Label>
                                     <Form.Control
                                         type="text"
-                                        value={formatearPrecio(detalle.precio_unitario)}
+                                        value={formatearPrecio(normalizarPrecio(detalle.precio_unitario) || 0)}
                                         readOnly
                                         disabled
                                         className="bg-light"
@@ -300,7 +312,9 @@ const EditarPrecioModal: React.FC<EditarPrecioModalProps> = ({
                                 <strong>Servicio:</strong> {detalle.descripcion || detalle.nombre}
                             </p>
                             <p className="mb-1">
-                                <strong>Precio actual:</strong> {detalle.precio_unitario !== null ? formatearPrecio(detalle.precio_unitario) : 'N/A'}
+                                <strong>Precio actual:</strong> {detalle.precio_unitario !== null
+                                    ? formatearPrecio(normalizarPrecio(detalle.precio_unitario) || 0)
+                                    : 'N/A'}
                             </p>
                             <p className="mb-0">
                                 <strong>Nuevo precio:</strong> {formatearPrecio(parseFloat(precio))}

@@ -140,12 +140,15 @@ export interface ProgramacionMensualOut {
  *
  * Uso: Página de administración para editar los 4 precios predefinidos
  * Backend: DetalleTareaPrecioOut schema
+ *
+ * NOTA: precio_unitario puede venir como string o number desde el backend
+ * porque Decimal se serializa como string en JSON. El frontend debe manejar ambos casos.
  */
 export interface DetalleTareaPrecio {
     id_detalle_tarea: string;
     nombre: string;
     descripcion: string | null;
-    precio_unitario: number | null;
+    precio_unitario: number | string | null;  // Backend puede enviar string o number
     item_presupuestario?: ItemPresupuestario;
 }
 
