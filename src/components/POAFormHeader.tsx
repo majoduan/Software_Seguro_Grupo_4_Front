@@ -5,6 +5,7 @@ interface POAFormHeaderProps {
   error: string | null;
   isEditing?: boolean;
   poaId?: string;
+  errorRef?: React.RefObject<HTMLDivElement>;
 }
 
 /**
@@ -25,16 +26,17 @@ interface POAFormHeaderProps {
  * - Si existe un error, lo muestra de forma visible en una alerta para informar al usuario.
  */
 
-export const POAFormHeader: React.FC<POAFormHeaderProps> = ({ 
-  error, 
+export const POAFormHeader: React.FC<POAFormHeaderProps> = ({
+  error,
   isEditing = false,
-  poaId 
+  poaId,
+  errorRef
 }) => {
-  const headerClass = isEditing 
-    ? "bg-warning bg-gradient text-dark p-3" 
+  const headerClass = isEditing
+    ? "bg-warning bg-gradient text-dark p-3"
     : "bg-primary bg-gradient text-white p-3";
-  
-  const title = isEditing 
+
+  const title = isEditing
     ? `Editar POA ${poaId ? `#${poaId}` : ''}`
     : 'Crear Nuevo POA';
 
@@ -42,7 +44,7 @@ export const POAFormHeader: React.FC<POAFormHeaderProps> = ({
     <Card.Header className={headerClass}>
       <h2 className="mb-0 fw-bold text-center">{title}</h2>
       {error && (
-        <div className="alert alert-danger mt-3 mb-0" role="alert">
+        <div ref={errorRef} className="alert alert-danger mt-3 mb-0" role="alert">
           {error}
         </div>
       )}

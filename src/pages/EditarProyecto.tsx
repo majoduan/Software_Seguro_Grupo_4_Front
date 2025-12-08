@@ -154,8 +154,8 @@ const EditarProyecto: React.FC = () => {
     return (
       <div className="nuevo-proyecto-wrapper">
         <Card className="nuevo-proyecto-card shadow-lg">
-          <ProyectoFormHeader 
-            tipoProyecto={null} 
+          <ProyectoFormHeader
+            tipoProyecto={null}
             error={errorBusqueda}
             isEditing={true}
             proyectoSeleccionado={null}
@@ -188,11 +188,12 @@ const EditarProyecto: React.FC = () => {
   return (
     <div className="nuevo-proyecto-wrapper">
       <Card className="nuevo-proyecto-card shadow-lg">
-        <ProyectoFormHeader 
-          tipoProyecto={tipoProyectoSeleccionado} 
+        <ProyectoFormHeader
+          tipoProyecto={tipoProyectoSeleccionado}
           error={form.error}
           isEditing={true}
           proyectoSeleccionado={proyectoSeleccionado}
+          errorRef={form.errorRef}
         />
         
         <Card.Body className="p-4">

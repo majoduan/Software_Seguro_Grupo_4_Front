@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Proyecto, TipoProyecto, EstadoProyecto, Departamento } from '../interfaces/project';
 import { projectService } from '../services/projectService';
 import { projectAPI } from '../api/projectAPI';
-import { 
-  validateDirectorName, 
-  validateBudget, 
+import {
+  validateDirectorName,
+  validateBudget,
   validateEndDate,
   validateProjectFormRequiredFields
 } from '../validators/projectValidators';
@@ -77,6 +77,20 @@ export const useProjectForm = ({ initialTipoProyecto, initialProyecto, isEditing
   // Status states
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Referencia para el auto-scroll al mensaje de error
+  const errorRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll al mensaje de error cuando aparece
+  useEffect(() => {
+    if (error && errorRef.current) {
+      errorRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+        inline: 'nearest'
+      });
+    }
+  }, [error]);
 
   // Función para obtener la fecha de hoy en formato YYYY-MM-DD
   const obtenerFechaHoy = (): string => {
@@ -628,6 +642,7 @@ export const useProjectForm = ({ initialTipoProyecto, initialProyecto, isEditing
     isLoading,
     error,
     setError,
+    errorRef,
     isEditing, // Agregar esta propiedad
 
     // Handlers

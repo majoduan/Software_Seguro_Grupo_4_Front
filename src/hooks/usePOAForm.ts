@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Proyecto, TipoProyecto, Departamento } from '../interfaces/project';
 import { EstadoPOA, TipoPOA, PoaCreate, POA } from '../interfaces/poa';
 import { Periodo, PeriodoCreate } from '../interfaces/periodo';
@@ -80,6 +80,20 @@ export const usePOAForm = ({ initialProyecto, initialPeriodos = [], isEditing = 
   // Estados para mostrar mensajes de carga o error
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Referencia para el auto-scroll al mensaje de error
+  const errorRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll al mensaje de error cuando aparece
+  useEffect(() => {
+    if (error && errorRef.current) {
+      errorRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+        inline: 'nearest'
+      });
+    }
+  }, [error]);
 
   // Cargar datos iniciales
   useEffect(() => {
@@ -1000,7 +1014,8 @@ export const usePOAForm = ({ initialProyecto, initialPeriodos = [], isEditing = 
     setIsLoading,
     error,
     setError,
-    
+    errorRef,
+
     // Funciones
     seleccionarProyecto,
     seleccionarPeriodo,

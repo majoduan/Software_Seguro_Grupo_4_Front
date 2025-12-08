@@ -54,10 +54,11 @@ const EditarPOA: React.FC = () => {
   return (
     <Container className="py-4">
       <Card className="shadow-lg">
-        <POAFormHeader 
-          error={form.error} 
+        <POAFormHeader
+          error={form.error}
           isEditing={true}
           poaId={id}
+          errorRef={form.errorRef}
         />
         <Card.Body className="p-4">
           <Form onSubmit={onSubmit}>

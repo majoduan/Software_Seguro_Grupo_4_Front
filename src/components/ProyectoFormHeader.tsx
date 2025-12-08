@@ -7,6 +7,7 @@ interface ProyectoFormHeaderProps {
   error: string | null;
   isEditing?: boolean;
   proyectoSeleccionado?: Proyecto | null;
+  errorRef?: React.RefObject<HTMLDivElement>;
 }
 
 /**
@@ -33,14 +34,15 @@ interface ProyectoFormHeaderProps {
  *
  */
 
-export const ProyectoFormHeader: React.FC<ProyectoFormHeaderProps> = ({ 
-  tipoProyecto, 
-  error, 
+export const ProyectoFormHeader: React.FC<ProyectoFormHeaderProps> = ({
+  tipoProyecto,
+  error,
   isEditing = false,
-  proyectoSeleccionado 
+  proyectoSeleccionado,
+  errorRef
 }) => {
-  const headerClass = isEditing 
-    ? "bg-warning bg-gradient text-dark p-3" 
+  const headerClass = isEditing
+    ? "bg-warning bg-gradient text-dark p-3"
     : "bg-primary bg-gradient text-white p-3";
 
   return (
@@ -68,7 +70,7 @@ export const ProyectoFormHeader: React.FC<ProyectoFormHeaderProps> = ({
         </p>
       )}
       {error && (
-        <div className="alert alert-danger mt-3 mb-0" role="alert">
+        <div ref={errorRef} className="alert alert-danger mt-3 mb-0" role="alert">
           {error}
         </div>
       )}

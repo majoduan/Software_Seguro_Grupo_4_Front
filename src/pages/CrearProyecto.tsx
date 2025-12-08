@@ -99,10 +99,11 @@ const CrearProyecto: React.FC = () => {
   return (
     <div className="nuevo-proyecto-wrapper">
       <Card className="nuevo-proyecto-card shadow-lg">
-        <ProyectoFormHeader 
-          tipoProyecto={form.tipoProyecto} 
+        <ProyectoFormHeader
+          tipoProyecto={form.tipoProyecto}
           error={form.error}
           isEditing={false}
+          errorRef={form.errorRef}
         />
         
         <Card.Body className="p-4">
