@@ -775,7 +775,9 @@ export const usePOAForm = ({ initialProyecto, initialPeriodos = [], isEditing = 
           const poaEditado = await poaAPI.editarPOA(poaExistente.id_poa, datosActualizacion);
           poasEditados.push(poaEditado);
         } catch (err: any) {
-          setError(`Error al editar POA: ${err instanceof Error ? err.message : 'Error desconocido'}`);
+          // Capturar el mensaje del backend si es un error HTTP 400
+          const errorMessage = err?.response?.data?.detail || err?.message || 'Error desconocido';
+          setError(`Error al editar POA: ${errorMessage}`);
           return false;
         }
       }
@@ -787,8 +789,10 @@ export const usePOAForm = ({ initialProyecto, initialPeriodos = [], isEditing = 
         setError('No se pudo actualizar ningún POA.');
         return false;
       }
-    } catch (err) {
-      setError(`Error al editar POAs: ${err instanceof Error ? err.message : 'Error desconocido'}`);
+    } catch (err: any) {
+      // Capturar el mensaje del backend si es un error HTTP
+      const errorMessage = err?.response?.data?.detail || err?.message || 'Error desconocido';
+      setError(`Error al editar POAs: ${errorMessage}`);
       return false;
     } finally {
       setIsLoading(false);
