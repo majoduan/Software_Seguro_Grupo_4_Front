@@ -267,53 +267,25 @@ export const tareaAPI = {
      * - 403: Usuario no es ADMINISTRADOR
      */
     getDetallesConPrecios: async (): Promise<DetalleTareaPrecio[]> => {
-        console.log('🌐 [tareaAPI] Iniciando petición GET /detalles-tarea/con-precios');
-
         try {
-            console.log('🌐 [tareaAPI] Endpoint completo:', `${API.defaults.baseURL}/detalles-tarea/con-precios`);
-            console.log('🌐 [tareaAPI] Enviando petición...');
-
             const response = await API.get('/detalles-tarea/con-precios');
-
-            console.log('✅ [tareaAPI] Respuesta HTTP recibida:', response.status);
-            console.log('✅ [tareaAPI] Headers de respuesta:', response.headers);
-            console.log('✅ [tareaAPI] Data recibida (tipo):', typeof response.data);
-            console.log('✅ [tareaAPI] Data recibida (es array):', Array.isArray(response.data));
-            console.log('✅ [tareaAPI] Data recibida (contenido):', response.data);
-            console.log(`✅ [tareaAPI] Cantidad de items en data: ${response.data?.length || 0}`);
-
-            if (response.data && Array.isArray(response.data) && response.data.length > 0) {
-                console.log('✅ [tareaAPI] Primer item recibido:', response.data[0]);
-            }
-
             return response.data as DetalleTareaPrecio[];
         } catch (error) {
-            console.error('❌ [tareaAPI] Error capturado:', error);
-
             if (error && typeof error === 'object' && 'response' in error) {
                 const axiosError = error as any;
 
-                console.error('❌ [tareaAPI] Error HTTP status:', axiosError.response?.status);
-                console.error('❌ [tareaAPI] Error HTTP data:', axiosError.response?.data);
-                console.error('❌ [tareaAPI] Error HTTP headers:', axiosError.response?.headers);
-
                 if (axiosError.response?.status === 403) {
-                    console.error('❌ [tareaAPI] Error 403: Acceso prohibido');
                     throw new Error('Solo los administradores pueden acceder a la gestión de precios');
                 }
 
                 if (axiosError.response?.status === 401) {
-                    console.error('❌ [tareaAPI] Error 401: No autenticado');
                     throw new Error('Debe iniciar sesión para acceder a esta función');
                 }
 
                 if (axiosError.response?.status === 404) {
-                    console.error('❌ [tareaAPI] Error 404: Endpoint no encontrado');
                     throw new Error('El endpoint de gestión de precios no está disponible');
                 }
             }
-
-            console.error('❌ [tareaAPI] Lanzando error original');
             throw error;
         }
     },
