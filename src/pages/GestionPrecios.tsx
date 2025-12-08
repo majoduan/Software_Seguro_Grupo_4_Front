@@ -44,6 +44,7 @@ const GestionPrecios: React.FC = () => {
      * Cargar detalles con precios predefinidos al montar componente
      */
     useEffect(() => {
+        console.log('🔵 [GestionPrecios] Componente montado, ejecutando useEffect inicial');
         cargarDetallesConPrecios();
     }, []);
 
@@ -51,18 +52,46 @@ const GestionPrecios: React.FC = () => {
      * Obtener lista de servicios profesionales con precios predefinidos
      */
     const cargarDetallesConPrecios = async () => {
+        console.log('🔵 [GestionPrecios] Iniciando carga de detalles con precios...');
         setLoading(true);
         setError(null);
         setSuccessMessage(null);
 
         try {
+            console.log('🔵 [GestionPrecios] Llamando a tareaAPI.getDetallesConPrecios()...');
             const data = await tareaAPI.getDetallesConPrecios();
+            console.log('✅ [GestionPrecios] Respuesta recibida:', data);
+            console.log(`✅ [GestionPrecios] Total de detalles recibidos: ${data?.length || 0}`);
+
+            if (data && data.length > 0) {
+                console.log('📋 [GestionPrecios] Primer detalle:', data[0]);
+                console.log('📋 [GestionPrecios] Campos del primer detalle:', Object.keys(data[0]));
+                data.forEach((detalle, index) => {
+                    console.log(`📋 [GestionPrecios] Detalle ${index + 1}:`, {
+                        id: detalle.id_detalle_tarea,
+                        descripcion: detalle.descripcion,
+                        nombre: detalle.nombre,
+                        precio_unitario: detalle.precio_unitario,
+                        item_presupuestario: detalle.item_presupuestario
+                    });
+                });
+            } else {
+                console.warn('⚠️ [GestionPrecios] No se recibieron detalles (array vacío)');
+            }
+
             setDetalles(data);
         } catch (err: any) {
-            console.error('Error al cargar precios:', err);
+            console.error('❌ [GestionPrecios] Error al cargar precios:', err);
+            console.error('❌ [GestionPrecios] Tipo de error:', typeof err);
+            console.error('❌ [GestionPrecios] Error completo:', JSON.stringify(err, null, 2));
+            if (err.response) {
+                console.error('❌ [GestionPrecios] Response status:', err.response.status);
+                console.error('❌ [GestionPrecios] Response data:', err.response.data);
+            }
             setError(err.message || 'Error al cargar los precios predefinidos');
         } finally {
             setLoading(false);
+            console.log('🔵 [GestionPrecios] Carga finalizada (loading = false)');
         }
     };
 
@@ -121,6 +150,15 @@ const GestionPrecios: React.FC = () => {
         }).format(valor);
     };
 
+    // Log del estado actual en cada render
+    console.log('🎨 [GestionPrecios] RENDER:', {
+        loading,
+        detallesCount: detalles.length,
+        error,
+        successMessage,
+        tieneDetalles: detalles.length > 0
+    });
+
     return (
         <div className="gestion-precios-wrapper">
             {/* Encabezado */}
@@ -169,54 +207,75 @@ const GestionPrecios: React.FC = () => {
             {/* Tabla de precios */}
             {!loading && !error && (
                 <div className="gestion-precios-table-container">
+                    {(() => {
+                        console.log('📊 [GestionPrecios] Renderizando sección tabla');
+                        console.log('📊 [GestionPrecios] detalles.length:', detalles.length);
+                        console.log('📊 [GestionPrecios] detalles:', detalles);
+                        return null;
+                    })()}
                     {detalles.length === 0 ? (
-                        <Alert variant="info">
-                            No se encontraron servicios profesionales con precios predefinidos.
-                        </Alert>
+                        <>
+                            {console.log('⚠️ [GestionPrecios] Mostrando mensaje: No hay servicios')}
+                            <Alert variant="info">
+                                No se encontraron servicios profesionales con precios predefinidos.
+                            </Alert>
+                        </>
                     ) : (
-                        <Table bordered hover responsive className="gestion-precios-table">
-                            <thead>
-                                <tr>
-                                    <th style={{ width: '15%' }}>Código Item</th>
-                                    <th style={{ width: '30%' }}>Item Presupuestario</th>
-                                    <th style={{ width: '30%' }}>Descripción Servicio</th>
-                                    <th style={{ width: '15%' }} className="text-end">Precio Unitario</th>
-                                    <th style={{ width: '10%' }} className="text-center">Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {detalles.map((detalle) => (
-                                    <tr key={detalle.id_detalle_tarea}>
-                                        <td>
-                                            {detalle.item_presupuestario?.codigo || 'N/A'}
-                                        </td>
-                                        <td>
-                                            {detalle.item_presupuestario?.nombre || detalle.nombre}
-                                        </td>
-                                        <td>
-                                            {detalle.descripcion || 'Sin descripción'}
-                                        </td>
-                                        <td className="text-end precio-cell">
-                                            {detalle.precio_unitario !== null
-                                                ? formatearPrecio(detalle.precio_unitario)
-                                                : <span className="text-muted">No definido</span>
-                                            }
-                                        </td>
-                                        <td className="text-center">
-                                            <Button
-                                                variant="outline-primary"
-                                                size="sm"
-                                                onClick={() => handleEditarClick(detalle)}
-                                                className="btn-editar"
-                                            >
-                                                <Edit size={16} className="me-1" />
-                                                Editar
-                                            </Button>
-                                        </td>
+                        <>
+                            {console.log('✅ [GestionPrecios] Renderizando tabla con', detalles.length, 'filas')}
+                            <Table bordered hover responsive className="gestion-precios-table">
+                                <thead>
+                                    <tr>
+                                        <th style={{ width: '15%' }}>Código Item</th>
+                                        <th style={{ width: '30%' }}>Item Presupuestario</th>
+                                        <th style={{ width: '30%' }}>Descripción Servicio</th>
+                                        <th style={{ width: '15%' }} className="text-end">Precio Unitario</th>
+                                        <th style={{ width: '10%' }} className="text-center">Acciones</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </Table>
+                                </thead>
+                                <tbody>
+                                    {detalles.map((detalle, index) => {
+                                        console.log(`🔢 [GestionPrecios] Renderizando fila ${index + 1}:`, {
+                                            id: detalle.id_detalle_tarea,
+                                            codigo: detalle.item_presupuestario?.codigo,
+                                            nombre: detalle.item_presupuestario?.nombre || detalle.nombre,
+                                            descripcion: detalle.descripcion,
+                                            precio: detalle.precio_unitario
+                                        });
+                                        return (
+                                            <tr key={detalle.id_detalle_tarea}>
+                                                <td>
+                                                    {detalle.item_presupuestario?.codigo || 'N/A'}
+                                                </td>
+                                                <td>
+                                                    {detalle.item_presupuestario?.nombre || detalle.nombre}
+                                                </td>
+                                                <td>
+                                                    {detalle.descripcion || 'Sin descripción'}
+                                                </td>
+                                                <td className="text-end precio-cell">
+                                                    {detalle.precio_unitario !== null
+                                                        ? formatearPrecio(detalle.precio_unitario)
+                                                        : <span className="text-muted">No definido</span>
+                                                    }
+                                                </td>
+                                                <td className="text-center">
+                                                    <Button
+                                                        variant="outline-primary"
+                                                        size="sm"
+                                                        onClick={() => handleEditarClick(detalle)}
+                                                        className="btn-editar"
+                                                    >
+                                                        <Edit size={16} className="me-1" />
+                                                        Editar
+                                                    </Button>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </Table>
+                        </>
                     )}
                 </div>
             )}
