@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Form, Button, Container, Card, Row, Col, Tabs, Tab, Spinner, Modal } from 'react-bootstrap';
+import React, { useState, useEffect, useRef } from 'react';
+import { Form, Button, Container, Card, Row, Col, Tabs, Tab, Spinner, Modal, Alert } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 
 import { useProyectoManager } from '../hooks/useProyectoManager';
@@ -70,8 +70,23 @@ const EditarActividad: React.FC = () => {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showActividades, setShowActividades] = useState(false);
   const [actividadesOriginales, setActividadesOriginales] = useState<POAConActividadesYTareas[]>([]);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // Ref para scroll automático a errores
+  const errorRef = useRef<HTMLDivElement>(null);
 
   const isLoading = proyectoLoading || actividadLoading;
+
+  // Auto-scroll a mensaje de error cuando aparece
+  useEffect(() => {
+    if (errorMessage && errorRef.current) {
+      errorRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+        inline: 'nearest'
+      });
+    }
+  }, [errorMessage]);
 
   // Efecto para guardar actividades originales cuando se cargan
   useEffect(() => {
@@ -468,17 +483,20 @@ const EditarActividad: React.FC = () => {
 
     try {
       // Convertir gastos_mensuales array a formato de programación mensual
-      const meses = [
-        'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
-        'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'
-      ];
+      // El backend espera formato "MM-YYYY", no nombres de meses
+      const añoActual = new Date().getFullYear();
 
       const programacionesMensuales: ProgramacionMensualCreate[] = tareaCompleta.gastos_mensuales
-        .map((valor: number, index: number) => ({
-          id_tarea: tareaCompleta.id_tarea_real!,
-          mes: meses[index],
-          valor: valor || 0
-        }))
+        .map((valor: number, index: number) => {
+          const mesNumero = index + 1; // Enero = 1, Diciembre = 12
+          const mesFormateado = `${mesNumero.toString().padStart(2, '0')}-${añoActual}`;
+
+          return {
+            id_tarea: tareaCompleta.id_tarea_real!,
+            mes: mesFormateado, // Formato "01-2025", "02-2025", etc.
+            valor: valor || 0
+          };
+        })
         .filter((prog: ProgramacionMensualCreate) => prog.valor > 0); // Solo crear programaciones con valor > 0
 
       if (programacionesMensuales.length > 0) {
@@ -501,9 +519,12 @@ const EditarActividad: React.FC = () => {
   // Función para guardar cambios (actualizar tareas existentes)
   const handleGuardarCambios = async () => {
     try {
+      // Limpiar errores previos
+      setErrorMessage(null);
+
       // Primero actualizar programaciones mensuales de tareas editadas
       await actualizarProgramacionesMensuales();
-      
+
       // Luego ejecutar el guardado normal de las tareas
       const result = await ActividadTareaService.editarTareas(poasConActividades, actividadesOriginales);
 
@@ -512,11 +533,23 @@ const EditarActividad: React.FC = () => {
         setShowSuccessModal(true);
       } else {
         setShowConfirmModal(false);
+        setErrorMessage(result.error || 'Error al actualizar las tareas');
         showError(result.error || 'Error al actualizar las tareas');
       }
-    } catch (error) {
+    } catch (error: any) {
       setShowConfirmModal(false);
-      showError('Error al actualizar las tareas: ' + (error instanceof Error ? error.message : 'Error desconocido'));
+
+      // Capturar errores HTTP 400 del backend (presupuesto excedido, etc.)
+      let displayError = 'Error al actualizar las tareas';
+
+      if (error.response && error.response.status === 400 && error.response.data?.detail) {
+        displayError = error.response.data.detail;
+      } else if (error instanceof Error) {
+        displayError = error.message;
+      }
+
+      setErrorMessage(displayError);
+      showError(displayError);
     }
   };
 
@@ -538,6 +571,16 @@ const EditarActividad: React.FC = () => {
         </Card.Header>
         <Card.Body className="p-4">
           <Form onSubmit={handleSubmit}>
+            {/* Mensaje de error con scroll automático */}
+            {errorMessage && (
+              <div ref={errorRef}>
+                <Alert variant="danger" dismissible onClose={() => setErrorMessage(null)} className="mb-4">
+                  <Alert.Heading>Error al actualizar tareas</Alert.Heading>
+                  <p className="mb-0">{errorMessage}</p>
+                </Alert>
+              </div>
+            )}
+
             {/* Sección de Búsqueda de Proyecto */}
             <BusquedaProyecto
               proyectos={proyectos}

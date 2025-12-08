@@ -411,19 +411,30 @@ export class ActividadTareaService {
                     lineaPaiViiv: tarea.lineaPaiViiv || undefined
                   };
 
-                  await tareaAPI.editarTarea(tarea.id_tarea_real, tareaUpdate);
-                  totalTareasActualizadas++;
+                  try {
+                    await tareaAPI.editarTarea(tarea.id_tarea_real, tareaUpdate);
+                    totalTareasActualizadas++;
 
-                  // TODO: Aquí se debería manejar la actualización de programación mensual
-                  // Por ahora solo contamos las programaciones existentes
-                  if (tarea.gastos_mensuales && tarea.gastos_mensuales.length === 12) {
-                    totalProgramacionesCreadas += tarea.gastos_mensuales.filter(gasto => gasto > 0).length;
+                    // TODO: Aquí se debería manejar la actualización de programación mensual
+                    // Por ahora solo contamos las programaciones existentes
+                    if (tarea.gastos_mensuales && tarea.gastos_mensuales.length === 12) {
+                      totalProgramacionesCreadas += tarea.gastos_mensuales.filter(gasto => gasto > 0).length;
+                    }
+                  } catch (editError: any) {
+                    // Capturar errores HTTP 400 específicos del backend (presupuesto excedido, etc.)
+                    if (editError.response && editError.response.status === 400) {
+                      const errorDetail = editError.response.data?.detail || 'Error de validación';
+                      throw new Error(`Error al actualizar "${tarea.nombre}": ${errorDetail}`);
+                    }
+                    throw editError;
                   }
                 }
               }
 
             } catch (error: any) {
-              throw new Error(`Error al procesar la tarea "${tarea.nombre}": ${error.message || error}`);
+              // Propagar errores con contexto específico de la tarea
+              const errorMessage = error.response?.data?.detail || error.message || error;
+              throw new Error(`Error al procesar la tarea "${tarea.nombre}": ${errorMessage}`);
             }
           }
         }
