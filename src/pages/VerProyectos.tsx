@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Table, Modal, Button, Form, InputGroup, Spinner, Alert, Badge } from 'react-bootstrap';
+import { Table, Modal, Button, Form, InputGroup, Spinner, Alert, Badge, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { projectAPI } from '../api/projectAPI';
 import { poaAPI } from '../api/poaAPI';
-import { Proyecto, EstadoProyecto, Departamento } from '../interfaces/project';
+import { Proyecto, EstadoProyecto, Departamento, ResumenPoas } from '../interfaces/project';
 import { POA } from '../interfaces/poa';
 import VerPOA from '../components/VerPOA';
+import ResumenPoasModal from '../components/ResumenPoasModal';
 import { withSanitization } from '../utils/sanitizer';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -88,6 +89,11 @@ const VerProyectos: React.FC = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [proyectoAEliminar, setProyectoAEliminar] = useState<ProyectoConPOAs | null>(null);
   const [eliminando, setEliminando] = useState(false);
+
+  // Estados para modal de resumen de POAs
+  const [showResumenModal, setShowResumenModal] = useState(false);
+  const [resumenActual, setResumenActual] = useState<ResumenPoas | null>(null);
+  const [loadingResumen, setLoadingResumen] = useState(false);
 
   // Cargar datos iniciales
   useEffect(() => {
@@ -315,6 +321,26 @@ const VerProyectos: React.FC = () => {
     } finally {
       setEliminando(false);
     }
+  };
+
+  // Función para abrir modal de resumen de POAs
+  const handleVerResumenPOAs = async (idProyecto: string) => {
+    try {
+      setLoadingResumen(true);
+      const resumen = await projectAPI.getResumenPoas(idProyecto);
+      setResumenActual(resumen);
+      setShowResumenModal(true);
+    } catch (err: any) {
+      showError(err?.response?.data?.detail || 'Error al cargar el resumen de POAs');
+    } finally {
+      setLoadingResumen(false);
+    }
+  };
+
+  // Función para cerrar modal de resumen
+  const closeResumenModal = () => {
+    setShowResumenModal(false);
+    setResumenActual(null);
   };
 
   if (loading) {
@@ -573,14 +599,33 @@ const VerProyectos: React.FC = () => {
                         />
                       </td>
                       <td>
-                        <Button
-                          variant="outline-danger"
-                          size="sm"
-                          onClick={() => openDeleteModal(proyecto)}
-                          title="Eliminar proyecto y todos sus POAs"
-                        >
-                          <i className="bi bi-trash"></i> Eliminar
-                        </Button>
+                        <div className="d-flex gap-2">
+                          <OverlayTrigger
+                            placement="top"
+                            overlay={<Tooltip>Ver Resumen de POAs</Tooltip>}
+                          >
+                            <Button
+                              variant="info"
+                              size="sm"
+                              onClick={() => handleVerResumenPOAs(proyecto.id_proyecto)}
+                              disabled={loadingResumen}
+                            >
+                              <i className="bi bi-bar-chart-fill"></i>
+                            </Button>
+                          </OverlayTrigger>
+                          <OverlayTrigger
+                            placement="top"
+                            overlay={<Tooltip>Eliminar proyecto y todos sus POAs</Tooltip>}
+                          >
+                            <Button
+                              variant="outline-danger"
+                              size="sm"
+                              onClick={() => openDeleteModal(proyecto)}
+                            >
+                              <i className="bi bi-trash"></i>
+                            </Button>
+                          </OverlayTrigger>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -675,6 +720,13 @@ const VerProyectos: React.FC = () => {
           </Button>
         </Modal.Footer>
       </Modal>
+
+      {/* Modal de resumen de POAs */}
+      <ResumenPoasModal
+        show={showResumenModal}
+        onHide={closeResumenModal}
+        resumen={resumenActual}
+      />
     </div>
   );
 };

@@ -1,5 +1,5 @@
 import { API } from './userAPI';
-import { Proyecto, TipoProyecto, Departamento } from '../interfaces/project';
+import { Proyecto, TipoProyecto, Departamento, ResumenPoas } from '../interfaces/project';
 import { PerfilUsuario } from '../interfaces/user';
 
 export const projectAPI = {
@@ -118,6 +118,24 @@ Parámetros:
     */
     eliminarProyecto: async (id: string): Promise<{ msg: string }> => {
         const response = await API.delete<{ msg: string }>(`/proyectos/${id}`);
+        return response.data;
+    },
+
+    // Obtener resumen consolidado de POAs
+    /*
+    Objetivo:
+    Obtener un resumen consolidado de todos los POAs de un proyecto, mostrando el total
+    de gastos por actividad agrupado por POA, sin incluir detalle de tareas ni programación mensual.
+
+    Parámetros:
+    id: string — identificador del proyecto.
+    Autenticación mediante token JWT.
+
+    Retorna:
+    ResumenPoas — Estructura con información del proyecto y desglose de gastos por POA y actividad.
+    */
+    getResumenPoas: async (id: string): Promise<ResumenPoas> => {
+        const response = await API.get<ResumenPoas>(`/proyectos/${id}/resumen-poas`);
         return response.data;
     },
 };

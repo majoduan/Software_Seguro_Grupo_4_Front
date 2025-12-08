@@ -1,0 +1,215 @@
+/* ==================== ResumenPoasModal.css ==================== */
+/* Estilos para el modal de resumen consolidado de POAs */
+
+.resumen-poas-modal .modal-dialog {
+  max-width: 95vw;
+}
+
+.resumen-poas-modal .modal-header {
+  background: linear-gradient(135deg, #0dcaf0 0%, #0a9cc7 100%);
+}
+
+.resumen-poas-modal .modal-title {
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+.resumen-poas-body {
+  padding: 1.5rem;
+  max-height: 75vh;
+  overflow-y: auto;
+}
+
+/* Header del resumen */
+.resumen-header {
+  border-bottom: 2px solid #dee2e6;
+  padding-bottom: 1rem;
+}
+
+.resumen-header h6 {
+  font-size: 1rem;
+  color: #495057;
+}
+
+.resumen-header .badge {
+  font-size: 0.95rem;
+  padding: 0.4rem 0.8rem;
+}
+
+/* Sección de cada POA */
+.poa-section {
+  transition: all 0.3s ease;
+}
+
+.poa-section:hover {
+  transform: translateY(-2px);
+}
+
+.poa-header {
+  border-left: 4px solid #0d6efd;
+  transition: border-color 0.3s ease;
+}
+
+.poa-header:hover {
+  border-left-color: #0a58ca;
+}
+
+.poa-header h5 .badge {
+  font-size: 1rem;
+  padding: 0.5rem 1rem;
+}
+
+.poa-header small {
+  font-size: 0.85rem;
+}
+
+.poa-header strong {
+  font-size: 1rem;
+  color: #212529;
+}
+
+.poa-header .text-muted {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Tabla de actividades */
+.tabla-actividades {
+  margin-bottom: 0;
+  font-size: 0.9rem;
+}
+
+.tabla-actividades thead th {
+  background-color: #e9ecef !important;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  letter-spacing: 0.5px;
+  color: #495057;
+  border-bottom: 2px solid #dee2e6;
+}
+
+.tabla-actividades tbody tr {
+  transition: background-color 0.2s ease;
+}
+
+.tabla-actividades tbody tr:hover {
+  background-color: #f8f9fa !important;
+}
+
+.tabla-actividades .badge {
+  font-size: 0.85rem;
+  padding: 0.35rem 0.6rem;
+}
+
+.tabla-actividades .table-info {
+  background-color: #cfe2ff !important;
+  border-top: 2px solid #0d6efd;
+}
+
+.tabla-actividades .table-info td {
+  font-size: 1rem;
+  padding: 0.75rem;
+}
+
+/* Footer con total general */
+.resumen-footer {
+  background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.resumen-footer h5 {
+  font-size: 1.1rem;
+  margin-bottom: 0;
+}
+
+.resumen-footer h4 {
+  font-size: 1.8rem;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* Alertas personalizadas */
+.resumen-poas-body .alert {
+  border-radius: 8px;
+  font-size: 0.95rem;
+}
+
+.resumen-poas-body .alert i {
+  font-size: 1.2rem;
+  vertical-align: middle;
+}
+
+/* Scroll personalizado */
+.resumen-poas-body::-webkit-scrollbar {
+  width: 10px;
+}
+
+.resumen-poas-body::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.resumen-poas-body::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 10px;
+}
+
+.resumen-poas-body::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .resumen-poas-modal .modal-dialog {
+    max-width: 100vw;
+    margin: 0;
+  }
+
+  .resumen-poas-body {
+    padding: 1rem;
+    max-height: 85vh;
+  }
+
+  .poa-header .row {
+    flex-direction: column;
+  }
+
+  .poa-header .col-md-8 {
+    margin-top: 1rem;
+  }
+
+  .tabla-actividades {
+    font-size: 0.8rem;
+  }
+
+  .tabla-actividades thead th {
+    font-size: 0.75rem;
+  }
+
+  .resumen-footer h4 {
+    font-size: 1.4rem;
+  }
+}
+
+/* Animación de entrada */
+@keyframes slideInFromTop {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.poa-section {
+  animation: slideInFromTop 0.4s ease-out;
+}
+
+.poa-section:nth-child(1) { animation-delay: 0.1s; }
+.poa-section:nth-child(2) { animation-delay: 0.2s; }
+.poa-section:nth-child(3) { animation-delay: 0.3s; }
+.poa-section:nth-child(4) { animation-delay: 0.4s; }
+.poa-section:nth-child(5) { animation-delay: 0.5s; }

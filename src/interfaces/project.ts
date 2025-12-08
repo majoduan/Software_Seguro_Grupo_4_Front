@@ -43,3 +43,29 @@ export interface DirectorProyecto {
   id_usuario: string;
   nombre_usuario: string;
 }
+
+// ==================== Resumen de POAs ====================
+
+export interface ActividadResumen {
+  numero_actividad: number | null;
+  descripcion_actividad: string;
+  total_actividad: number;
+}
+
+export interface PoaResumen {
+  id_poa: string;
+  codigo_poa: string;
+  anio_poa: number;
+  presupuesto_asignado: number;
+  total_gastado: number;
+  saldo_disponible: number;
+  actividades: ActividadResumen[];
+}
+
+export interface ResumenPoas {
+  id_proyecto: string;
+  codigo_proyecto: string;
+  titulo: string;
+  poas: PoaResumen[];
+  total_proyecto: number;
+}
