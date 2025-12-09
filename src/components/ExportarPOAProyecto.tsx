@@ -368,13 +368,13 @@ const ExportarPOAProyecto: React.FC<ExportarPOAProyectoProps> = ({
           const numeroActividad = indiceActividad + 1;
           const nombreActividadConNumero = `(${numeroActividad}) ${actividad.descripcion_actividad}`;
 
-          // Generar columnas de fechas en formato YYYY-MM-DD basadas en el año del POA
-          const anioEjecucion = poa.anio_ejecucion;
+          // Generar columnas de fechas como objetos Date de Excel
+          const anioEjecucion = parseInt(poa.anio_ejecucion);
           const fechasColumnas = [];
           for (let mes = 1; mes <= 12; mes++) {
-            const mesStr = mes.toString().padStart(2, '0');
-            // Formato exacto compatible con transformador_excel.py: YYYY-MM-DD
-            fechasColumnas.push(`${anioEjecucion}-${mesStr}-01`);
+            // Crear objeto Date de JavaScript para que Excel lo reconozca como fecha
+            const fecha = new Date(anioEjecucion, mes - 1, 1);
+            fechasColumnas.push(fecha);
           }
 
           // Agregar fila de encabezado para esta actividad
@@ -386,16 +386,17 @@ const ExportarPOAProyecto: React.FC<ExportarPOAProyectoProps> = ({
             'PRECIO UNITARIO',
             'TOTAL',
             totalActividad,
-            ...fechasColumnas, // Usar fechas en formato YYYY-MM-DD
+            ...fechasColumnas, // Usar objetos Date
             'SUMAN'
           ]);
 
-          // Asegurar que las fechas se escriban como texto, no como objetos Date
+          // Aplicar formato personalizado de Excel "MMM-YY" a las columnas de fecha
           // Columnas de fecha son de la H (índice 8) a la S (índice 19)
           for (let col = 8; col <= 19; col++) {
             const cell = filaEncabezado.getCell(col);
-            cell.value = fechasColumnas[col - 8]; // Forzar como string
-            cell.numFmt = '@'; // Formato de texto para preservar el formato YYYY-MM-DD
+            // Formato personalizado de Excel: "ene-25", "feb-25", etc.
+            // mmm = abreviación del mes, yy = año en 2 dígitos
+            cell.numFmt = 'mmm-yy';
           }
 
           // Aplicar estilo especial al encabezado de la actividad
@@ -471,7 +472,7 @@ const ExportarPOAProyecto: React.FC<ExportarPOAProyectoProps> = ({
       });
 
       // Agregar fila de total general del POA
-      const totalGeneralPOA = actividades.reduce((sum, act) => 
+      const totalGeneralPOA = actividades.reduce((sum, act) =>
         sum + (act.total_por_actividad || 0), 0
       );
 
@@ -479,15 +480,15 @@ const ExportarPOAProyecto: React.FC<ExportarPOAProyectoProps> = ({
         'TOTAL GENERAL POA',
         '', '', '', '', '',
         totalGeneralPOA,
-        '', // Columna G
-        ...Array(11).fill(''), // Meses vacíos
-        totalGeneralPOA // SUMAN
+        '', // Columna H (vacía después de total)
+        ...Array(11).fill(''), // Meses vacíos (columnas I-S)
+        totalGeneralPOA // SUMAN (columna T)
       ];
 
       worksheet.addRow(filaTotalGeneral);
 
-      // Fusionar celdas de TOTAL GENERAL POA desde A hasta E y aplicar color #FCD5B4
-      worksheet.mergeCells(`A${filaActual}:F${filaActual}`);
+      // NO fusionar celdas para evitar problemas en re-importación
+      // Solo aplicar color de fondo a la celda A
       const cellTotalGeneral = worksheet.getCell(`A${filaActual}`);
       cellTotalGeneral.fill = {
         type: 'pattern',
