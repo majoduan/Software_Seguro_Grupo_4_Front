@@ -11,7 +11,6 @@ import BusquedaProyecto from '../components/BusquedaProyecto';
 import InformacionProyecto from '../components/InformacionProyecto';
 import InformacionPOAs from '../components/InformacionPOAs';
 import TareaModal from '../components/TareaModal';
-import ExportarPOA from '../components/ExportarPOA';
 import ActividadesPorPOA from '../components/ActividadesPorPOA';
 import SidebarPresupuesto from '../components/SidebarPresupuesto';
 
@@ -435,19 +434,6 @@ const AgregarActividad: React.FC = () => {
                 <Button variant="primary" onClick={handleVolverDashboard}>
                   Volver al Inicio
                 </Button>
-                {datosGuardados && (
-                  <ExportarPOA
-                    codigoProyecto={proyectoSeleccionado?.codigo_proyecto || ''}
-                    poas={poasProyecto.map(poa => ({
-                      id_poa: poa.id_poa,
-                      codigo_poa: poa.codigo_poa,
-                      anio_ejecucion: poa.anio_ejecucion,
-                      presupuesto_asignado: poa.presupuesto_asignado
-                    }))}
-                    actividadesYTareas={actividadesYTareasCreadas}
-                    onExport={() => showSuccess("POA exportado correctamente")}
-                  />
-                )}
               </Modal.Footer>
             </Modal>
 

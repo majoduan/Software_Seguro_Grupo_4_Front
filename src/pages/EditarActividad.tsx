@@ -11,7 +11,6 @@ import BusquedaProyecto from '../components/BusquedaProyecto';
 import InformacionProyecto from '../components/InformacionProyecto';
 import InformacionPOAs from '../components/InformacionPOAs';
 import TareaModal from '../components/TareaModal';
-//import ExportarPOA from '../components/ExportarPOA';
 import ActividadesPorPOA from '../components/ActividadesPorPOA';
 import SidebarPresupuesto from '../components/SidebarPresupuesto';
 

@@ -368,19 +368,35 @@ const ExportarPOAProyecto: React.FC<ExportarPOAProyectoProps> = ({
           const numeroActividad = indiceActividad + 1;
           const nombreActividadConNumero = `(${numeroActividad}) ${actividad.descripcion_actividad}`;
 
+          // Generar columnas de fechas en formato YYYY-MM-DD basadas en el año del POA
+          const anioEjecucion = poa.anio_ejecucion;
+          const fechasColumnas = [];
+          for (let mes = 1; mes <= 12; mes++) {
+            const mesStr = mes.toString().padStart(2, '0');
+            // Formato exacto compatible con transformador_excel.py: YYYY-MM-DD
+            fechasColumnas.push(`${anioEjecucion}-${mesStr}-01`);
+          }
+
           // Agregar fila de encabezado para esta actividad
-          worksheet.addRow([
+          const filaEncabezado = worksheet.addRow([
             nombreActividadConNumero,
-            'DESCRIPCIÓN O DETALLE', 
-            'ITEM PRESUPUESTARIO', 
-            'CANTIDAD', 
-            'PRECIO UNITARIO', 
-            'TOTAL', 
+            'DESCRIPCIÓN O DETALLE',
+            'ITEM PRESUPUESTARIO',
+            'CANTIDAD',
+            'PRECIO UNITARIO',
+            'TOTAL',
             totalActividad,
-            'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 
-            'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre', 
+            ...fechasColumnas, // Usar fechas en formato YYYY-MM-DD
             'SUMAN'
           ]);
+
+          // Asegurar que las fechas se escriban como texto, no como objetos Date
+          // Columnas de fecha son de la H (índice 8) a la S (índice 19)
+          for (let col = 8; col <= 19; col++) {
+            const cell = filaEncabezado.getCell(col);
+            cell.value = fechasColumnas[col - 8]; // Forzar como string
+            cell.numFmt = '@'; // Formato de texto para preservar el formato YYYY-MM-DD
+          }
 
           // Aplicar estilo especial al encabezado de la actividad
           aplicarEstiloEncabezadoActividad(worksheet, filaActual);
