@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { TareaForm, DetalleTarea, ItemPresupuestario } from '../interfaces/tarea';
-import { obtenerNumeroTarea, filtrarDetallesPorActividadConConsultas, agruparDetallesDuplicados } from '../utils/tareaUtils';
+import { obtenerNumeroTarea, agruparDetallesDuplicados } from '../utils/tareaUtils';
 import { esContratacionServiciosProfesionales } from '../utils/asignarCantidad';
 import { showSuccess } from '../utils/toast';
+import { tareaAPI } from '../api/tareaAPI';
 
 export const useTareaModal = () => {
   // Estados para modales de tareas
@@ -79,15 +80,14 @@ export const useTareaModal = () => {
       setIsEditingTarea(false);
     }
 
-    // Filtrar detalles de tarea según la actividad seleccionada
+    // ✅ FASE 2: Filtrar detalles de tarea según la actividad seleccionada usando backend
     if (poa && actividad && actividad.codigo_actividad && getItemPresupuestarioConCache) {
       setCargandoDetalles(true);
       try {
-        const detallesFiltradosParaActividad = await filtrarDetallesPorActividadConConsultas(
-          poa.detallesTarea,
-          actividad.codigo_actividad,
-          poa.tipo_poa,
-          getItemPresupuestarioConCache
+        // Llamar al nuevo endpoint que ya filtra en el backend
+        const detallesFiltradosParaActividad = await tareaAPI.getDetallesTareaParaActividad(
+          poa.id_poa,
+          actividad.codigo_actividad
         );
 
         const detallesAgrupados = await agruparDetallesDuplicados(
@@ -97,7 +97,8 @@ export const useTareaModal = () => {
 
         setDetallesFiltrados(detallesAgrupados);
       } catch (error) {
-        setDetallesFiltrados(poa.detallesTarea);
+        console.error('Error al cargar detalles de tarea:', error);
+        setDetallesFiltrados([]);
       } finally {
         setCargandoDetalles(false);
       }

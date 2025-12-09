@@ -111,6 +111,63 @@ export const tareaAPI = {
         return response.data;
     },
 
+    // Obtener detalles de tarea disponibles para una actividad específica (NUEVO - Fase 2)
+    /**
+     * Objetivo:
+     * Obtener los detalles de tarea filtrados para una actividad específica.
+     * Este endpoint centraliza la lógica de filtrado en el backend, eliminando
+     * la necesidad de parsing y mapeo manual en el frontend.
+     *
+     * Parámetros:
+     * - idPoa: string — ID único del POA
+     * - codigoActividad: string — Código de actividad (ej: "ACT-PIM-9", "ACT-PTT-3")
+     *
+     * Operación:
+     * GET a `/poas/{id_poa}/actividades/{codigo_actividad}/detalles-tarea-disponibles`.
+     * El backend:
+     * 1. Obtiene el tipo de POA
+     * 2. Extrae el número de actividad del código
+     * 3. Filtra las tareas usando el campo características (formato JSON)
+     * 4. Retorna solo las tareas aplicables a esa actividad
+     *
+     * Retorna:
+     * - DetalleTarea[] — Array de detalles de tarea filtrados
+     *
+     * Errores:
+     * - 401: Usuario no autenticado
+     * - 404: POA no encontrado o Tipo de POA no encontrado
+     */
+    getDetallesTareaParaActividad: async (
+        idPoa: string,
+        codigoActividad: string
+    ): Promise<DetalleTarea[]> => {
+        try {
+            const response = await API.get(
+                `/poas/${idPoa}/actividades/${codigoActividad}/detalles-tarea-disponibles`
+            );
+            return response.data as DetalleTarea[];
+        } catch (error) {
+            if (error && typeof error === 'object' && 'response' in error) {
+                const axiosError = error as any;
+
+                if (axiosError.response?.status === 404) {
+                    const detail = axiosError.response?.data?.detail;
+                    if (detail === 'POA no encontrado') {
+                        throw new Error('POA no encontrado');
+                    } else if (detail === 'Tipo de POA no encontrado') {
+                        throw new Error('Tipo de POA no encontrado');
+                    }
+                    throw new Error('Recurso no encontrado');
+                }
+
+                if (axiosError.response?.status === 401) {
+                    throw new Error('Debe iniciar sesión para acceder a esta función');
+                }
+            }
+            throw error;
+        }
+    },
+
     // Crear programación mensual
     /**
      * Objetivo:

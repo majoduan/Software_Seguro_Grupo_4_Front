@@ -7,7 +7,7 @@ import { actividadAPI } from '../api/actividadAPI';
 import { tareaAPI } from '../api/tareaAPI';
 import { getActividadesPorTipoPOA } from '../utils/listaActividades';
 import { showError, showInfo, showWarning } from '../utils/toast';
-import { filtrarDetallesPorActividadConConsultas, agruparDetallesDuplicados, obtenerNumeroTarea } from '../utils/tareaUtils';
+import { agruparDetallesDuplicados, obtenerNumeroTarea } from '../utils/tareaUtils';
 import { esContratacionServiciosProfesionales } from '../utils/asignarCantidad';
 import { sanitizeInput, sanitizeObject } from '../utils/sanitizer';
 
@@ -113,20 +113,19 @@ export const useActividadManager = () => {
     poaId: string
   ): Promise<TareaForm[]> => {
     try {
+      // ✅ FASE 2: Usar nuevo endpoint del backend que ya filtra las tareas
+      // En lugar de filtrar manualmente en el frontend, el backend hace todo el trabajo
+      const detallesFiltradosParaActividad = await tareaAPI.getDetallesTareaParaActividad(
+        poaId,
+        codigoActividad
+      );
+
       // Crear wrapper function para getItemPresupuestarioConCache
       const getItemWrapper = async (id: string) => {
         return await getItemPresupuestarioConCache(id, async (itemId: string) => {
           return await tareaAPI.getItemPresupuestarioPorId(itemId);
         });
       };
-
-      // Usar la misma lógica de filtrado que funciona en TareaModal
-      const detallesFiltradosParaActividad = await filtrarDetallesPorActividadConConsultas(
-        detallesTarea,
-        codigoActividad,
-        tipoPOA,
-        getItemWrapper
-      );
 
       const detallesAgrupados = await agruparDetallesDuplicados(
         detallesFiltradosParaActividad,
