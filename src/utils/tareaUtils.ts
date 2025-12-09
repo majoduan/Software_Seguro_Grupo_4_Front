@@ -76,8 +76,8 @@ export const mapearCodigoActividadANumero = (codigoActividad: string, tipoPoa: s
       'ACT-5': '5', 'ACT-6': '6', 'ACT-7': '7', 'ACT-8': '8'
     },
     'PIS': {
-      'ACT-1': '1', 'ACT-2': '2', 'ACT-3': '3', 'ACT-4': '4',
-      'ACT-5': '5', 'ACT-6': '6', 'ACT-7': '7', 'ACT-8': '8'
+      'ACT-PIM-1': '1', 'ACT-PIM-2': '2', 'ACT-PIM-3': '3', 'ACT-PIM-4': '4', 'ACT-PIM-5': '5', 'ACT-PIM-6': '6',
+      'ACT-PIM-7': '7', 'ACT-PIM-8': '8', 'ACT-PIM-9': '9', 'ACT-PIM-10': '10', 'ACT-PIM-11': '11', 'ACT-PIM-12': '12'
     },
     'PIIF': {
       'ACT-1': '1', 'ACT-2': '2', 'ACT-3': '3', 'ACT-4': '4',
