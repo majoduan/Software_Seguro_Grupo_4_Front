@@ -9,7 +9,7 @@ export interface ListaActividadesPorTipo {
 }
 
 // Actividades para PIM
-const actividadesPIM: ActividadOpciones[] = [
+const actividadesPIM_PIS: ActividadOpciones[] = [
   {
     id: "ACT-PIM-1",
     descripcion: "Actividades donde se involucre personal para el desarrollo del proyecto"
@@ -96,8 +96,8 @@ const actividadesPTT: ActividadOpciones[] = [
   }
 ];
 
-// Actividades para PVIF, PVIS, PIIF, PIS, PIGR
-const actividadesPVIF_PVIS_PIIF_PIS_PIGR: ActividadOpciones[] = [
+// Actividades para PVIF, PVIS, PIIF, PIGR
+const actividadesPVIF_PVIS_PIIF_PIGR: ActividadOpciones[] = [
   {
     id: "ACT-1",
     descripcion: "Actividades donde se involucre personal para el desarrollo del proyecto"
@@ -134,13 +134,13 @@ const actividadesPVIF_PVIS_PIIF_PIS_PIGR: ActividadOpciones[] = [
 
 // Mapeo de tipos de POA a sus actividades correspondientes
 export const listaActividadesPorTipo: ListaActividadesPorTipo = {
-  "PIM": actividadesPIM,
+  "PIM": actividadesPIM_PIS,
   "PTT": actividadesPTT,
-  "PVIF": actividadesPVIF_PVIS_PIIF_PIS_PIGR,
-  "PVIS": actividadesPVIF_PVIS_PIIF_PIS_PIGR,
-  "PIGR": actividadesPVIF_PVIS_PIIF_PIS_PIGR,
-  "PIS": actividadesPVIF_PVIS_PIIF_PIS_PIGR,
-  "PIIF": actividadesPVIF_PVIS_PIIF_PIS_PIGR,
+  "PVIF": actividadesPVIF_PVIS_PIIF_PIGR,
+  "PVIS": actividadesPVIF_PVIS_PIIF_PIGR,
+  "PIGR": actividadesPVIF_PVIS_PIIF_PIGR,
+  "PIS": actividadesPIM_PIS,
+  "PIIF": actividadesPVIF_PVIS_PIIF_PIGR,
   // Agregar más tipos de POA según sea necesario
 };
 
