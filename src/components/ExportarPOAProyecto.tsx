@@ -1,700 +1,82 @@
 import React, { useState } from 'react';
-import { Button, Dropdown, DropdownButton, Spinner } from 'react-bootstrap';
-import * as ExcelJS from 'exceljs';
+import { Button, Spinner } from 'react-bootstrap';
 import { POA } from '../interfaces/poa';
-import { actividadAPI } from '../api/actividadAPI';
-import { tareaAPI } from '../api/tareaAPI';
+import { projectAPI } from '../api/projectAPI';
 import { showError, showSuccess } from '../utils/toast';
-import { ProgramacionMensualOut } from '../interfaces/tarea';
-import { ordenarActividadesSegunConfiguracion } from '../utils/ordenarActividades';
 
 interface ExportarPOAProyectoProps {
+  idProyecto: string;
   codigoProyecto: string;
   poas: POA[];
 }
 
-interface TareaConProgramacion {
-  id_tarea: string;
-  nombre: string;
-  detalle_descripcion?: string;
-  cantidad: number;
-  precio_unitario: number;
-  total: number;
-  gastos_mensuales: number[];
-  codigo_item?: string;
-  detalle_tarea?: any;
-}
-
-interface ActividadConTareasYProgramacion {
-  id_actividad: string;
-  descripcion_actividad: string;
-  total_por_actividad: number;
-  tareas: TareaConProgramacion[];
-}
-
 /**
  * Componente ExportarPOAProyecto
+ *
  * Objetivo:
- * - Garantizar la seguridad y confidencialidad de los datos durante la exportación,
- *   asegurando que la generación y descarga del archivo Excel se realice únicamente en el cliente,
- *   sin transmisión ni almacenamiento externo de datos sensibles.
- * 
+ * - Exportar POAs de un proyecto usando el nuevo endpoint del backend que genera
+ *   archivos Excel con formato institucional compatible con re-importación.
+ *
  * Parámetros:
- * - codigoProyecto: string - Código único que identifica el proyecto.
- * - poas: POA[] - Lista de POAs asociados al proyecto.
- * 
+ * - idProyecto: string - ID único que identifica el proyecto.
+ * - codigoProyecto: string - Código del proyecto para el nombre del archivo.
+ * - poas: POA[] - Lista de POAs asociados al proyecto (solo para validación de UI).
+ *
  * Operación:
- * - Gestiona la exportación local en formato Excel de uno o varios POAs,
- *   incluyendo la carga asíncrona de datos relacionados (actividades, tareas, programación).
- * - Presenta controles UI para exportar individualmente o todos los POAs,
- *   mostrando estados de carga y mensajes de éxito/error mediante notificaciones.
- * 
+ * - Llama al endpoint POST /proyectos/{id}/exportar-poas del backend.
+ * - El backend genera el archivo Excel con formato institucional usando export_excel_poa.py
+ * - Descarga el archivo generado por el backend.
+ *
+ * Cambios (Diciembre 2024):
+ * - Migrado de generación local (ExcelJS ~750 líneas) a backend.
+ * - Usa nuevo endpoint que implementa formato institucional correcto.
+ * - Simplifica el componente de 750 líneas a ~100 líneas.
  */
 const ExportarPOAProyecto: React.FC<ExportarPOAProyectoProps> = ({
+  idProyecto,
   codigoProyecto,
   poas
 }) => {
   const [loading, setLoading] = useState<boolean>(false);
 
-  // Definir estilo de borde estándar
-  const bordeEstandar: Partial<ExcelJS.Borders> = {
-    top: { style: 'thin', color: { argb: '000000' } },
-    left: { style: 'thin', color: { argb: '000000' } },
-    bottom: { style: 'thin', color: { argb: '000000' } },
-    right: { style: 'thin', color: { argb: '000000' } }
-  };
-
-  // Función para formatear números correctamente
   /**
- * Objetivo:
- * - Evitar errores y inconsistencias en cálculos y presentación numérica
- *   garantizando datos numéricos confiables para la generación de archivos.
- * 
- * Parámetros:
- * - numero: any - Valor numérico o cadena a formatear.
- * 
- * Operación:
- * - Convierte valores nulos, vacíos o inválidos a 0.
- * - Limpia ceros a la izquierda en cadenas y convierte a número flotante.
- */
-  const formatearNumero = (numero: any): number => {
-    if (numero === null || numero === undefined || numero === '') return 0;
-    
-    let numeroString = String(numero).trim();
-    
-    if (typeof numero === 'string') {
-      numeroString = numeroString.replace(/^0+/, '') || '0';
-    }
-    
-    const numeroFormateado = parseFloat(numeroString);
-    return isNaN(numeroFormateado) ? 0 : numeroFormateado;
-  };
-
-  // Función para aplicar estilos a una celda (sin bordes para títulos)
-  const aplicarEstiloTitulo = (cell: ExcelJS.Cell, fontSize: number = 12) => {
-    cell.font = { bold: true, size: fontSize, color: { argb: '000000' } };
-    cell.alignment = { 
-      horizontal: 'center', 
-      vertical: 'middle',
-      wrapText: true 
-    };
-    cell.fill = {
-      type: 'pattern',
-      pattern: 'solid',
-      fgColor: { argb: 'E6E6FA' }
-    };
-  };
-
-  // Función para aplicar wrap text a todas las celdas y bordes solo a partir de la fila 7
-  const aplicarEstilosGeneralesATodaLaHoja = (worksheet: ExcelJS.Worksheet) => {
-    worksheet.eachRow((row, rowNumber) => {
-      row.eachCell((cell) => {
-        // Aplicar wrap text a todas las celdas
-        if (!cell.alignment) {
-          cell.alignment = { wrapText: true };
-        } else {
-          cell.alignment = { ...cell.alignment, wrapText: true };
-        }
-        
-        // Aplicar bordes solo a partir de la fila 7
-        if (rowNumber >= 7 && (!cell.border || Object.keys(cell.border).length === 0)) {
-          cell.border = bordeEstandar;
-        }
-      });
-    });
-  };
-
-  // Función para aplicar estilos a la fila de encabezado de actividad
-  const aplicarEstiloEncabezadoActividad = (worksheet: ExcelJS.Worksheet, fila: number) => {
-    const row = worksheet.getRow(fila);
-    row.eachCell((cell, colNumber) => {
-      cell.font = { bold: true, size: 11 };
-      cell.alignment = { 
-        horizontal: 'center', 
-        vertical: 'middle',
-        wrapText: true 
-      };
-      cell.border = bordeEstandar;
-
-      // Aplicar colores según la columna
-      if (colNumber >= 1 && colNumber <= 6) { // Columnas A-F (descripción hasta TOTAL)
-        cell.fill = {
-          type: 'pattern',
-          pattern: 'solid',
-          fgColor: { argb: 'D9D9D9' } // Color gris #D9D9D9
-        };
-      } else if (colNumber === 7) { // Columna G ("TOTAL POR ACTIVIDAD")
-        cell.fill = {
-          type: 'pattern',
-          pattern: 'solid',
-          fgColor: { argb: 'D9D9D9' } // Cambiado a #D9D9D9
-        };
-        // Formatear el valor como número
-        if (typeof cell.value === 'number') {
-          cell.numFmt = '#,##0.00';
-        }
-      } else { // Columnas H en adelante (meses)
-        cell.fill = {
-          type: 'pattern',
-          pattern: 'solid',
-          fgColor: { argb: 'DAEEF3' } // Color azul claro #DAEEF3
-        };
-      }
-    });
-  };
-
-  // Función para obtener el código del item presupuestario usando el nuevo endpoint
-  const obtenerCodigoItemPresupuestario = async (idTarea: string): Promise<string> => {
+   * Exporta todos los POAs del proyecto usando el backend.
+   *
+   * Flujo:
+   * 1. Llama a POST /proyectos/{id}/exportar-poas
+   * 2. El backend:
+   *    - Obtiene todos los POAs del proyecto con actividades y tareas
+   *    - Genera Excel usando export_excel_poa.py
+   *    - Retorna archivo con formato institucional
+   * 3. Descarga el archivo recibido
+   */
+  const exportarPOAs = async () => {
     try {
-      const itemPresupuestario = await tareaAPI.getItemPresupuestarioDeTarea(idTarea);
-      return itemPresupuestario.codigo;
-    } catch (error) {
-      
-      return 'N/A';
-    }
-  };
+      setLoading(true);
 
-  // Función para obtener datos de un POA específico
-/**
- * Objetivo:
- * - Recuperar de forma segura y consistente todos los datos necesarios para la exportación del POA,
- *   minimizando riesgos de datos incompletos y garantizando integridad en la información.
- * 
- * Parámetros:
- * - poa: POA - Objeto POA del cual se extraen actividades, tareas y programación.
- * 
- * Operación:
- * - Obtiene actividades ordenadas según configuración.
- * - Para cada actividad, obtiene tareas y programación mensual.
- * - Maneja errores recuperando al menos el código presupuestario cuando sea posible.
- * 
- 
- */
-  const obtenerDatosPOA = async (poa: POA): Promise<ActividadConTareasYProgramacion[]> => {
-    try {
-      // 1. Obtener actividades del POA
-      const actividadesData = await actividadAPI.getActividadesPorPOA(poa.id_poa);
-      
-      // *** ORDENAR ACTIVIDADES SEGÚN LA CONFIGURACIÓN ANTES DE OBTENER TAREAS ***
-      const actividadesOrdenadas = await ordenarActividadesSegunConfiguracion(actividadesData, poa.codigo_poa);
-      
-      // 2. Para cada actividad ordenada, obtener sus tareas
-      const actividadesConTareas: ActividadConTareasYProgramacion[] = [];
-      
-      for (const actividad of actividadesOrdenadas) {
-        try {
-          // Obtener tareas de la actividad
-          const tareasData = await tareaAPI.getTareasPorActividad(actividad.id_actividad);
-          
-          // 3. Para cada tarea, obtener su programación mensual y código del item presupuestario
-          const tareasConProgramacion: TareaConProgramacion[] = [];
-          
-          for (const tarea of tareasData) {
-            try {
-              // Obtener programación mensual de la tarea
-              const programacionData = await tareaAPI.getProgramacionMensualPorTarea(tarea.id_tarea);
-              
-              // Crear array de 12 meses inicializado en 0
-              const gastosMensuales = Array(12).fill(0);
-              
-              // Llenar el array con los datos de programación, formateando correctamente
-              programacionData.forEach((programacion: ProgramacionMensualOut) => {
-                // El mes viene en formato "MM-YYYY", extraemos el mes
-                const mesNum = parseInt(programacion.mes.split('-')[0]) - 1; // -1 porque el array es 0-indexed
-                if (mesNum >= 0 && mesNum < 12) {
-                  gastosMensuales[mesNum] = formatearNumero(programacion.valor);
-                }
-              });
-              
-              // Obtener código del item presupuestario usando el nuevo endpoint
-              const codigoItem = await obtenerCodigoItemPresupuestario(tarea.id_tarea);
-              
-              tareasConProgramacion.push({
-                id_tarea: tarea.id_tarea,
-                nombre: tarea.nombre,
-                detalle_descripcion: tarea.detalle_descripcion,
-                cantidad: formatearNumero(tarea.cantidad),
-                precio_unitario: formatearNumero(tarea.precio_unitario),
-                total: formatearNumero(tarea.total),
-                gastos_mensuales: gastosMensuales,
-                codigo_item: codigoItem,
-                detalle_tarea: tarea.detalle_tarea
-              });
-              
-            } catch (tareaError) {
-              
-              // Intentar obtener al menos el código del item presupuestario
-              let codigoItem = 'N/A';
-              try {
-                codigoItem = await obtenerCodigoItemPresupuestario(tarea.id_tarea);
-              } catch (itemError) {
-              }
-              
-              // Si no hay programación, usar array de ceros
-              tareasConProgramacion.push({
-                id_tarea: tarea.id_tarea,
-                nombre: tarea.nombre,
-                detalle_descripcion: tarea.detalle_descripcion,
-                cantidad: formatearNumero(tarea.cantidad),
-                precio_unitario: formatearNumero(tarea.precio_unitario),
-                total: formatearNumero(tarea.total),
-                gastos_mensuales: Array(12).fill(0),
-                codigo_item: codigoItem,
-                detalle_tarea: tarea.detalle_tarea
-              });
-            }
-          }
-          
-          actividadesConTareas.push({
-            id_actividad: actividad.id_actividad,
-            descripcion_actividad: actividad.descripcion_actividad,
-            total_por_actividad: formatearNumero(actividad.total_por_actividad),
-            tareas: tareasConProgramacion
-          });
-          
-        } catch (actividadError) {
-          // Si no hay tareas, crear actividad con array vacío
-          actividadesConTareas.push({
-            id_actividad: actividad.id_actividad,
-            descripcion_actividad: actividad.descripcion_actividad,
-            total_por_actividad: formatearNumero(actividad.total_por_actividad),
-            tareas: []
-          });
-        }
-      }
-      
-      // Las actividades ya están ordenadas, solo las retornamos
-      return actividadesConTareas;
-      
-    } catch (error) {
-      throw error;
-    }
-  };
+      // Llamar al nuevo endpoint del backend
+      const blob = await projectAPI.exportarPOAsProyecto(idProyecto);
 
-  // Función para crear una hoja con información del POA
-  const crearHojaPOA = (workbook: ExcelJS.Workbook, poa: POA, actividades: ActividadConTareasYProgramacion[], nombreHoja: string) => {
-    const worksheet = workbook.addWorksheet(nombreHoja);
-
-    // Configurar anchos de columnas
-    worksheet.columns = [
-      { width: 474 / 7 }, // Columna A
-      { width: 491 / 7 }, // Columna B
-      { width: 165 / 7 }, // Columna C
-      { width: 165 / 7 }, // Columna D
-      { width: 165 / 7 }, // Columna E
-      { width: 165 / 7 }, // Columna F
-      { width: 89 / 7 }, // Columna G
-      { width: 89 / 7 }, // Columna H
-      { width: 89 / 7 }, // Columna I
-      { width: 89 / 7 }, // Columna J
-      { width: 89 / 7 }, // Columna K
-      { width: 89 / 7 }, // Columna L
-      { width: 89 / 7 }, // Columna M
-      { width: 89 / 7 }, // Columna N
-      { width: 89 / 7 }, // Columna O
-      { width: 89 / 7 }, // Columna P
-      { width: 89 / 7 }, // Columna Q
-      { width: 89 / 7 }, // Columna R
-      { width: 89 / 7 }, // Columna S
-      { width: 89 / 7 }  // Columna T
-    ];
-
-    // Agregar datos del encabezado
-    worksheet.addRow(['VICERRECTORADO DE INVESTIGACIÓN, INNOVACIÓN Y VINCULACIÓN']);
-    worksheet.addRow(['DIRECCIÓN DE INVESTIGACIÓN']);
-    worksheet.addRow([`PROGRAMACIÓN PARA EL POA ${poa.anio_ejecucion}`]);
-    worksheet.addRow([]); // Fila vacía
-    worksheet.addRow(['', 'Código de Proyecto', codigoProyecto]);
-    worksheet.addRow(['', 'Presupuesto Asignado', poa.presupuesto_asignado.toLocaleString('es-CO')]);
-    worksheet.addRow([,,,,,,,'TOTAL POR ACTIVIDAD', `PROGRAMACIÓN DE EJECUCIÓN ${poa.anio_ejecucion}`]);
-
-    let filaProgramacionyTotal = 7;
-
-    // Aplicar estilo especial al encabezado de la actividad
-    aplicarEstiloEncabezadoActividad(worksheet, filaProgramacionyTotal);
-    filaProgramacionyTotal++;
-
-    // Fusionar celdas en las primeras 4 filas (A:G)
-    worksheet.mergeCells('A1:G1');
-    worksheet.mergeCells('A2:G2');
-    worksheet.mergeCells('A3:G3');
-    worksheet.mergeCells('A4:G4');
-
-    // Fusionar celda H7 hasta T7 y aplicar color #DAEEF3
-    worksheet.mergeCells('H7:T7');
-    const cellH7 = worksheet.getCell('H7');
-    cellH7.fill = {
-      type: 'pattern',
-      pattern: 'solid',
-      fgColor: { argb: 'DAEEF3' }
-    };
-    const cellG7 = worksheet.getCell('G7');
-    cellG7.fill = {
-      type: 'pattern',
-      pattern: 'solid',
-      fgColor: { argb: 'D9D9D9' }
-    };
-
-    let filaActual = 8; // Empezar después de los encabezados principales
-
-    if (actividades && actividades.length > 0) {
-      // Iterar sobre las actividades del POA con numeración
-      actividades.forEach((actividad, indiceActividad) => {
-        if (actividad.tareas && actividad.tareas.length > 0) {
-          // Calcular el total de todas las tareas de esta actividad
-          const totalActividad = actividad.tareas.reduce((sum, tarea) => sum + (tarea.total || 0), 0);
-
-          // Agregar numeración a la actividad
-          const numeroActividad = indiceActividad + 1;
-          const nombreActividadConNumero = `(${numeroActividad}) ${actividad.descripcion_actividad}`;
-
-          // Generar columnas de fechas como objetos Date de Excel
-          const anioEjecucion = parseInt(poa.anio_ejecucion);
-          const fechasColumnas = [];
-          for (let mes = 1; mes <= 12; mes++) {
-            // Crear objeto Date de JavaScript para que Excel lo reconozca como fecha
-            const fecha = new Date(anioEjecucion, mes - 1, 1);
-            fechasColumnas.push(fecha);
-          }
-
-          // Agregar fila de encabezado para esta actividad
-          const filaEncabezado = worksheet.addRow([
-            nombreActividadConNumero,
-            'DESCRIPCIÓN O DETALLE',
-            'ITEM PRESUPUESTARIO',
-            'CANTIDAD',
-            'PRECIO UNITARIO',
-            'TOTAL',
-            totalActividad,
-            ...fechasColumnas, // Usar objetos Date
-            'SUMAN'
-          ]);
-
-          // Aplicar formato personalizado de Excel "MMM-YY" a las columnas de fecha
-          // Columnas de fecha son de la H (índice 8) a la S (índice 19)
-          for (let col = 8; col <= 19; col++) {
-            const cell = filaEncabezado.getCell(col);
-            // Formato personalizado de Excel: "ene-25", "feb-25", etc.
-            // mmm = abreviación del mes, yy = año en 2 dígitos
-            cell.numFmt = 'mmm-yy';
-          }
-
-          // Aplicar estilo especial al encabezado de la actividad
-          aplicarEstiloEncabezadoActividad(worksheet, filaActual);
-          filaActual++;
-
-          // Para cada tarea de la actividad
-          actividad.tareas.forEach((tarea) => {
-            // Calcular el total de programación mensual
-            const totalProgramacion = tarea.gastos_mensuales?.reduce((sum, val) => sum + (val || 0), 0) || 0;
-
-            // Agregar fila de tarea con nueva estructura
-            const filaTarea = [
-              tarea.nombre,
-              tarea.detalle_descripcion || '',
-              tarea.codigo_item || '',
-              tarea.cantidad,
-              tarea.precio_unitario,
-              tarea.total,
-              '', // Columna G vacía por defecto
-              ...(tarea.gastos_mensuales || Array(12).fill(0)), // Gastos mensuales (12 meses)
-              totalProgramacion // SUMAN
-            ];
-
-            worksheet.addRow(filaTarea);
-
-            // Aplicar estilos a la fila de datos
-            const row = worksheet.getRow(filaActual);
-            row.eachCell((cell, colNumber) => {
-              // Aplicar bordes
-              cell.border = bordeEstandar;
-              
-              // Aplicar wrap text
-              if (!cell.alignment) {
-                cell.alignment = { wrapText: true };
-              } else {
-                cell.alignment = { ...cell.alignment, wrapText: true };
-              }
-
-              // Aplicar color de fondo según la columna
-              if (colNumber === 7) { // Columna G
-                cell.fill = {
-                  type: 'pattern',
-                  pattern: 'solid',
-                  fgColor: { argb: 'D9D9D9' }
-                };
-              } else if (colNumber >= 8) { // Columnas H en adelante
-                cell.fill = {
-                  type: 'pattern',
-                  pattern: 'solid',
-                  fgColor: { argb: 'DAEEF3' }
-                };
-              }
-
-              // Formatear números en las columnas correspondientes
-              if (colNumber >= 4 && colNumber <= 6) { // Cantidad, Precio Unitario, Total
-                if (typeof cell.value === 'number') {
-                  cell.numFmt = '#,##0.00';
-                }
-              }
-              
-              // Formatear columnas de meses (H hasta S) y SUMAN (T)
-              if (colNumber >= 8 && colNumber <= 20) {
-                if (typeof cell.value === 'number' && cell.value > 0) {
-                  cell.numFmt = '#,##0.00';
-                }
-              }
-            });
-
-            filaActual++;
-          });
-        }
-      });
-
-      // Agregar fila de total general del POA
-      const totalGeneralPOA = actividades.reduce((sum, act) =>
-        sum + (act.total_por_actividad || 0), 0
-      );
-
-      const filaTotalGeneral = [
-        'TOTAL GENERAL POA',
-        '', '', '', '', '',
-        totalGeneralPOA,
-        '', // Columna H (vacía después de total)
-        ...Array(11).fill(''), // Meses vacíos (columnas I-S)
-        totalGeneralPOA // SUMAN (columna T)
-      ];
-
-      worksheet.addRow(filaTotalGeneral);
-
-      // NO fusionar celdas para evitar problemas en re-importación
-      // Solo aplicar color de fondo a la celda A
-      const cellTotalGeneral = worksheet.getCell(`A${filaActual}`);
-      cellTotalGeneral.fill = {
-        type: 'pattern',
-        pattern: 'solid',
-        fgColor: { argb: 'FCD5B4' }
-      };
-
-      // Aplicar estilo especial a la fila de total general
-      const rowTotalGeneral = worksheet.getRow(filaActual);
-      rowTotalGeneral.eachCell((cell, colNumber) => {
-        cell.border = bordeEstandar;
-        cell.font = { bold: true, size: 12 };
-        cell.alignment = { 
-          horizontal: 'center', 
-          vertical: 'middle',
-          wrapText: true 
-        };
-        
-        // Aplicar color específico según la columna
-        if (colNumber === 7) { // Columna G
-          cell.fill = {
-            type: 'pattern',
-            pattern: 'solid',
-            fgColor: { argb: 'D9D9D9' }
-          };
-        } else if (colNumber >= 8) { // Columnas H en adelante
-          cell.fill = {
-            type: 'pattern',
-            pattern: 'solid',
-            fgColor: { argb: 'DAEEF3' }
-          };
-        }
-        
-        if ((colNumber === 6 || colNumber === 20) && typeof cell.value === 'number') { // Total y SUMAN
-          cell.numFmt = '#,##0.00';
-          cell.fill = {
-            type: 'pattern',
-            pattern: 'solid',
-            fgColor: { argb: '92D050' } // Verde claro
-          };
-        }
-      });
-    } else {
-      // Si no hay datos de actividades, agregar una fila indicando que no hay datos
-      worksheet.addRow(['Sin actividades registradas', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '']);
-      
-      const row = worksheet.getRow(filaActual);
-      row.eachCell((cell, colNumber) => {
-        cell.border = bordeEstandar;
-        cell.alignment = { wrapText: true };
-        
-        // Aplicar color #DAEEF3 a partir de la columna H
-        if (colNumber >= 8) {
-          cell.fill = {
-            type: 'pattern',
-            pattern: 'solid',
-            fgColor: { argb: 'DAEEF3' }
-          };
-        }
-        
-        if (cell.value === 'Sin actividades registradas') {
-          cell.font = { italic: true };
-          cell.fill = {
-            type: 'pattern',
-            pattern: 'solid',
-            fgColor: { argb: 'FFE6E6' } // Rojo muy claro
-          };
-        }
-      });
-    }
-
-    // Aplicar estilos a los títulos principales
-    aplicarEstiloTitulo(worksheet.getCell('A1'), 14);
-    aplicarEstiloTitulo(worksheet.getCell('A2'), 12);
-    aplicarEstiloTitulo(worksheet.getCell('A3'), 12);
-
-    // Aplicar estilos generales
-    aplicarEstilosGeneralesATodaLaHoja(worksheet);
-  };
-
-  // Función para descargar el archivo Excel
-  /**
- * Objetivo:
- * - Permitir la descarga segura del archivo generado únicamente en el entorno cliente,
- *   evitando exposiciones o filtraciones de datos sensibles a terceros.
- * 
- * Parámetros:
- * - workbook: ExcelJS.Workbook - Libro de Excel generado.
- * - nombreArchivo: string - Nombre para el archivo a descargar.
- * 
- * Operación:
- * - Convierte el libro a buffer, crea un blob y dispara descarga local segura.
- * - Notifica éxito o error mediante mensajes toast.
- * 
- */
-  const descargarArchivo = async (workbook: ExcelJS.Workbook, nombreArchivo: string) => {
-    try {
-      const buffer = await workbook.xlsx.writeBuffer();
-      const blob = new Blob([buffer], { 
-        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
-      });
-      const url = URL.createObjectURL(blob);
-      
+      // Crear URL temporal para descarga
+      const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = nombreArchivo;
+      link.download = `POAs_${codigoProyecto}.xlsx`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
 
       showSuccess('Archivo Excel descargado exitosamente');
-    } catch (error) {
-      showError('Error al generar el archivo Excel');
-    }
-  };
-
-  // Función para exportar un POA específico
-  /**
- * Objetivo:
- * - Facilitar la exportación segura y confiable de un solo POA,
- *   asegurando que la operación y almacenamiento sean exclusivamente locales.
- * 
- * Parámetros:
- * - poa: POA - POA específico a exportar.
- * 
- * Operación:
- * - Obtiene datos completos del POA y genera el archivo Excel.
- * - Llama a la función descargarArchivo para iniciar la descarga local.
- * - Controla estado de carga y manejo de errores.
- * 
- */
-  const exportarPOA = async (poa: POA) => {
-    try {
-      setLoading(true);
-      
-      // Obtener datos del POA
-      const actividades = await obtenerDatosPOA(poa);
-      
-      const workbook = new ExcelJS.Workbook();
-      
-      workbook.creator = 'Sistema POA';
-      workbook.lastModifiedBy = 'Sistema POA';
-      workbook.created = new Date();
-      workbook.modified = new Date();
-
-      crearHojaPOA(workbook, poa, actividades, poa.codigo_poa.toString());
-
-      const nombreArchivo = `POA_${poa.codigo_poa}_${codigoProyecto}.xlsx`;
-      await descargarArchivo(workbook, nombreArchivo);
-      
-    } catch (error) {
-      showError('Error al exportar POA');
+    } catch (error: any) {
+      const errorMessage = error?.response?.data?.detail || 'Error al exportar POAs';
+      showError(errorMessage);
     } finally {
       setLoading(false);
     }
   };
 
-  // Función para exportar todos los POAs
-  /**
- * Objetivo:
- * - Permitir la exportación segura de todos los POAs asociados al proyecto,
- *   manteniendo privacidad y seguridad de la información durante el proceso.
- * 
- * Parámetros:
- * - Ninguno.
- * 
- * Operación:
- * - Itera sobre todos los POAs del proyecto, obtiene datos y genera un libro Excel con una hoja por POA.
- * - Descarga local segura del archivo generado.
- * - Controla estado de carga y manejo de errores.
- * 
- */
-  const exportarTodosPOAs = async () => {
-    try {
-      setLoading(true);
-      
-      const workbook = new ExcelJS.Workbook();
-      
-      workbook.creator = 'Sistema POA';
-      workbook.lastModifiedBy = 'Sistema POA';
-      workbook.created = new Date();
-      workbook.modified = new Date();
-
-      // Obtener datos de todos los POAs
-      for (let i = 0; i < poas.length; i++) {
-        const poa = poas[i];
-        try {
-          const actividades = await obtenerDatosPOA(poa);
-          crearHojaPOA(workbook, poa, actividades, `POA_${poa.codigo_poa}`);
-        } catch (error) {
-          // Crear hoja vacía si hay error
-          crearHojaPOA(workbook, poa, [], `POA_${poa.codigo_poa}`);
-        }
-      }
-
-      const nombreArchivo = `POAs_Proyecto_${codigoProyecto}.xlsx`;
-      await descargarArchivo(workbook, nombreArchivo);
-      
-    } catch (error) {
-      showError('Error al exportar todos los POAs');
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // Si no hay POAs, no mostrar el botón
   if (!poas || poas.length === 0) {
     return null;
   }
@@ -702,49 +84,24 @@ const ExportarPOAProyecto: React.FC<ExportarPOAProyectoProps> = ({
   return (
     <div className="d-flex align-items-center">
       {loading && (
-        <Spinner 
-          animation="border" 
-          size="sm" 
-          variant="success" 
+        <Spinner
+          animation="border"
+          size="sm"
+          variant="success"
           className="me-2"
         />
       )}
-      
-      {poas.length === 1 ? (
-        <Button 
-          variant="success" 
-          size="sm"
-          onClick={() => exportarPOA(poas[0])}
-          disabled={loading}
-          className="d-flex align-items-center"
-        >
-          <i className="fas fa-file-excel me-1"></i>
-          {loading ? 'Exportando...' : 'Exportar Excel'}
-        </Button>
-      ) : (
-        <DropdownButton 
-          id="dropdown-exportar-poa" 
-          title={loading ? 'Exportando...' : 'Exportar Excel'}
-          variant="success"
-          size="sm"
-          disabled={loading}
-        >
-          <Dropdown.Item onClick={exportarTodosPOAs}>
-            <i className="fas fa-file-excel me-2"></i>
-            Exportar todos los POAs
-          </Dropdown.Item>
-          <Dropdown.Divider />
-          {poas.map((poa) => (
-            <Dropdown.Item 
-              key={poa.id_poa} 
-              onClick={() => exportarPOA(poa)}
-            >
-              <i className="fas fa-file-excel me-2"></i>
-              Exportar POA {poa.codigo_poa}
-            </Dropdown.Item>
-          ))}
-        </DropdownButton>
-      )}
+
+      <Button
+        variant="success"
+        size="sm"
+        onClick={exportarPOAs}
+        disabled={loading}
+        className="d-flex align-items-center"
+      >
+        <i className="fas fa-file-excel me-1"></i>
+        {loading ? 'Exportando...' : 'Exportar Excel'}
+      </Button>
     </div>
   );
 };

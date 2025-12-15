@@ -594,6 +594,7 @@ const VerProyectos: React.FC = () => {
                       </td>
                       <td>
                         <ExportarPOAProyecto
+                          idProyecto={proyecto.id_proyecto}
                           codigoProyecto={proyecto.codigo_proyecto}
                           poas={proyecto.poas || []}
                         />
