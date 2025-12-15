@@ -139,14 +139,15 @@ Parámetros:
         return response.data;
     },
 
-    // Exportar POAs de un proyecto en formato Excel institucional
+    // Exportar un POA individual en formato Excel institucional
     /*
     Objetivo:
-    Exportar todos los POAs de un proyecto en un archivo Excel con formato institucional
+    Exportar un POA específico de un proyecto en un archivo Excel con formato institucional
     compatible con re-importación mediante el transformador de Excel.
 
     Parámetros:
-    id: string — identificador del proyecto.
+    idProyecto: string — identificador del proyecto.
+    idPoa: string — identificador del POA a exportar.
     Autenticación mediante token JWT.
 
     Retorna:
@@ -156,13 +157,14 @@ Parámetros:
     - Nombre de hoja: "POA {año}"
     - Actividades agrupadas con formato (1), (2), (3)...
     - Cantidades sin decimales
-    - Columnas de meses individuales OCULTAS
+    - Columnas de meses VISIBLES (no ocultas)
     - Fórmulas automáticas (=SUMA(), =CANTIDAD*PRECIO)
-    - Colores institucionales
+    - Colores institucionales (exactos de la plantilla)
     - 100% compatible con transformador_excel.py
+    - Maneja POAs vacíos sin error (retorna archivo con encabezados)
     */
-    exportarPOAsProyecto: async (id: string): Promise<Blob> => {
-        const response = await API.post(`/proyectos/${id}/exportar-poas`, {}, {
+    exportarPoaIndividual: async (idProyecto: string, idPoa: string): Promise<Blob> => {
+        const response = await API.post(`/proyectos/${idProyecto}/poas/${idPoa}/exportar`, {}, {
             responseType: 'blob'
         });
         return response.data;

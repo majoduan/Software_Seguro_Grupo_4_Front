@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Button, Spinner } from 'react-bootstrap';
+import { Button, Dropdown, Spinner } from 'react-bootstrap';
 import { POA } from '../interfaces/poa';
 import { projectAPI } from '../api/projectAPI';
 import { showError, showSuccess } from '../utils/toast';
@@ -14,23 +14,24 @@ interface ExportarPOAProyectoProps {
  * Componente ExportarPOAProyecto
  *
  * Objetivo:
- * - Exportar POAs de un proyecto usando el nuevo endpoint del backend que genera
+ * - Exportar POAs individuales de un proyecto usando el endpoint del backend que genera
  *   archivos Excel con formato institucional compatible con re-importación.
  *
  * Parámetros:
  * - idProyecto: string - ID único que identifica el proyecto.
  * - codigoProyecto: string - Código del proyecto para el nombre del archivo.
- * - poas: POA[] - Lista de POAs asociados al proyecto (solo para validación de UI).
+ * - poas: POA[] - Lista de POAs asociados al proyecto para selección.
  *
  * Operación:
- * - Llama al endpoint POST /proyectos/{id}/exportar-poas del backend.
+ * - Permite seleccionar un POA específico del menú dropdown.
+ * - Llama al endpoint POST /proyectos/{id}/poas/{id_poa}/exportar del backend.
  * - El backend genera el archivo Excel con formato institucional usando export_excel_poa.py
  * - Descarga el archivo generado por el backend.
  *
  * Cambios (Diciembre 2024):
- * - Migrado de generación local (ExcelJS ~750 líneas) a backend.
- * - Usa nuevo endpoint que implementa formato institucional correcto.
- * - Simplifica el componente de 750 líneas a ~100 líneas.
+ * - Restaurada funcionalidad de selección de POA individual.
+ * - Usa formato visual exacto de la plantilla institucional.
+ * - Columnas de meses visibles (no ocultas).
  */
 const ExportarPOAProyecto: React.FC<ExportarPOAProyectoProps> = ({
   idProyecto,
@@ -40,36 +41,37 @@ const ExportarPOAProyecto: React.FC<ExportarPOAProyectoProps> = ({
   const [loading, setLoading] = useState<boolean>(false);
 
   /**
-   * Exporta todos los POAs del proyecto usando el backend.
+   * Exporta un POA específico del proyecto usando el backend.
    *
    * Flujo:
-   * 1. Llama a POST /proyectos/{id}/exportar-poas
+   * 1. Llama a POST /proyectos/{id}/poas/{id_poa}/exportar
    * 2. El backend:
-   *    - Obtiene todos los POAs del proyecto con actividades y tareas
-   *    - Genera Excel usando export_excel_poa.py
+   *    - Obtiene el POA con sus actividades y tareas
+   *    - Si está vacío, retorna archivo con solo encabezados
+   *    - Genera Excel usando export_excel_poa.py con formato institucional
    *    - Retorna archivo con formato institucional
    * 3. Descarga el archivo recibido
    */
-  const exportarPOAs = async () => {
+  const exportarPOA = async (idPoa: string, anioPoa: string) => {
     try {
       setLoading(true);
 
-      // Llamar al nuevo endpoint del backend
-      const blob = await projectAPI.exportarPOAsProyecto(idProyecto);
+      // Llamar al endpoint del backend
+      const blob = await projectAPI.exportarPoaIndividual(idProyecto, idPoa);
 
       // Crear URL temporal para descarga
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `POAs_${codigoProyecto}.xlsx`;
+      link.download = `POA_${anioPoa}_${codigoProyecto}.xlsx`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
 
-      showSuccess('Archivo Excel descargado exitosamente');
+      showSuccess(`Archivo Excel de POA ${anioPoa} descargado exitosamente`);
     } catch (error: any) {
-      const errorMessage = error?.response?.data?.detail || 'Error al exportar POAs';
+      const errorMessage = error?.response?.data?.detail || 'Error al exportar POA';
       showError(errorMessage);
     } finally {
       setLoading(false);
@@ -92,16 +94,28 @@ const ExportarPOAProyecto: React.FC<ExportarPOAProyectoProps> = ({
         />
       )}
 
-      <Button
-        variant="success"
-        size="sm"
-        onClick={exportarPOAs}
-        disabled={loading}
-        className="d-flex align-items-center"
-      >
-        <i className="fas fa-file-excel me-1"></i>
-        {loading ? 'Exportando...' : 'Exportar Excel'}
-      </Button>
+      <Dropdown>
+        <Dropdown.Toggle
+          variant="success"
+          size="sm"
+          disabled={loading}
+          className="d-flex align-items-center"
+        >
+          <i className="fas fa-file-excel me-1"></i>
+          {loading ? 'Exportando...' : 'Exportar Excel'}
+        </Dropdown.Toggle>
+
+        <Dropdown.Menu>
+          {poas.map((poa) => (
+            <Dropdown.Item
+              key={poa.id_poa}
+              onClick={() => exportarPOA(poa.id_poa, poa.anio_ejecucion)}
+            >
+              POA {poa.anio_ejecucion}
+            </Dropdown.Item>
+          ))}
+        </Dropdown.Menu>
+      </Dropdown>
     </div>
   );
 };
