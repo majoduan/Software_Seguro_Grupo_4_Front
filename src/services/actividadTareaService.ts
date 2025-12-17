@@ -155,6 +155,19 @@ export class ActividadTareaService {
         // Crear las actividades para este POA
         const actividadesCreadasResponse = await actividadAPI.crearActividadesPorPOA(poa.id_poa, actividadesParaCrear);
 
+        // Verificar si hay warning de presupuesto
+        if (actividadesCreadasResponse.warning && actividadesCreadasResponse.warning.excede_presupuesto) {
+          const warningMsg = actividadesCreadasResponse.warning.mensaje;
+          toast.warning(warningMsg, {
+            position: "top-right",
+            autoClose: 8000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true
+          });
+        }
+
         let idsActividades: string[] = [];
 
         if (actividadesCreadasResponse.ids_actividades && Array.isArray(actividadesCreadasResponse.ids_actividades)) {

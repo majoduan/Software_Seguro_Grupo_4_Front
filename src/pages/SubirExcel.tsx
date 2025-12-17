@@ -345,16 +345,27 @@ const SubirExcel: React.FC = () => {
         setPendingRequest(formData);
         setOpenDialog(true);
       } else {
+        // Construir mensaje de respuesta
+        let mensaje = "Actividades y tareas creadas exitosamente.";
+        let severidadRespuesta: "success" | "warning" = "success";
+
+        // Verificar si hay warning de presupuesto
+        if (data.warning && data.warning.excede_presupuesto) {
+          mensaje = data.warning.mensaje;
+          severidadRespuesta = "warning";
+        }
+
+        // Si también hay otros errores, agregarlos
         if (data.errores && data.errores.length > 0) {
-          setMessage(
-            `Actividades y tareas creadas con advertencias:\n\n${data.errores.join(
-              "\n"
-            )}`
-          );
-          setSeverity("warning");
-        } else {
-          setMessage("Actividades y tareas creadas exitosamente.");
-          setSeverity("success");
+          mensaje += `\n\nAdvertencias adicionales:\n${data.errores.join("\n")}`;
+          severidadRespuesta = "warning";
+        }
+
+        setMessage(mensaje);
+        setSeverity(severidadRespuesta);
+
+        // Limpiar formulario solo si fue éxito completo
+        if (!data.warning || !data.warning.excede_presupuesto) {
           setFile(null);
           setOpcion("");
           setAnio("");
@@ -363,6 +374,7 @@ const SubirExcel: React.FC = () => {
           setHojas([]);
           setFormTouched(false);
         }
+
         setOpenSnackbar(true);
       }
     } catch (err: any) {
@@ -381,12 +393,27 @@ const SubirExcel: React.FC = () => {
     try {
       const data = await excelAPI.subirExcel(pendingRequest);
 
+      // Construir mensaje de respuesta
+      let mensaje = "Actividades y tareas creadas exitosamente.";
+      let severidadRespuesta: "success" | "warning" = "success";
+
+      // Verificar si hay warning de presupuesto
+      if (data.warning && data.warning.excede_presupuesto) {
+        mensaje = data.warning.mensaje;
+        severidadRespuesta = "warning";
+      }
+
+      // Si también hay otros errores, agregarlos
       if (data.errores && data.errores.length > 0) {
-        setMessage(`Advertencias:\n\n${data.errores.join("\n")}`);
-        setSeverity("warning");
-      } else {
-        setMessage("Actividades y tareas creadas exitosamente.");
-        setSeverity("success");
+        mensaje += `\n\nAdvertencias adicionales:\n${data.errores.join("\n")}`;
+        severidadRespuesta = "warning";
+      }
+
+      setMessage(mensaje);
+      setSeverity(severidadRespuesta);
+
+      // Limpiar formulario solo si fue éxito completo
+      if (!data.warning || !data.warning.excede_presupuesto) {
         setFile(null);
         setOpcion("");
         setAnio("");
