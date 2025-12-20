@@ -19,6 +19,7 @@ import EditarProyecto from './pages/EditarProyecto';
 import EditarPOA from './pages/EditarPOA';
 import EditarActividad from './pages/EditarActividad';
 import GestionPrecios from './pages/GestionPrecios';
+import GestionDepartamentos from './pages/GestionDepartamentos';
 import { ThemeProvider } from "@mui/material/styles";
 
 import theme from "./theme";
@@ -169,6 +170,15 @@ function AppContent() {
             <ProtectedRoute>
               <RoleProtectedRoute requiredRoles={[ROLES.ADMINISTRADOR]}>
                 <GestionPrecios />
+              </RoleProtectedRoute>
+            </ProtectedRoute>
+          } />
+
+          {/* Ruta para Gestión de Departamentos (solo ADMINISTRADOR) */}
+          <Route path="/gestion-departamentos" element={
+            <ProtectedRoute>
+              <RoleProtectedRoute requiredRoles={[ROLES.ADMINISTRADOR]}>
+                <GestionDepartamentos />
               </RoleProtectedRoute>
             </ProtectedRoute>
           } />

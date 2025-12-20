@@ -39,6 +39,16 @@ export interface Departamento {
   descripcion?: string;
 }
 
+export interface DepartamentoCreate {
+  nombre: string;
+  descripcion?: string;
+}
+
+export interface DepartamentoUpdate {
+  nombre?: string;
+  descripcion?: string;
+}
+
 export interface DirectorProyecto {
   id_usuario: string;
   nombre_usuario: string;

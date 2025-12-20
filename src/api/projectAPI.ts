@@ -1,5 +1,5 @@
 import { API } from './userAPI';
-import { Proyecto, TipoProyecto, Departamento, ResumenPoas } from '../interfaces/project';
+import { Proyecto, TipoProyecto, Departamento, DepartamentoCreate, DepartamentoUpdate, ResumenPoas } from '../interfaces/project';
 import { PerfilUsuario } from '../interfaces/user';
 
 export const projectAPI = {
@@ -19,6 +19,40 @@ export const projectAPI = {
     getDepartamentos: async (): Promise<Departamento[]> => {
         const response = await API.get<Departamento[]>('/departamentos/');
         return response.data;
+    },
+
+    /**
+     * Obtiene un departamento por ID
+     */
+    getDepartamento: async (id: string): Promise<Departamento> => {
+        const response = await API.get<Departamento>(`/departamentos/${id}`);
+        return response.data;
+    },
+
+    /**
+     * Crea un nuevo departamento
+     * Solo accesible para ADMINISTRADOR
+     */
+    createDepartamento: async (data: DepartamentoCreate): Promise<Departamento> => {
+        const response = await API.post<Departamento>('/departamentos/', data);
+        return response.data;
+    },
+
+    /**
+     * Actualiza un departamento existente
+     * Solo accesible para ADMINISTRADOR
+     */
+    updateDepartamento: async (id: string, data: DepartamentoUpdate): Promise<Departamento> => {
+        const response = await API.put<Departamento>(`/departamentos/${id}`, data);
+        return response.data;
+    },
+
+    /**
+     * Elimina un departamento
+     * Solo accesible para ADMINISTRADOR
+     */
+    deleteDepartamento: async (id: string): Promise<void> => {
+        await API.delete(`/departamentos/${id}`);
     },
 
     // Obtener usuarios que pueden ser directores

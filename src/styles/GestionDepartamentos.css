@@ -1,0 +1,158 @@
+/* Contenedor principal */
+.gestion-departamentos-container {
+    padding: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* Header */
+.gestion-departamentos-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+.header-title {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.header-title h2 {
+    margin: 0;
+    color: #2c3e50;
+    font-weight: 600;
+}
+
+.header-title svg {
+    color: #3498db;
+}
+
+.btn-nuevo-departamento {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1.5rem;
+    font-weight: 500;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.btn-nuevo-departamento:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+/* Tabla */
+.tabla-departamentos {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.tabla-departamentos table {
+    margin-bottom: 0;
+}
+
+.tabla-departamentos thead {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.tabla-departamentos thead th {
+    border: none;
+    padding: 1rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+}
+
+.tabla-departamentos tbody tr {
+    transition: background-color 0.2s ease;
+}
+
+.tabla-departamentos tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+.tabla-departamentos tbody td {
+    padding: 1rem;
+    vertical-align: middle;
+}
+
+/* Botones de acción */
+.tabla-departamentos .btn {
+    transition: all 0.2s ease;
+}
+
+.tabla-departamentos .btn:hover {
+    transform: translateY(-1px);
+}
+
+.tabla-departamentos .btn-outline-primary:hover {
+    background-color: #3498db;
+    color: white;
+}
+
+.tabla-departamentos .btn-outline-danger:hover {
+    background-color: #e74c3c;
+    color: white;
+}
+
+/* Modal */
+.modal-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-bottom: none;
+}
+
+.modal-header .btn-close {
+    filter: brightness(0) invert(1);
+}
+
+.modal-header.text-danger {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+.modal-footer {
+    border-top: 1px solid #e0e0e0;
+    padding: 1rem 1.5rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .gestion-departamentos-container {
+        padding: 1rem;
+    }
+
+    .gestion-departamentos-header {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+
+    .btn-nuevo-departamento {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .tabla-departamentos tbody td {
+        font-size: 0.9rem;
+        padding: 0.75rem;
+    }
+
+    .tabla-departamentos .btn {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.85rem;
+    }
+}

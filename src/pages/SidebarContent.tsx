@@ -3,7 +3,7 @@ import { Nav, Button } from 'react-bootstrap';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { SidebarContentProps } from '../interfaces/bar';
-import { TableProperties, FolderKanban, FileChartLine, CircleUserRound, UserPlus, LogOut, Icon, History,FileSpreadsheet, FileUp, ScrollText, DollarSign } from 'lucide-react';
+import { TableProperties, FolderKanban, FileChartLine, CircleUserRound, UserPlus, LogOut, Icon, History,FileSpreadsheet, FileUp, ScrollText, DollarSign, Building2 } from 'lucide-react';
 import { owl } from '@lucide/lab';
 import { ROLES } from '../interfaces/user';
 import { rolAPI } from '../api/userAPI';
@@ -169,6 +169,19 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
                 >
                   <DollarSign size={iconSize} className="me-2" />
                   Gestión de Precios
+                </Nav.Link>
+              </Nav.Item>
+            )}
+
+            {/* Gestión de Departamentos - Solo para ADMINISTRADOR */}
+            {hasAccessTo([ROLES.ADMINISTRADOR]) && (
+              <Nav.Item>
+                <Nav.Link
+                  className={`text-white ${isActive("/gestion-departamentos")}`}
+                  onClick={() => handleNavigate("/gestion-departamentos")}
+                >
+                  <Building2 size={iconSize} className="me-2" />
+                  Gestión de Departamentos
                 </Nav.Link>
               </Nav.Item>
             )}
@@ -440,6 +453,20 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
                 title="Gestión de Precios"
               >
                 <DollarSign size={iconSize} />
+              </Nav.Link>
+            </Nav.Item>
+          )}
+
+          {/* Gestión de Departamentos */}
+          {hasAccessTo([ROLES.ADMINISTRADOR]) && (
+            <Nav.Item>
+              <Nav.Link
+                className={`text-white ${isActive("/gestion-departamentos")}`}
+                onClick={() => handleNavigate("/gestion-departamentos")}
+                style={{ cursor: 'pointer' }}
+                title="Gestión de Departamentos"
+              >
+                <Building2 size={iconSize} />
               </Nav.Link>
             </Nav.Item>
           )}
