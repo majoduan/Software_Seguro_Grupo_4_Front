@@ -40,9 +40,9 @@ export const useProjectForm = ({ initialTipoProyecto, initialProyecto, isEditing
     const sanitized = sanitizeInput(value);
     setTituloInternal(sanitized);
 
-    // Validar límite de 100 caracteres
-    if (sanitized.length > 100) {
-      setTituloError('El nombre del proyecto no puede exceder 100 caracteres');
+    // Validar límite de 300 caracteres
+    if (sanitized.length > 300) {
+      setTituloError('El nombre del proyecto no puede exceder 300 caracteres');
     } else {
       setTituloError(null);
     }
@@ -435,10 +435,10 @@ export const useProjectForm = ({ initialTipoProyecto, initialProyecto, isEditing
       return false;
     }
 
-    // Validate project name length (max 100 characters)
-    if (titulo.length > 100) {
-      setTituloError('El nombre del proyecto no puede exceder 100 caracteres');
-      setError('El nombre del proyecto no puede exceder 100 caracteres');
+    // Validate project name length (max 300 characters)
+    if (titulo.length > 300) {
+      setTituloError('El nombre del proyecto no puede exceder 300 caracteres');
+      setError('El nombre del proyecto no puede exceder 300 caracteres');
       return false;
     }
 

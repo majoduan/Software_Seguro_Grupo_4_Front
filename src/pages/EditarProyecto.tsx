@@ -265,7 +265,7 @@ const EditarProyecto: React.FC = () => {
                 Título <span className="required-field">*</span>
                 <HelpTooltip
                   fieldName="titulo"
-                  content="El nombre del proyecto debe tener máximo 100 caracteres."
+                  content="El nombre del proyecto debe tener máximo 300 caracteres."
                 />
               </Form.Label>
               <Form.Control
@@ -275,7 +275,7 @@ const EditarProyecto: React.FC = () => {
                 value={form.titulo}
                 onChange={(e) => form.setTitulo(e.target.value)}
                 required
-                maxLength={100}
+                maxLength={300}
                 isInvalid={!!form.tituloError}
                 className="form-control-custom"
               />
@@ -285,7 +285,7 @@ const EditarProyecto: React.FC = () => {
                 </Form.Control.Feedback>
               )}
               <Form.Text className="text-muted">
-                {form.titulo.length}/100 caracteres
+                {form.titulo.length}/300 caracteres
               </Form.Text>
             </Form.Group>
 
