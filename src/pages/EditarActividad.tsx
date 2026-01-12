@@ -444,7 +444,7 @@ const EditarActividad: React.FC = () => {
    *     - Actualiza la programación mensual de cada tarea editada.
    *     - Maneja errores por tarea individual sin afectar las demás.
    */
-  const actualizarProgramacionesMensuales = async () => {
+  const actualizarProgramacionesMensuales = async (justificacion: string) => {
     const tareasConProgramacionEditada = [];
 
     // Recopilar todas las tareas que tienen programación mensual modificada
@@ -479,7 +479,7 @@ const EditarActividad: React.FC = () => {
 
       for (const tarea of tareasConProgramacionEditada) {
         try {
-          await actualizarProgramacionMensual(tarea);
+          await actualizarProgramacionMensual(tarea, justificacion);
         } catch (error) {
           console.error(`Error al actualizar programación de tarea ${tarea.nombre}:`, error);
           // Continuar con las demás tareas
@@ -503,7 +503,7 @@ const EditarActividad: React.FC = () => {
    *     - Utiliza la API para eliminar la programación anterior y crear la nueva.
    *     - Maneja errores específicos y proporciona retroalimentación al usuario.
    */
-  const actualizarProgramacionMensual = async (tareaCompleta: TareaForm) => {
+  const actualizarProgramacionMensual = async (tareaCompleta: TareaForm, justificacionUsuario: string) => {
     if (!tareaCompleta.id_tarea_real || !tareaCompleta.gastos_mensuales) {
       return;
     }
@@ -530,12 +530,18 @@ const EditarActividad: React.FC = () => {
         const { tareaAPI } = await import('../api/tareaAPI');
         await tareaAPI.actualizarProgramacionMensualCompleta(
           tareaCompleta.id_tarea_real,
-          programacionesMensuales
+          programacionesMensuales,
+          justificacionUsuario
         );
       } else {
         // Si no hay valores, solo eliminar programación existente
         const { tareaAPI } = await import('../api/tareaAPI');
-        await tareaAPI.eliminarProgramacionMensualCompleta(tareaCompleta.id_tarea_real);
+
+        // Construir la justificación combinada según el requerimiento del usuario
+        const justificacionBackend = `Eliminación completa de programación mensual de la tarea: ${tareaCompleta.nombre}`;
+        const justificacionFinal = `${justificacionBackend} - ${justificacionUsuario}`;
+
+        await tareaAPI.eliminarProgramacionMensualCompleta(tareaCompleta.id_tarea_real, justificacionFinal);
       }
     } catch (error) {
       console.error('Error al actualizar programación mensual:', error);
@@ -551,7 +557,7 @@ const EditarActividad: React.FC = () => {
       setShowJustificacionModal(false);
 
       // Primero actualizar programaciones mensuales de tareas editadas
-      await actualizarProgramacionesMensuales();
+      await actualizarProgramacionesMensuales(justificacion);
 
       // Luego ejecutar el guardado normal de las tareas
       const result = await ActividadTareaService.editarTareas(poasConActividades, actividadesOriginales, justificacion);

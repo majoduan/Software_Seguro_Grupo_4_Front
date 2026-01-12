@@ -1,7 +1,7 @@
 import { DetalleTarea, Tarea, TareaCreate, TareaUpdate, ItemPresupuestario, ProgramacionMensualCreate, ProgramacionMensualOut, DetalleTareaPrecio, DetalleTareaUpdatePrecio } from "../interfaces/tarea";
 import { API } from "./userAPI";
 
-    
+
 export const tareaAPI = {
 
     // Obtener item presupuestario por id
@@ -21,16 +21,16 @@ export const tareaAPI = {
     getItemPresupuestarioPorId: async (idItemPresupuestario: string): Promise<ItemPresupuestario> => {
         try {
             const response = await API.get(`/item-presupuestario/${idItemPresupuestario}`);
-            
+
             // Verificar explícitamente si el campo código está presente
             if (response.data && !response.data.codigo) {
             }
-            
+
             return response.data;
         } catch (error) {
             throw error;
         }
-        },
+    },
 
     // Obtener item presupuestario de una tarea específica
     /**
@@ -54,7 +54,7 @@ export const tareaAPI = {
         } catch (error) {
             if (error && typeof error === 'object' && 'response' in error) {
                 const axiosError = error as any;
-                
+
                 // Manejar errores específicos
                 if (axiosError.response.status === 404) {
                     if (axiosError.response.data?.detail === "Tarea no encontrada") {
@@ -74,7 +74,7 @@ export const tareaAPI = {
         return response.data;
     },
 
-    
+
     // Crear una tarea para una actividad
     crearTarea: async (idActividad: string, tareaData: TareaCreate): Promise<Tarea> => {
         try {
@@ -189,9 +189,9 @@ export const tareaAPI = {
             return response.data;
         } catch (error) {
             if (error.response) {
-                
+
                 // Manejar el error específico de duplicación
-                if (error.response.status === 400 && 
+                if (error.response.status === 400 &&
                     error.response.data?.detail === "Ya existe programación para ese mes y tarea.") {
                     throw new Error("Ya existe una programación para ese mes y tarea");
                 }
@@ -222,7 +222,7 @@ export const tareaAPI = {
         } catch (error) {
             if (error && typeof error === 'object' && 'response' in error) {
                 const axiosError = error as any;
-                
+
                 // Manejar error específico de tarea no encontrada
                 if (axiosError.response.status === 404) {
                     throw new Error("Tarea no encontrada");
@@ -247,14 +247,17 @@ export const tareaAPI = {
      * Registra la operación en el historial para auditoría.
      * Útil para resetear la programación antes de crear una nueva.
      */
-    eliminarProgramacionMensualCompleta: async (idTarea: string): Promise<{ message: string; registros_eliminados: number }> => {
+    eliminarProgramacionMensualCompleta: async (idTarea: string, justificacion?: string): Promise<{ message: string; registros_eliminados: number }> => {
         try {
-            const response = await API.delete(`/tareas/${idTarea}/programacion-mensual`);
+            const url = justificacion
+                ? `/tareas/${idTarea}/programacion-mensual?justificacion=${encodeURIComponent(justificacion)}`
+                : `/tareas/${idTarea}/programacion-mensual`;
+            const response = await API.delete(url);
             return response.data as { message: string; registros_eliminados: number };
         } catch (error) {
             if (error && typeof error === 'object' && 'response' in error) {
                 const axiosError = error as { response: { status: number; data?: { detail?: string } } };
-                
+
                 // Manejar errores específicos
                 if (axiosError.response.status === 404) {
                     throw new Error("Tarea no encontrada");
@@ -282,12 +285,13 @@ export const tareaAPI = {
      * Control de transacciones para evitar estados intermedios inválidos.
      */
     actualizarProgramacionMensualCompleta: async (
-        idTarea: string, 
-        programacionesMensuales: ProgramacionMensualCreate[]
+        idTarea: string,
+        programacionesMensuales: ProgramacionMensualCreate[],
+        justificacion?: string
     ): Promise<{ message: string; programaciones_creadas: number }> => {
         // 1. Eliminar programación existente
-        await tareaAPI.eliminarProgramacionMensualCompleta(idTarea);
-        
+        await tareaAPI.eliminarProgramacionMensualCompleta(idTarea, justificacion);
+
         // 2. Crear nuevas programaciones
         const programacionesCreadas = [];
         for (const programacion of programacionesMensuales) {
