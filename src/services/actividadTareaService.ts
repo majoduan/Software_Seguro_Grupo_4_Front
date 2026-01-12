@@ -22,7 +22,7 @@ export interface GuardarActividadesResult {
  * con validaciones para garantizar integridad de datos y manejo de errores adecuado.
  */
 export class ActividadTareaService {
-  
+
   // Obtener la descripción de una actividad a partir de su código
   /* Objetivo:
    *   Obtener la descripción de una actividad a partir del código y el POA correspondiente.
@@ -40,10 +40,17 @@ export class ActividadTareaService {
     const poa = poasConActividades.find(p => p.id_poa === poaId);
     if (!poa) return 'POA no encontrado';
 
-    const actividadesDisponibles = getActividadesPorTipoPOA(poa.tipo_poa);
-    const actividad = actividadesDisponibles.find(act => act.id === codigoActividad);
+    // Prioridad 1: Si la actividad ya tiene una descripción en el estado local (viene de la DB), usarla
+    const actividadExistente = poa.actividades.find(act => act.codigo_actividad === codigoActividad);
+    if (actividadExistente && actividadExistente.descripcion_actividad) {
+      return actividadExistente.descripcion_actividad;
+    }
 
-    return actividad ? actividad.descripcion : 'Seleccione una actividad';
+    // Prioridad 2: Si no, buscar en la lista estática (caso de creación nueva)
+    const actividadesDisponibles = getActividadesPorTipoPOA(poa.tipo_poa);
+    const actividadOpcion = actividadesDisponibles.find(act => act.id === codigoActividad);
+
+    return actividadOpcion ? actividadOpcion.descripcion : 'Seleccione una actividad';
   };
 
   // Validar el formulario antes de guardar
@@ -115,7 +122,7 @@ export class ActividadTareaService {
     //proyectoSeleccionado: any,
     setActivePoaTab?: (tab: string) => void
   ): Promise<GuardarActividadesResult> {
-    
+
     try {
       const toastId = toast.loading('Guardando actividades y tareas...');
 
@@ -364,11 +371,11 @@ export class ActividadTareaService {
                 };
 
                 const tareaCreada = await tareaAPI.crearTarea(actividad.id_actividad_real, tareaDatos);
-                
+
                 if (!tareaCreada || !tareaCreada.id_tarea) {
                   throw new Error(`Error crítico: No se pudo obtener el ID de la tarea creada "${tarea.nombre}"`);
                 }
-                
+
                 totalTareasCreadas++;
 
                 // Crear programación mensual para tarea nueva
@@ -385,7 +392,7 @@ export class ActividadTareaService {
                         mes: mesFormateado,
                         valor: valor
                       };
-                      
+
                       await tareaAPI.crearProgramacionMensual(programacionDatos);
                       totalProgramacionesCreadas++;
                     }
@@ -394,12 +401,12 @@ export class ActividadTareaService {
               } else {
                 // Es una tarea existente, verificar si fue modificada
                 let fueModificada = false;
-                
+
                 if (actividadesOriginales) {
                   const poaOriginal = actividadesOriginales.find(p => p.id_poa === poa.id_poa);
                   const actividadOriginal = poaOriginal?.actividades.find(a => a.actividad_id === actividad.actividad_id);
                   const tareaOriginal = actividadOriginal?.tareas.find(t => t.id_tarea_real === tarea.id_tarea_real);
-                  
+
                   if (tareaOriginal) {
                     // Comparar solo los campos que se pueden editar en el backend
                     fueModificada = (
@@ -453,11 +460,11 @@ export class ActividadTareaService {
         }
       }
 
-      const mensaje = totalTareasCreadas > 0 && totalTareasActualizadas > 0 
+      const mensaje = totalTareasCreadas > 0 && totalTareasActualizadas > 0
         ? `Se han creado ${totalTareasCreadas} nuevas tareas y actualizado ${totalTareasActualizadas} tareas existentes`
-        : totalTareasCreadas > 0 
+        : totalTareasCreadas > 0
           ? `Se han creado ${totalTareasCreadas} nuevas tareas`
-          : totalTareasActualizadas > 0 
+          : totalTareasActualizadas > 0
             ? `Se han actualizado ${totalTareasActualizadas} tareas existentes`
             : 'No se realizaron cambios';
 

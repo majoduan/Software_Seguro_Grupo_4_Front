@@ -113,10 +113,10 @@ const EditarActividad: React.FC = () => {
   const cargarActividadesExistentes = async (proyectoId: string) => {
     try {
       showInfo('Cargando actividades y tareas existentes...');
-      
+
       // Cargar POAs con actividades y tareas reales ordenadas
       await cargarPoasConActividadesYTareasReales(proyectoId);
-      
+
     } catch (error) {
       showError('Error al cargar las actividades existentes');
     }
@@ -157,6 +157,32 @@ const EditarActividad: React.FC = () => {
       console.error('Error al guardar tarea:', error);
       showError('Error al guardar la tarea: ' + (error instanceof Error ? error.message : 'Error desconocido'));
     }
+  };
+
+  // Función para manejar la actualización de actividad desde el componente hijo
+  const handleActividadActualizada = (idActividadReal: string, nuevaDescripcion: string) => {
+    setPoasConActividades(prev =>
+      prev.map(poa => ({
+        ...poa,
+        actividades: poa.actividades.map(act =>
+          act.id_actividad_real === idActividadReal
+            ? { ...act, descripcion_actividad: nuevaDescripcion }
+            : act
+        )
+      }))
+    );
+
+    // También actualizar actividadesOriginales para que no se detecten cambios falsos
+    setActividadesOriginales(prev =>
+      prev.map(poa => ({
+        ...poa,
+        actividades: poa.actividades.map(act =>
+          act.id_actividad_real === idActividadReal
+            ? { ...act, descripcion_actividad: nuevaDescripcion }
+            : act
+        )
+      }))
+    );
   };
 
   // Función para guardar cambios (actualizar tareas existentes)
@@ -255,7 +281,7 @@ const EditarActividad: React.FC = () => {
     const poa = poasConActividades.find(p => p.id_poa === poaId);
     const actividad = poa?.actividades.find(act => act.actividad_id === actividadId);
     const tarea = actividad?.tareas.find(t => t.tempId === tareaId);
-    
+
     // Solo permitir eliminar tareas que no tienen id_tarea_real (tareas nuevas)
     if (tarea && !tarea.id_tarea_real) {
       setPoasConActividades(prev =>
@@ -352,7 +378,7 @@ const EditarActividad: React.FC = () => {
         for (const tarea of actividad.tareas) {
           // Solo verificar tareas que tienen id_tarea_real (existentes)
           if (!tarea.id_tarea_real) continue;
-          
+
           const tareaOriginal = actividadOriginal.tareas.find(t => t.id_tarea_real === tarea.id_tarea_real);
           if (!tareaOriginal) continue;
 
@@ -390,7 +416,7 @@ const EditarActividad: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!proyectoSeleccionado) {
       showError('Debe seleccionar un proyecto');
       return;
@@ -437,7 +463,7 @@ const EditarActividad: React.FC = () => {
 
           // Verificar si la programación mensual cambió
           const programacionCambio = JSON.stringify(tarea.gastos_mensuales) !== JSON.stringify(tareaOriginal.gastos_mensuales);
-          
+
           if (programacionCambio) {
             tareasConProgramacionEditada.push(tarea);
           }
@@ -448,7 +474,7 @@ const EditarActividad: React.FC = () => {
     // Actualizar programación mensual de cada tarea
     if (tareasConProgramacionEditada.length > 0) {
       showInfo(`Actualizando programación mensual de ${tareasConProgramacionEditada.length} tarea(s)...`);
-      
+
       for (const tarea of tareasConProgramacionEditada) {
         try {
           await actualizarProgramacionMensual(tarea);
@@ -611,7 +637,7 @@ const EditarActividad: React.FC = () => {
                     <Card.Header className="bg-light">
                       <h5 className="mb-0">Editar Tareas por POA</h5>
                       <p className="text-muted small mb-0">
-                        Solo se pueden modificar las tareas existentes. Las actividades no se pueden cambiar.
+                        Se pueden modificar las tareas existentes. Las actividades pueden ser renombradas haciendo clic en el ícono del lápiz.
                       </p>
                     </Card.Header>
                     <Card.Body>
@@ -633,6 +659,7 @@ const EditarActividad: React.FC = () => {
                               onToggleTareaExpansion={toggleTareaExpansion}
                               calcularTotalActividad={calcularTotalActividad}
                               poasConActividades={poasConActividades}
+                              onActividadActualizada={handleActividadActualizada}
                             />
                           </Tab>
                         ))}
@@ -651,9 +678,9 @@ const EditarActividad: React.FC = () => {
                     Cancelar
                   </Button>
 
-                  <Button 
-                    variant="warning" 
-                    type="submit" 
+                  <Button
+                    variant="warning"
+                    type="submit"
                     disabled={isLoading || !hayTareasCambiadas()}
                   >
                     {isLoading ? (

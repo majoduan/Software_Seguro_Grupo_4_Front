@@ -2,7 +2,7 @@ import { API } from './userAPI';
 import { Actividad, ActividadCreate } from '../interfaces/actividad';
 
 export const actividadAPI = {
-    
+
     // Obtener actividades por POA
     getActividadesPorPOA: async (idPoa: string): Promise<Actividad[]> => {
         try {
@@ -72,8 +72,8 @@ export const actividadAPI = {
         }
     },
 
-      // Editar una actividad
-    editarActividad: async (idActividad: string, datos: { descripcion_actividad: string }): Promise<Actividad> => {
+    // Editar una actividad
+    editarActividad: async (idActividad: string, datos: { descripcion_actividad: string, justificacion: string }): Promise<Actividad> => {
         try {
             const response = await API.put(`/actividades/${idActividad}`, datos);
             return response.data as Actividad;
@@ -81,5 +81,5 @@ export const actividadAPI = {
             throw error;
         }
     },
-    
+
 };

@@ -1,7 +1,10 @@
 import React from 'react';
-import { Card, Button } from 'react-bootstrap';
+import { Card, Button, Modal, Form } from 'react-bootstrap';
 import { POAConActividadesYTareas } from '../interfaces/actividad';
 import { ActividadTareaService } from '../services/actividadTareaService';
+import { JustificacionModal } from './JustificacionModal';
+import { actividadAPI } from '../api/actividadAPI';
+import { showError, showSuccess } from '../utils/toast';
 
 /**
  * Objetivo: Renderizar y gestionar dinámicamente las actividades y sus tareas 
@@ -42,6 +45,7 @@ interface ActividadesPorPOAProps {
   onToggleTareaExpansion: (poaId: string, actividadId: string, tareaId: string) => void;
   calcularTotalActividad: (poaId: string, actividadId: string) => number;
   poasConActividades: POAConActividadesYTareas[];
+  onActividadActualizada?: (idActividadReal: string, nuevaDescripcion: string) => void;
 }
 
 const ActividadesPorPOA: React.FC<ActividadesPorPOAProps> = ({
@@ -50,8 +54,54 @@ const ActividadesPorPOA: React.FC<ActividadesPorPOAProps> = ({
   onEliminarTarea,
   onToggleTareaExpansion,
   calcularTotalActividad,
-  poasConActividades
+  poasConActividades,
+  onActividadActualizada
 }) => {
+  // Estados para edición de actividad
+  const [showEditActividadModal, setShowEditActividadModal] = React.useState(false);
+  const [showJustificacionModal, setShowJustificacionModal] = React.useState(false);
+  const [actividadAEditar, setActividadAEditar] = React.useState<{ id: string, descripcion: string } | null>(null);
+  const [nuevaDescripcion, setNuevaDescripcion] = React.useState('');
+  const [isUpdating, setIsUpdating] = React.useState(false);
+
+  const handleOpenEditActividad = (idReal: string, descripcionActual: string) => {
+    setActividadAEditar({ id: idReal, descripcion: descripcionActual });
+    setNuevaDescripcion(descripcionActual);
+    setShowEditActividadModal(true);
+  };
+
+  const handleConfirmEditActividad = () => {
+    if (nuevaDescripcion.trim().length < 10) {
+      showError('La descripción debe tener al menos 10 caracteres');
+      return;
+    }
+    setShowEditActividadModal(false);
+    setShowJustificacionModal(true);
+  };
+
+  const handleConfirmJustificacion = async (justificacion: string) => {
+    if (!actividadAEditar) return;
+
+    setIsUpdating(true);
+    try {
+      await actividadAPI.editarActividad(actividadAEditar.id, {
+        descripcion_actividad: nuevaDescripcion,
+        justificacion: justificacion
+      });
+
+      showSuccess('Actividad actualizada correctamente');
+      setShowJustificacionModal(false);
+
+      // Notificar al padre para actualizar el estado local
+      if (onActividadActualizada) {
+        onActividadActualizada(actividadAEditar.id, nuevaDescripcion);
+      }
+    } catch (error: any) {
+      showError('Error al actualizar la actividad: ' + (error.response?.data?.detail || error.message));
+    } finally {
+      setIsUpdating(false);
+    }
+  };
 
   // Función auxiliar para formatear números de forma segura
   const formatCurrency = (value: any): string => {
@@ -68,9 +118,24 @@ const ActividadesPorPOA: React.FC<ActividadesPorPOAProps> = ({
           id={`actividad-${actividad.actividad_id}`}
         >
           <Card.Header className="bg-light d-flex justify-content-between align-items-center">
-            <div className="d-flex align-items-center">
+            <div className="d-flex align-items-center flex-grow-1">
               <h6 className="mb-0 text-primary me-2">Actividad ({indexActividad + 1}):</h6>
-              <span>{ActividadTareaService.getDescripcionActividad(poa.id_poa, actividad.codigo_actividad, poasConActividades)}</span>
+              <span className="flex-grow-1">{ActividadTareaService.getDescripcionActividad(poa.id_poa, actividad.codigo_actividad, poasConActividades)}</span>
+
+              {actividad.id_actividad_real && (
+                <Button
+                  variant="link"
+                  size="sm"
+                  className="ms-2 p-0 text-warning"
+                  title="Editar nombre de actividad"
+                  onClick={() => handleOpenEditActividad(
+                    actividad.id_actividad_real!,
+                    ActividadTareaService.getDescripcionActividad(poa.id_poa, actividad.codigo_actividad, poasConActividades)
+                  )}
+                >
+                  <i className="bi bi-pencil-square" style={{ fontSize: '1.1rem' }}></i>
+                </Button>
+              )}
             </div>
           </Card.Header>
 
@@ -217,6 +282,44 @@ const ActividadesPorPOA: React.FC<ActividadesPorPOAProps> = ({
           </Card.Body>
         </Card>
       ))}
+      {/* Modal para editar nombre de actividad */}
+      <Modal show={showEditActividadModal} onHide={() => setShowEditActividadModal(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Editar Nombre de Actividad</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form.Group>
+            <Form.Label>Descripción de la Actividad</Form.Label>
+            <Form.Control
+              as="textarea"
+              rows={3}
+              value={nuevaDescripcion}
+              onChange={(e) => setNuevaDescripcion(e.target.value)}
+              placeholder="Ingrese el nuevo nombre/descripción de la actividad"
+            />
+            <Form.Text className="text-muted">
+              Mínimo 10 caracteres. El cambio se registrará en el rastro de auditoría.
+            </Form.Text>
+          </Form.Group>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowEditActividadModal(false)}>
+            Cancelar
+          </Button>
+          <Button variant="warning" onClick={handleConfirmEditActividad}>
+            Siguiente: Justificación
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Reutilización de JustificacionModal */}
+      <JustificacionModal
+        show={showJustificacionModal}
+        onHide={() => setShowJustificacionModal(false)}
+        onConfirm={handleConfirmJustificacion}
+        title="Justificación de Cambio en Actividad"
+        isLoading={isUpdating}
+      />
     </>
   );
 };
