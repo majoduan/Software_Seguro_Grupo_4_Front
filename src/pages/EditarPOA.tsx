@@ -7,13 +7,14 @@ import { PeriodoSelector } from '../components/PeriodoSelector';
 import { PeriodoConfigurator } from '../components/PeriodoConfigurator';
 import ProyectoSeleccionadoCard from '../components/ProyectoSeleccionadoCard';
 import BusquedaProyecto from '../components/BusquedaProyecto';
+import { JustificacionModal } from '../components/JustificacionModal';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import '../styles/NuevoPOA.css';
 
 const EditarPOA: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  
+
   /**
  * Inicialización del formulario de edición de POA
  *
@@ -25,6 +26,7 @@ const EditarPOA: React.FC = () => {
  *     - isEditing: indica que el formulario opera en modo de edición.
  */
   const form = usePOAForm({ isEditing: true });
+  const [showJustificacionModal, setShowJustificacionModal] = React.useState(false);
 
   // Submit form handler that performs navigation after successful submission
   /**
@@ -45,9 +47,14 @@ const EditarPOA: React.FC = () => {
  */
   const onSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    const success = await form.handleSubmit();
+    setShowJustificacionModal(true);
+  };
+
+  const handleConfirmJustificacion = async (justificacion: string) => {
+    const success = await form.handleSubmit(justificacion);
     if (success) {
-      navigate('/dashboard'); // Or wherever you want to redirect after editing
+      setShowJustificacionModal(false);
+      navigate('/dashboard');
     }
   };
 
@@ -63,7 +70,7 @@ const EditarPOA: React.FC = () => {
         <Card.Body className="p-4">
           <Form onSubmit={onSubmit}>
             {/* Sección de Proyecto */}
-            <BusquedaProyecto 
+            <BusquedaProyecto
               proyectos={form.proyectos}
               isLoading={form.isLoading}
               seleccionarProyecto={form.seleccionarProyecto}
@@ -71,7 +78,7 @@ const EditarPOA: React.FC = () => {
               mostrarValidacion={true}
               modoEdicion={true}
             />
-            
+
             {/* Información sobre el proyecto seleccionado */}
             {form.proyectoSeleccionado && (
               <ProyectoSeleccionadoCard
@@ -80,7 +87,7 @@ const EditarPOA: React.FC = () => {
                 departamentos={form.departamentos}
               />
             )}
-            
+
             {/* Sección de Selección de Periodos */}
             {form.proyectoSeleccionado && (
               <PeriodoSelector
@@ -99,7 +106,7 @@ const EditarPOA: React.FC = () => {
                 isEditing={true}
               />
             )}
-              
+
             {/* Sección de Configuración de POA */}
             {form.proyectoSeleccionado && form.periodosSeleccionados.length > 0 && (
               <PeriodoConfigurator
@@ -116,15 +123,15 @@ const EditarPOA: React.FC = () => {
                 presupuestoError={form.presupuestoError}
               />
             )}
-              
+
             {/* Botones de acción */}
             <Row>
               <Col md={12} className="d-flex justify-content-end gap-2">
                 <Button variant="secondary" type="button" onClick={() => navigate('/dashboard')}>
                   Cancelar
                 </Button>
-                <Button 
-                  variant="warning" 
+                <Button
+                  variant="warning"
                   type="submit"
                   disabled={form.isLoading || !form.proyectoSeleccionado || form.periodosSeleccionados.length === 0}
                 >
@@ -138,6 +145,14 @@ const EditarPOA: React.FC = () => {
               </Col>
             </Row>
           </Form>
+
+          <JustificacionModal
+            show={showJustificacionModal}
+            onHide={() => setShowJustificacionModal(false)}
+            onConfirm={handleConfirmJustificacion}
+            title="Justificación de Cambios en POA"
+            isLoading={form.isLoading}
+          />
         </Card.Body>
       </Card>
     </Container>

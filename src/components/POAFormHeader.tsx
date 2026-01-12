@@ -5,7 +5,7 @@ interface POAFormHeaderProps {
   error: string | null;
   isEditing?: boolean;
   poaId?: string;
-  errorRef?: React.RefObject<HTMLDivElement>;
+  errorRef?: React.RefObject<HTMLDivElement | null>;
 }
 
 /**
