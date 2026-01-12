@@ -129,7 +129,7 @@ const SidebarPresupuesto: React.FC<SidebarPresupuestoProps> = ({
           <div className="mt-2" style={{ maxHeight: '150px', overflowY: 'auto' }}>
             {poaActivo.actividades.map((actividad, index) => {
               const totalActividad = calcularTotalActividad(poaActivo.id_poa, actividad.actividad_id);
-              const descripcionActividad = ActividadTareaService.getDescripcionActividad(poaActivo.id_poa, actividad.codigo_actividad, poasConActividades);
+              const descripcionActividad = ActividadTareaService.getDescripcionActividad(poaActivo.id_poa, actividad.codigo_actividad, poasConActividades, actividad.actividad_id);
 
               return (
                 <div key={actividad.actividad_id} className="border-bottom pb-1 mb-1">

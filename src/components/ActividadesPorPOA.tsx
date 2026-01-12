@@ -4,6 +4,7 @@ import { POAConActividadesYTareas } from '../interfaces/actividad';
 import { ActividadTareaService } from '../services/actividadTareaService';
 import { JustificacionModal } from './JustificacionModal';
 import { actividadAPI } from '../api/actividadAPI';
+import { getActividadesPorTipoPOA } from '../utils/listaActividades';
 import { showError, showSuccess } from '../utils/toast';
 
 /**
@@ -120,7 +121,7 @@ const ActividadesPorPOA: React.FC<ActividadesPorPOAProps> = ({
           <Card.Header className="bg-light d-flex justify-content-between align-items-center">
             <div className="d-flex align-items-center flex-grow-1">
               <h6 className="mb-0 text-primary me-2">Actividad ({indexActividad + 1}):</h6>
-              <span className="flex-grow-1">{ActividadTareaService.getDescripcionActividad(poa.id_poa, actividad.codigo_actividad, poasConActividades)}</span>
+              <span className="flex-grow-1">{ActividadTareaService.getDescripcionActividad(poa.id_poa, actividad.codigo_actividad, poasConActividades, actividad.actividad_id)}</span>
 
               {actividad.id_actividad_real && (
                 <Button
@@ -130,7 +131,7 @@ const ActividadesPorPOA: React.FC<ActividadesPorPOAProps> = ({
                   title="Editar nombre de actividad"
                   onClick={() => handleOpenEditActividad(
                     actividad.id_actividad_real!,
-                    ActividadTareaService.getDescripcionActividad(poa.id_poa, actividad.codigo_actividad, poasConActividades)
+                    ActividadTareaService.getDescripcionActividad(poa.id_poa, actividad.codigo_actividad, poasConActividades, actividad.actividad_id)
                   )}
                 >
                   <i className="bi bi-pencil-square" style={{ fontSize: '1.1rem' }}></i>
@@ -288,8 +289,23 @@ const ActividadesPorPOA: React.FC<ActividadesPorPOAProps> = ({
           <Modal.Title>Editar Nombre de Actividad</Modal.Title>
         </Modal.Header>
         <Modal.Body>
+          <Form.Group className="mb-3">
+            <Form.Label>Seleccionar Actividad Predefinida</Form.Label>
+            <Form.Select
+              onChange={(e) => setNuevaDescripcion(e.target.value)}
+              value={getActividadesPorTipoPOA(poa.tipo_poa).some(a => a.descripcion === nuevaDescripcion) ? nuevaDescripcion : ""}
+            >
+              <option value="">-- Seleccione una actividad de la lista --</option>
+              {getActividadesPorTipoPOA(poa.tipo_poa).map((act, idx) => (
+                <option key={act.id} value={act.descripcion}>
+                  ({idx + 1}) {act.descripcion}
+                </option>
+              ))}
+            </Form.Select>
+          </Form.Group>
+
           <Form.Group>
-            <Form.Label>Descripción de la Actividad</Form.Label>
+            <Form.Label>Descripción de la Actividad (Personalizada)</Form.Label>
             <Form.Control
               as="textarea"
               rows={3}

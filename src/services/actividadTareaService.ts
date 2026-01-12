@@ -36,17 +36,25 @@ export class ActividadTareaService {
    *   Busca el POA correspondiente, luego dentro de sus actividades busca la que coincida con el código dado.
    *   Retorna la descripción si la encuentra, o mensajes predeterminados si no.
    */
-  static getDescripcionActividad = (poaId: string, codigoActividad: string, poasConActividades: POAConActividadesYTareas[]) => {
+  static getDescripcionActividad = (poaId: string, codigoActividad: string, poasConActividades: POAConActividadesYTareas[], actividadId?: string) => {
     const poa = poasConActividades.find(p => p.id_poa === poaId);
     if (!poa) return 'POA no encontrado';
 
-    // Prioridad 1: Si la actividad ya tiene una descripción en el estado local (viene de la DB), usarla
+    // Prioridad 1: Si tenemos el ID de la actividad, buscarla directamente en el POA
+    if (actividadId) {
+      const actividad = poa.actividades.find(act => act.actividad_id === actividadId);
+      if (actividad && actividad.descripcion_actividad) {
+        return actividad.descripcion_actividad;
+      }
+    }
+
+    // Prioridad 2: Si la actividad ya tiene una descripción en el estado local (viene de la DB), usarla
     const actividadExistente = poa.actividades.find(act => act.codigo_actividad === codigoActividad);
     if (actividadExistente && actividadExistente.descripcion_actividad) {
       return actividadExistente.descripcion_actividad;
     }
 
-    // Prioridad 2: Si no, buscar en la lista estática (caso de creación nueva)
+    // Prioridad 3: Si no, buscar en la lista estática (caso de creación nueva)
     const actividadesDisponibles = getActividadesPorTipoPOA(poa.tipo_poa);
     const actividadOpcion = actividadesDisponibles.find(act => act.id === codigoActividad);
 

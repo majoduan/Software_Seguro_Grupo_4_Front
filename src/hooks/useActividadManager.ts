@@ -137,7 +137,7 @@ export const useActividadManager = () => {
 
       for (const detalle of detallesAgrupados) {
         const numeroTarea = obtenerNumeroTarea(detalle, tipoPOA);
-        
+
         const tarea: TareaForm = {
           tempId: `pre-${poaId}-${codigoActividad}-${detalle.id_detalle_tarea}-${Date.now()}`,
           id_detalle_tarea: detalle.id_detalle_tarea,
@@ -226,7 +226,7 @@ export const useActividadManager = () => {
 
       setPoasProyecto(poasDisponibles);
       showInfo(`Proyecto seleccionado. ${poasDisponibles.length} POAs disponibles de ${poasData.length} totales.`);
-      
+
       // Limpiar cache
       cacheItemsPresupuestarios.clear();
 
@@ -244,7 +244,7 @@ export const useActividadManager = () => {
       setLoadingMessage('Cargando POAs del proyecto...');
 
       const poasData = await poaAPI.getPOAsByProyecto(proyectoId);
-      
+
       const poasConActividadesExistentes: POAExtendido[] = [];
 
       for (const poa of poasData) {
@@ -296,7 +296,7 @@ export const useActividadManager = () => {
       setLoadingMessage('Cargando POAs del proyecto...');
 
       const poasData = await poaAPI.getPOAsByProyecto(proyectoId);
-      
+
       const poasConActividadesExistentes: POAExtendido[] = [];
       const nuevosPoasConActividades: POAConActividadesYTareas[] = [];
 
@@ -308,10 +308,10 @@ export const useActividadManager = () => {
             poasConActividadesExistentes.push(poaConTipo);
 
             setLoadingMessage(`Ordenando actividades para POA ${poa.codigo_poa}...`);
-            
+
             // Importar la función de ordenamiento
             const { ordenarActividadesSegunConfiguracion } = await import('../utils/ordenarActividades');
-            
+
             // Ordenar las actividades según la configuración
             const actividadesOrdenadas = await ordenarActividadesSegunConfiguracion(
               actividades,
@@ -325,28 +325,28 @@ export const useActividadManager = () => {
             for (const actividadReal of actividadesOrdenadas) {
               // Obtener tareas de cada actividad
               const tareasReales = await tareaAPI.getTareasPorActividad(actividadReal.id_actividad);
-              
+
               // Convertir tareas reales al formato TareaForm para edición
               const tareasForm: TareaForm[] = [];
-              
+
               for (const tareaReal of tareasReales) {
                 try {
                   // Obtener programación mensual y item presupuestario en paralelo
                   const programacionPromise = tareaAPI.getProgramacionMensualPorTarea(tareaReal.id_tarea)
                     .catch(() => []); // Si falla, usar array vacío
-                  
+
                   const itemPresupuestarioPromise = tareaAPI.getItemPresupuestarioDeTarea(tareaReal.id_tarea)
                     .catch(() => ({ codigo: 'N/A' })); // Si falla, usar valor por defecto
-                  
+
                   // Ejecutar ambas consultas en paralelo
                   const [programacionData, itemPresupuestarioData] = await Promise.all([
                     programacionPromise,
                     itemPresupuestarioPromise
                   ]);
-                  
+
                   // Crear array de 12 meses inicializado en 0
                   const gastosMensuales = Array(12).fill(0);
-                  
+
                   // Llenar el array con los datos de programación
                   programacionData.forEach((programacion: ProgramacionMensualOut) => {
                     // El mes viene en formato "MM-YYYY", extraemos el mes
@@ -355,7 +355,7 @@ export const useActividadManager = () => {
                       gastosMensuales[mesNum] = toSafeNumber(programacion.valor);
                     }
                   });
-                  
+
                   const tareaForm: TareaForm = {
                     tempId: `edit-${actividadReal.id_actividad}-${tareaReal.id_tarea}-${Date.now()}`,
                     id_tarea_real: tareaReal.id_tarea, // Guardar ID real para actualizaciones
@@ -372,11 +372,11 @@ export const useActividadManager = () => {
                     expanded: false,
                     detalle: tareaReal.detalle_tarea
                   };
-                  
+
                   tareasForm.push(tareaForm);
-                  
+
                 } catch (tareaError) {
-                  
+
                   // Si hay error, usar valores por defecto
                   const tareaForm: TareaForm = {
                     tempId: `edit-${actividadReal.id_actividad}-${tareaReal.id_tarea}-${Date.now()}`,
@@ -394,27 +394,28 @@ export const useActividadManager = () => {
                     expanded: false,
                     detalle: tareaReal.detalle_tarea
                   };
-                  
+
                   tareasForm.push(tareaForm);
                 }
               }
 
               // Determinar código de actividad basado en el tipo de POA
               const actividadesPorTipo = getActividadesPorTipoPOA(poaConTipo.tipo_poa || 'PVIF');
-              const actividadTipo = actividadesPorTipo.find(act => 
+              const actividadTipo = actividadesPorTipo.find(act =>
                 act.descripcion === actividadReal.descripcion_actividad
               );
 
               actividadesConTareas.push({
                 actividad_id: `edit-${actividadReal.id_actividad}`,
                 codigo_actividad: actividadTipo?.id || 'ACT-1',
+                descripcion_actividad: actividadReal.descripcion_actividad, // Guardar descripción real
                 id_actividad_real: actividadReal.id_actividad, // Guardar ID real
                 tareas: tareasForm
               });
             }
 
             setLoadingMessage(`Cargando detalles de tareas para POA ${poa.codigo_poa}...`);
-            
+
             // Cargar detalles de tarea necesarios para agregar nuevas tareas
             const detallesTarea = await tareaAPI.getDetallesTareaPorPOA(poa.id_poa);
 
@@ -459,7 +460,7 @@ export const useActividadManager = () => {
   useEffect(() => {
     // Solo ejecutar la precarga si no estamos en modo edición
     if (modoEdicion) return;
-    
+
     const cargarDetallesTareaYPrecargar = async () => {
       if (poasProyecto.length === 0) return;
 
@@ -529,11 +530,11 @@ export const useActividadManager = () => {
     poasConActividades,
     isLoading,
     loadingMessage,
-    
+
     // Setters
     setActivePoaTab,
     setPoasConActividades,
-    
+
     // Funciones
     cargarPoasSinActividades,
     cargarPoasConActividades,
