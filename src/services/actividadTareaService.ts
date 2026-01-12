@@ -346,7 +346,8 @@ export class ActividadTareaService {
    */
   static async editarTareas(
     poasConActividades: POAConActividadesYTareas[],
-    actividadesOriginales?: POAConActividadesYTareas[]
+    actividadesOriginales?: POAConActividadesYTareas[],
+    justificacion: string = 'Actualización manual de tarea desde el módulo de edición'
   ): Promise<GuardarActividadesResult> {
     try {
       const toastId = toast.loading('Actualizando tareas...');
@@ -436,7 +437,8 @@ export class ActividadTareaService {
                   const tareaUpdate: TareaUpdate = {
                     cantidad: tarea.cantidad,
                     precio_unitario: tarea.precio_unitario,
-                    lineaPaiViiv: tarea.lineaPaiViiv || undefined
+                    lineaPaiViiv: tarea.lineaPaiViiv || undefined,
+                    justificacion: justificacion
                   };
 
                   try {

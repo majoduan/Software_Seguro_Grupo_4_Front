@@ -13,6 +13,7 @@ import InformacionPOAs from '../components/InformacionPOAs';
 import TareaModal from '../components/TareaModal';
 import ActividadesPorPOA from '../components/ActividadesPorPOA';
 import SidebarPresupuesto from '../components/SidebarPresupuesto';
+import { JustificacionModal } from '../components/JustificacionModal';
 
 import { POAConActividadesYTareas } from '../interfaces/actividad';
 import { TareaForm, ProgramacionMensualCreate } from '../interfaces/tarea';
@@ -66,6 +67,7 @@ const EditarActividad: React.FC = () => {
 
   // Estados específicos para editar
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showJustificacionModal, setShowJustificacionModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showActividades, setShowActividades] = useState(false);
   const [actividadesOriginales, setActividadesOriginales] = useState<POAConActividadesYTareas[]>([]);
@@ -427,7 +429,7 @@ const EditarActividad: React.FC = () => {
       return;
     }
 
-    setShowConfirmModal(true);
+    setShowJustificacionModal(true);
   };
 
   // Nueva función para actualizar todas las programaciones mensuales
@@ -542,16 +544,17 @@ const EditarActividad: React.FC = () => {
   };
 
   // Función para guardar cambios (actualizar tareas existentes)
-  const handleGuardarCambios = async () => {
+  const handleGuardarCambios = async (justificacion: string) => {
     try {
       // Limpiar errores previos
       setErrorMessage(null);
+      setShowJustificacionModal(false);
 
       // Primero actualizar programaciones mensuales de tareas editadas
       await actualizarProgramacionesMensuales();
 
       // Luego ejecutar el guardado normal de las tareas
-      const result = await ActividadTareaService.editarTareas(poasConActividades, actividadesOriginales);
+      const result = await ActividadTareaService.editarTareas(poasConActividades, actividadesOriginales, justificacion);
 
       if (result.success) {
         setShowConfirmModal(false);
@@ -581,6 +584,7 @@ const EditarActividad: React.FC = () => {
   // Funciones para manejo de modales
   const handleCloseModals = () => {
     setShowConfirmModal(false);
+    setShowJustificacionModal(false);
     setShowSuccessModal(false);
   };
 
@@ -708,7 +712,10 @@ const EditarActividad: React.FC = () => {
                 <Button variant="secondary" onClick={handleCloseModals}>
                   Cancelar
                 </Button>
-                <Button variant="warning" onClick={handleGuardarCambios} disabled={isLoading}>
+                <Button variant="warning" onClick={() => {
+                  setShowConfirmModal(false);
+                  setShowJustificacionModal(true);
+                }} disabled={isLoading}>
                   {isLoading ? (
                     <>
                       <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" className="me-2" />
@@ -751,6 +758,15 @@ const EditarActividad: React.FC = () => {
               onDescripcionChange={handleDescripcionChange}
               onSave={handleValidarYGuardarTarea}
               clearTaskError={clearTaskError}
+            />
+
+            {/* Modal de Justificación para tareas */}
+            <JustificacionModal
+              show={showJustificacionModal}
+              onHide={() => setShowJustificacionModal(false)}
+              onConfirm={handleGuardarCambios}
+              title="Justificación de Cambio en Tareas"
+              isLoading={isLoading}
             />
 
             {/* Indicador de carga */}

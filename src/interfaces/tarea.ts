@@ -53,6 +53,7 @@ export interface TareaUpdate {
     cantidad?: number;
     precio_unitario?: number;
     lineaPaiViiv?: number;
+    justificacion?: string;
 }
 
 export interface TipoPoaDetalleTarea {
@@ -69,54 +70,54 @@ export interface LimiteActividadesTipoPoa {
 }
 
 export interface TareaForm {
-  tempId: string;
-  id_tarea_real?: string; // Para editar tareas existentes
-  id_detalle_tarea: string;
-  nombre: string;
-  detalle_descripcion?: string;
-  cantidad: number;
-  precio_unitario: number;
-  total?: number;
-  saldo_disponible?: number;
-  gastos_mensuales?: number[];
-  expanded?: boolean;
-  detalle?: DetalleTarea;
-  itemPresupuestario?: ItemPresupuestario;
-  codigo_item?: string;
-  numero_tarea?: string;
-  id_item_presupuestario_seleccionado?: string;
-  // NUEVO campo para la descripción seleccionada
-  descripcion_seleccionada?: string;
-  lineaPaiViiv?: number;
+    tempId: string;
+    id_tarea_real?: string; // Para editar tareas existentes
+    id_detalle_tarea: string;
+    nombre: string;
+    detalle_descripcion?: string;
+    cantidad: number;
+    precio_unitario: number;
+    total?: number;
+    saldo_disponible?: number;
+    gastos_mensuales?: number[];
+    expanded?: boolean;
+    detalle?: DetalleTarea;
+    itemPresupuestario?: ItemPresupuestario;
+    codigo_item?: string;
+    numero_tarea?: string;
+    id_item_presupuestario_seleccionado?: string;
+    // NUEVO campo para la descripción seleccionada
+    descripcion_seleccionada?: string;
+    lineaPaiViiv?: number;
 }
 
 // Nueva interfaz para la respuesta del backend
 export interface TareaResponse {
-  id_tarea: string;
-  nombre: string;
-  detalle_descripcion: string;
-  cantidad: string; // Backend devuelve como string
-  precio_unitario: string; // Backend devuelve como string
-  total: string; // Backend devuelve como string
-  saldo_disponible: string; // Backend devuelve como string
-  lineaPaiViiv?: number;
+    id_tarea: string;
+    nombre: string;
+    detalle_descripcion: string;
+    cantidad: string; // Backend devuelve como string
+    precio_unitario: string; // Backend devuelve como string
+    total: string; // Backend devuelve como string
+    saldo_disponible: string; // Backend devuelve como string
+    lineaPaiViiv?: number;
 }
 
 // Interface para programación mensual
 export interface ProgramacionMensualCreate {
-  id_tarea: string;
-  mes: string; // Formato "MM-YYYY"
-  valor: number; // Backend espera decimal como number
+    id_tarea: string;
+    mes: string; // Formato "MM-YYYY"
+    valor: number; // Backend espera decimal como number
 }
 
 export interface TareaFormExtended extends TareaForm {
-  tempId: string;
-  gastos_mensuales: number[]; // Array de 12 elementos para los meses
-  expanded?: boolean;
-  saldo_disponible?: number;
-  detalle?: DetalleTarea;
-  itemPresupuestario?: ItemPresupuestario;
-  numero_tarea?: string;
+    tempId: string;
+    gastos_mensuales: number[]; // Array de 12 elementos para los meses
+    expanded?: boolean;
+    saldo_disponible?: number;
+    detalle?: DetalleTarea;
+    itemPresupuestario?: ItemPresupuestario;
+    numero_tarea?: string;
 }
 
 
