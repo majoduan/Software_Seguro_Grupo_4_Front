@@ -914,8 +914,10 @@ export const usePOAForm = ({ initialProyecto, initialPeriodos = [], isEditing = 
 
           const nuevoPOA = await poaAPI.crearPOA(datosPOA);
           poaCreados.push(nuevoPOA);
-        } catch (err) {
-          setError(`Error al crear POA: ${err instanceof Error ? err.message : 'Error desconocido'}`);
+        } catch (err: any) {
+          // Capturar el mensaje del backend si es un error HTTP 400
+          const errorMessage = err?.response?.data?.detail || err?.message || 'Error desconocido';
+          setError(`Error al crear POA: ${errorMessage}`);
           return false;
         }
       }
@@ -927,8 +929,10 @@ export const usePOAForm = ({ initialProyecto, initialPeriodos = [], isEditing = 
         setError('No se pudo crear ningún POA. Revise los logs para más detalles.');
         return false;
       }
-    } catch (err) {
-      setError(`Error al crear POAs: ${err instanceof Error ? err.message : 'Error desconocido'}`);
+    } catch (err: any) {
+      // Capturar el mensaje del backend si es un error HTTP 400
+      const errorMessage = err?.response?.data?.detail || err?.message || 'Error desconocido';
+      setError(`Error al crear POAs: ${errorMessage}`);
       return false;
     } finally {
       setIsLoading(false);
