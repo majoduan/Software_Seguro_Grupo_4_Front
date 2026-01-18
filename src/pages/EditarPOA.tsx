@@ -51,9 +51,9 @@ const EditarPOA: React.FC = () => {
   };
 
   const handleConfirmJustificacion = async (justificacion: string) => {
+    setShowJustificacionModal(false);
     const success = await form.handleSubmit(justificacion);
     if (success) {
-      setShowJustificacionModal(false);
       navigate('/dashboard');
     }
   };

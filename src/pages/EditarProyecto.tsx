@@ -128,9 +128,9 @@ const EditarProyecto: React.FC = () => {
    *     - justificacion: Texto de justificación ingresado por el usuario
    */
   const handleConfirmJustificacion = async (justificacion: string) => {
+    setShowJustificacionModal(false);
     const success = await form.handleSubmit(justificacion);
     if (success) {
-      setShowJustificacionModal(false);
       navigate('/ver-proyectos');
     }
   };
