@@ -47,6 +47,14 @@ const EditarPOA: React.FC = () => {
  */
   const onSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+
+    // Validar años de ejecución duplicados ANTES de mostrar el modal
+    const validacionAnios = await form.validarAniosEjecucionDuplicados();
+    if (!validacionAnios.esValido) {
+      form.setError(validacionAnios.mensaje || 'Error en validación de años');
+      return;
+    }
+
     setShowJustificacionModal(true);
   };
 

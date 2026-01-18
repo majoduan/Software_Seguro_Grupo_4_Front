@@ -293,6 +293,59 @@ export const usePOAForm = ({ initialProyecto, initialPeriodos = [], isEditing = 
     }
   };
 
+  // Validar que no existan años de ejecución duplicados al editar
+  const validarAniosEjecucionDuplicados = async (): Promise<{ esValido: boolean; mensaje?: string }> => {
+    if (!id_proyecto || periodosSeleccionados.length === 0) {
+      return { esValido: true };
+    }
+
+    try {
+      const poasExistentes = await poaAPI.getPOAsByProyecto(id_proyecto);
+
+      // Crear un mapa de año -> POA para los POAs existentes
+      const aniosPOAsExistentes = new Map<string, string>();
+      poasExistentes.forEach(poa => {
+        aniosPOAsExistentes.set(poa.anio_ejecucion, poa.id_poa);
+      });
+
+      // Verificar si algún año de ejecución modificado ya está en uso por otro POA
+      for (const periodo of periodosSeleccionados) {
+        const anioNuevo = anioPorPeriodo[periodo.id_periodo];
+        if (!anioNuevo) continue;
+
+        // Buscar el POA original de este periodo (por el año original del periodo)
+        const poaOriginal = poasExistentes.find(poa => poa.anio_ejecucion === periodo.anio);
+
+        // Verificar si el año nuevo ya está ocupado por OTRO POA (no el mismo)
+        const poaConEseAnio = poasExistentes.find(poa =>
+          poa.anio_ejecucion === anioNuevo &&
+          (!poaOriginal || poa.id_poa !== poaOriginal.id_poa)
+        );
+
+        if (poaConEseAnio) {
+          return {
+            esValido: false,
+            mensaje: `Ya existe un POA para el año de ejecución ${anioNuevo} en este proyecto`
+          };
+        }
+      }
+
+      // Verificar duplicados entre los mismos periodos seleccionados
+      const aniosSeleccionados = periodosSeleccionados.map(p => anioPorPeriodo[p.id_periodo]);
+      const aniosUnicos = new Set(aniosSeleccionados.filter(Boolean));
+      if (aniosUnicos.size !== aniosSeleccionados.filter(Boolean).length) {
+        return {
+          esValido: false,
+          mensaje: 'No puede asignar el mismo año de ejecución a múltiples POAs'
+        };
+      }
+
+      return { esValido: true };
+    } catch (error) {
+      return { esValido: true }; // En caso de error, permitir que el backend valide
+    }
+  };
+
   // Nueva función de validación para edición - solo permite proyectos CON POAs existentes
   /**
  * Objetivo:
@@ -717,6 +770,15 @@ export const usePOAForm = ({ initialProyecto, initialPeriodos = [], isEditing = 
       }
     }
 
+    // Validar años de ejecución duplicados en modo edición
+    if (isEditing) {
+      const validacionAnios = await validarAniosEjecucionDuplicados();
+      if (!validacionAnios.esValido) {
+        setError(validacionAnios.mensaje || 'Error en validación de años');
+        return false;
+      }
+    }
+
     setIsLoading(true);
     setError(null);
 
@@ -1039,6 +1101,7 @@ export const usePOAForm = ({ initialProyecto, initialPeriodos = [], isEditing = 
     handleSubmit,
     validarDisponibilidadProyecto,
     validarProyectoParaEdicion, // Nueva función para edición
+    validarAniosEjecucionDuplicados, // Validación de años duplicados
     calcularPeriodos,
     filtrarPeriodosDisponibles
   };
