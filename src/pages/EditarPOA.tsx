@@ -48,6 +48,13 @@ const EditarPOA: React.FC = () => {
   const onSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
 
+    // Validar presupuesto excedido ANTES de mostrar el modal
+    const validacionPresupuesto = form.validarPresupuestoExcedido();
+    if (!validacionPresupuesto.esValido) {
+      form.setError(validacionPresupuesto.mensaje || 'Error en validación de presupuesto');
+      return;
+    }
+
     // Validar años de ejecución duplicados ANTES de mostrar el modal
     const validacionAnios = await form.validarAniosEjecucionDuplicados();
     if (!validacionAnios.esValido) {

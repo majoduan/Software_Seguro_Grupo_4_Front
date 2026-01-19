@@ -346,6 +346,24 @@ export const usePOAForm = ({ initialProyecto, initialPeriodos = [], isEditing = 
     }
   };
 
+  // Validar que el presupuesto total no exceda el presupuesto aprobado del proyecto
+  const validarPresupuestoExcedido = (): { esValido: boolean; mensaje?: string } => {
+    if (!proyectoSeleccionado) {
+      return { esValido: true };
+    }
+
+    const presupuestoAprobado = parseFloat(proyectoSeleccionado.presupuesto_aprobado.toString());
+
+    if (presupuestoTotalAsignado > presupuestoAprobado) {
+      return {
+        esValido: false,
+        mensaje: `El presupuesto total asignado (${presupuestoTotalAsignado.toLocaleString('es-CO')}) excede el presupuesto aprobado del proyecto (${presupuestoAprobado.toLocaleString('es-CO')})`
+      };
+    }
+
+    return { esValido: true };
+  };
+
   // Nueva función de validación para edición - solo permite proyectos CON POAs existentes
   /**
  * Objetivo:
@@ -1102,6 +1120,7 @@ export const usePOAForm = ({ initialProyecto, initialPeriodos = [], isEditing = 
     validarDisponibilidadProyecto,
     validarProyectoParaEdicion, // Nueva función para edición
     validarAniosEjecucionDuplicados, // Validación de años duplicados
+    validarPresupuestoExcedido, // Validación de presupuesto excedido
     calcularPeriodos,
     filtrarPeriodosDisponibles
   };
