@@ -144,44 +144,48 @@ const TareaModal: React.FC<TareaModalProps> = ({
           />
         )}
 
-        <Form.Group className="mb-3">
-          <Form.Label>Detalle de Tarea</Form.Label>
-          <Form.Select
-            value={tarea.id_detalle_tarea || ''}
-            onChange={(e) => {
-              onDetalleTareaChange(e.target.value);
-              if (e.target.value) {
-                clearTaskError('detalle_tarea');
-              }
-            }}
-            disabled={cargandoDetalles}
-            isInvalid={!!taskErrors.detalle_tarea}
-          >
-            <option value="">
-              {cargandoDetalles ? 'Cargando detalles...' : 'Seleccione un detalle...'}
-            </option>
-            {detallesFiltrados.map(dt => (
-              <option key={dt.id_detalle_tarea} value={dt.id_detalle_tarea}>
-                {dt.nombre}
+        {/* Solo mostrar selector de Detalle de Tarea cuando NO se está editando */}
+        {!isEditing && (
+          <Form.Group className="mb-3">
+            <Form.Label>Detalle de Tarea</Form.Label>
+            <Form.Select
+              value={tarea.id_detalle_tarea || ''}
+              onChange={(e) => {
+                onDetalleTareaChange(e.target.value);
+                if (e.target.value) {
+                  clearTaskError('detalle_tarea');
+                }
+              }}
+              disabled={cargandoDetalles}
+              isInvalid={!!taskErrors.detalle_tarea}
+            >
+              <option value="">
+                {cargandoDetalles ? 'Cargando detalles...' : 'Seleccione un detalle...'}
               </option>
-            ))}
-          </Form.Select>
-          {taskErrors.detalle_tarea && (
-            <Form.Control.Feedback type="invalid">
-              {taskErrors.detalle_tarea}
-            </Form.Control.Feedback>
-          )}
-          {cargandoDetalles && (
-            <Form.Text className="text-muted">
-              Filtrando detalles según la actividad seleccionada...
-            </Form.Text>
-          )}
-        </Form.Group>
+              {detallesFiltrados.map(dt => (
+                <option key={dt.id_detalle_tarea} value={dt.id_detalle_tarea}>
+                  {dt.nombre}
+                </option>
+              ))}
+            </Form.Select>
+            {taskErrors.detalle_tarea && (
+              <Form.Control.Feedback type="invalid">
+                {taskErrors.detalle_tarea}
+              </Form.Control.Feedback>
+            )}
+            {cargandoDetalles && (
+              <Form.Text className="text-muted">
+                Filtrando detalles según la actividad seleccionada...
+              </Form.Text>
+            )}
+          </Form.Group>
+        )}
 
         {/* Campo para mostrar/seleccionar el código del ítem */}
         <Form.Group className="mb-3">
           <Form.Label>Código del Ítem</Form.Label>
-          {tarea.detalle?.tiene_multiples_items ? (
+          {/* En modo edición siempre mostrar como solo lectura */}
+          {!isEditing && tarea.detalle?.tiene_multiples_items ? (
             <Form.Select
               value={tarea.id_item_presupuestario_seleccionado || ''}
               onChange={(e) => {
@@ -212,7 +216,7 @@ const TareaModal: React.FC<TareaModalProps> = ({
             </Form.Control.Feedback>
           )}
           <Form.Text className="text-muted">
-            {tarea.detalle?.tiene_multiples_items
+            {!isEditing && tarea.detalle?.tiene_multiples_items
               ? "Seleccione el código específico para esta tarea."
               : "Este código se asigna automáticamente según el detalle de tarea."
             }

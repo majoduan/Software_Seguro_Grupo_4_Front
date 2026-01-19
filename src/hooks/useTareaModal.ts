@@ -301,7 +301,9 @@ export const useTareaModal = () => {
     let hasErrors = false;
 
     // Validaciones
-    if (!currentTarea.id_detalle_tarea) {
+    // Solo validar id_detalle_tarea cuando NO se está editando (tareas nuevas)
+    // Las tareas existentes ya tienen el detalle asignado en la base de datos
+    if (!isEditingTarea && !currentTarea.id_detalle_tarea) {
       setTaskError('detalle_tarea', 'Debe seleccionar un detalle de tarea');
       hasErrors = true;
     }
@@ -322,7 +324,8 @@ export const useTareaModal = () => {
       hasErrors = true;
     }
 
-    if (currentTarea.detalle?.tiene_multiples_items && !currentTarea.id_item_presupuestario_seleccionado) {
+    // Solo validar item presupuestario cuando NO se está editando
+    if (!isEditingTarea && currentTarea.detalle?.tiene_multiples_items && !currentTarea.id_item_presupuestario_seleccionado) {
       setTaskError('item_presupuestario', 'Debe seleccionar un código de ítem presupuestario');
       hasErrors = true;
     }
