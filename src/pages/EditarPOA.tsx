@@ -67,6 +67,9 @@ const EditarPOA: React.FC = () => {
 
   const handleConfirmJustificacion = async (justificacion: string) => {
     setShowJustificacionModal(false);
+    // Esperar a que el modal se cierre completamente antes de continuar
+    // Esto permite que el scroll automático al error funcione correctamente
+    await new Promise(resolve => setTimeout(resolve, 300));
     const success = await form.handleSubmit(justificacion);
     if (success) {
       navigate('/dashboard');
