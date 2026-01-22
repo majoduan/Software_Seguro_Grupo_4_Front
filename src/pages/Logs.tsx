@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Box,
   Table,
@@ -14,6 +14,9 @@ import {
   Alert,
   Tabs,
   Tab,
+  TextField,
+  Autocomplete,
+  Button,
 } from "@mui/material";
 import { historicoAPI, HistoricoProyecto, HistoricoPoa } from "../api/historicoAPI";
 
@@ -45,6 +48,11 @@ const Logs: React.FC = () => {
   const [pagePoas, setPagePoas] = useState(0);
   const [rowsPerPagePoas, setRowsPerPagePoas] = useState(10);
 
+  // Filtros
+  const [fechaInicio, setFechaInicio] = useState<string>("");
+  const [fechaFin, setFechaFin] = useState<string>("");
+  const [usuarioFiltro, setUsuarioFiltro] = useState<string | null>(null);
+
   // Cargar datos al montar el componente
   useEffect(() => {
     cargarDatos();
@@ -58,10 +66,17 @@ const Logs: React.FC = () => {
         historicoAPI.getHistoricoProyectos(0, 1000),
         historicoAPI.getHistoricoPoas(0, 1000)
       ]);
-      setHistoricoProyectos(proyectosData);
-      setHistoricoPoas(poasData);
+      setHistoricoProyectos(proyectosData || []);
+      setHistoricoPoas(poasData || []);
+      
+      // Log para debugging
+      console.log("Históricos cargados:", {
+        proyectos: proyectosData?.length || 0,
+        poas: poasData?.length || 0
+      });
     } catch (err: any) {
-      setError(err?.response?.data?.detail || "Error al cargar los históricos");
+      const errorMessage = err?.response?.data?.detail || err?.message || "Error al cargar los históricos";
+      setError(errorMessage);
       console.error("Error al cargar históricos:", err);
     } finally {
       setLoading(false);
@@ -88,14 +103,76 @@ const Logs: React.FC = () => {
     }
   };
 
+  // Obtener lista única de usuarios
+  const usuariosUnicos = useMemo(() => {
+    const usuarios = new Set<string>();
+    historicoProyectos.forEach(h => usuarios.add(h.usuario));
+    historicoPoas.forEach(h => usuarios.add(h.usuario));
+    return Array.from(usuarios).sort();
+  }, [historicoProyectos, historicoPoas]);
+
+  // Función para filtrar por fecha y usuario
+  const filtrarRegistros = <T extends { fecha_modificacion: string; usuario: string }>(
+    registros: T[]
+  ): T[] => {
+    return registros.filter(registro => {
+      // Filtrar por fecha de inicio
+      if (fechaInicio) {
+        const fechaRegistro = new Date(registro.fecha_modificacion);
+        const fechaInicioDate = new Date(fechaInicio);
+        if (fechaRegistro < fechaInicioDate) return false;
+      }
+
+      // Filtrar por fecha fin
+      if (fechaFin) {
+        const fechaRegistro = new Date(registro.fecha_modificacion);
+        const fechaFinDate = new Date(fechaFin);
+        // Agregar un día a fechaFin para incluir todo el día seleccionado
+        fechaFinDate.setDate(fechaFinDate.getDate() + 1);
+        if (fechaRegistro >= fechaFinDate) return false;
+      }
+
+      // Filtrar por usuario
+      if (usuarioFiltro && registro.usuario !== usuarioFiltro) {
+        return false;
+      }
+
+      return true;
+    });
+  };
+
+  // Aplicar filtros
+  const historicoProyectosFiltrados = useMemo(
+    () => filtrarRegistros(historicoProyectos),
+    [historicoProyectos, fechaInicio, fechaFin, usuarioFiltro]
+  );
+
+  const historicoPeasFiltrados = useMemo(
+    () => filtrarRegistros(historicoPoas),
+    [historicoPoas, fechaInicio, fechaFin, usuarioFiltro]
+  );
+
+  // Resetear paginación cuando cambian los filtros
+  useEffect(() => {
+    setPageProyectos(0);
+    setPagePoas(0);
+  }, [fechaInicio, fechaFin, usuarioFiltro]);
+
+  // Limpiar filtros
+  const limpiarFiltros = () => {
+    setFechaInicio("");
+    setFechaFin("");
+    setUsuarioFiltro(null);
+  };
+
   // Paginación de proyectos
-  const proyectosPaginados = historicoProyectos.slice(
+  const proyectosPaginados = historicoProyectosFiltrados.slice(
     pageProyectos * rowsPerPageProyectos,
     pageProyectos * rowsPerPageProyectos + rowsPerPageProyectos
   );
 
   // Paginación de POAs
-  const poasPaginados = historicoPoas.slice(
+  const poasPaginados = historicoPeasFiltrados.slice(
     pagePoas * rowsPerPagePoas,
     pagePoas * rowsPerPagePoas + rowsPerPagePoas
   );
@@ -117,13 +194,69 @@ const Logs: React.FC = () => {
         </Alert>
       )}
 
+      {/* Filtros */}
+      <Box sx={{ mb: 3, p: 2, backgroundColor: "#f5f5f5", borderRadius: 2 }}>
+        <Box
+          sx={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: 2,
+            alignItems: "center",
+          }}
+        >
+          <Box sx={{ flex: "1 1 200px", minWidth: "200px" }}>
+            <TextField
+              label="Fecha Inicio"
+              type="date"
+              value={fechaInicio}
+              onChange={(e) => setFechaInicio(e.target.value)}
+              InputLabelProps={{ shrink: true }}
+              fullWidth
+              size="small"
+            />
+          </Box>
+          <Box sx={{ flex: "1 1 200px", minWidth: "200px" }}>
+            <TextField
+              label="Fecha Fin"
+              type="date"
+              value={fechaFin}
+              onChange={(e) => setFechaFin(e.target.value)}
+              InputLabelProps={{ shrink: true }}
+              fullWidth
+              size="small"
+            />
+          </Box>
+          <Box sx={{ flex: "1 1 250px", minWidth: "250px" }}>
+            <Autocomplete
+              options={usuariosUnicos}
+              value={usuarioFiltro}
+              onChange={(_, newValue) => setUsuarioFiltro(newValue)}
+              renderInput={(params) => (
+                <TextField {...params} label="Usuario" size="small" />
+              )}
+              fullWidth
+            />
+          </Box>
+          <Box sx={{ flex: "0 1 150px", minWidth: "150px" }}>
+            <Button
+              variant="outlined"
+              onClick={limpiarFiltros}
+              fullWidth
+              sx={{ height: "40px" }}
+            >
+              Limpiar Filtros
+            </Button>
+          </Box>
+        </Box>
+      </Box>
+
       <Tabs
         value={tabValue}
         onChange={handleTabChange}
         sx={{ mb: 3, borderBottom: 1, borderColor: "divider" }}
       >
-        <Tab label={`Histórico de Proyectos (${historicoProyectos.length})`} />
-        <Tab label={`Histórico de POAs (${historicoPoas.length})`} />
+        <Tab label={`Histórico de Proyectos (${historicoProyectosFiltrados.length})`} />
+        <Tab label={`Histórico de POAs (${historicoPeasFiltrados.length})`} />
       </Tabs>
 
       {loading ? (
@@ -177,7 +310,7 @@ const Logs: React.FC = () => {
               </Table>
               <TablePagination
                 component="div"
-                count={historicoProyectos.length}
+                count={historicoProyectosFiltrados.length}
                 page={pageProyectos}
                 onPageChange={(_, newPage) => setPageProyectos(newPage)}
                 rowsPerPage={rowsPerPageProyectos}
@@ -238,7 +371,7 @@ const Logs: React.FC = () => {
               </Table>
               <TablePagination
                 component="div"
-                count={historicoPoas.length}
+                count={historicoPeasFiltrados.length}
                 page={pagePoas}
                 onPageChange={(_, newPage) => setPagePoas(newPage)}
                 rowsPerPage={rowsPerPagePoas}
