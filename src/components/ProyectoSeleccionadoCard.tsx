@@ -1,5 +1,5 @@
 import React from 'react';
-import { Row, Col, Card, OverlayTrigger, Tooltip } from 'react-bootstrap';
+import { Row, Col, Card } from 'react-bootstrap';
 import { Proyecto, Departamento } from '../interfaces/project';
 import { Periodo } from '../interfaces/periodo';
 
@@ -49,21 +49,9 @@ const ProyectoSeleccionadoCard: React.FC<ProyectoSeleccionadoCardProps> = ({
               </Col>
               <Col md={6}>
                 <p><strong>Fecha Fin:</strong> {proyectoSeleccionado.fecha_fin}</p>
-                <p className="d-flex align-items-center">
-                  <strong>Presupuesto Total del Proyecto:</strong>
-                  <span className="ms-1">${parseFloat(proyectoSeleccionado.presupuesto_aprobado.toString()).toLocaleString('es-CO')}</span>
-                  <OverlayTrigger
-                    placement="top"
-                    overlay={
-                      <Tooltip id="tooltip-presupuesto-proyecto">
-                        Monto total aprobado para el proyecto. Los POAs deben asignarse dentro de este límite.
-                      </Tooltip>
-                    }
-                  >
-                    <span className="d-inline-flex align-items-center">
-                      <i className="bi bi-info-circle ms-2 text-primary" style={{ cursor: 'pointer' }}></i>
-                    </span>
-                  </OverlayTrigger>
+                <p>
+                  <strong>Presupuesto Total del Proyecto:</strong>{' '}
+                  ${parseFloat(proyectoSeleccionado.presupuesto_aprobado.toString()).toLocaleString('es-CO')}
                 </p>
                 <p><strong>Periodos Calculados:</strong> {periodosCalculados.length}</p>
               </Col>

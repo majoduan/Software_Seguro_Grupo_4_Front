@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Row, Col, Card, ListGroup, Badge, Button, Collapse, OverlayTrigger, Tooltip } from 'react-bootstrap';
+import { Row, Col, Card, ListGroup, Badge, Button, Collapse } from 'react-bootstrap';
 import { Periodo } from '../interfaces/periodo';
 import CrearPeriodoModal from './CrearPeriodoModal';
 
@@ -178,39 +178,15 @@ export const PeriodoSelector: React.FC<PeriodoSelectorProps> = ({
             <Card.Footer className="bg-light">
               <div className="d-flex justify-content-between align-items-center">
                 <span>Total Periodos: <strong>{periodosSeleccionados.length}</strong></span>
-                <span className="d-flex align-items-center">
+                <span>
                   Suma de POAs Configurados: <strong className="ms-1">${presupuestoTotalAsignado.toLocaleString('es-CO')}</strong>
-                  <OverlayTrigger
-                    placement="top"
-                    overlay={
-                      <Tooltip id="tooltip-presupuesto-poas">
-                        Suma total del presupuesto asignado a todos los POAs configurados en esta sesión.
-                      </Tooltip>
-                    }
-                  >
-                    <span className="d-inline-flex align-items-center">
-                      <i className="bi bi-info-circle ms-1 text-primary" style={{ cursor: 'pointer' }}></i>
-                    </span>
-                  </OverlayTrigger>
                 </span>
               </div>
-              <div className="mt-2 d-flex align-items-center">
-                Saldo Disponible del Proyecto:
-                <span className={`fw-bold ms-1 ${presupuestoRestante < 0 ? 'text-danger' : 'text-success'}`}>
+              <div className="mt-2">
+                Saldo Disponible del Proyecto:{' '}
+                <span className={`fw-bold ${presupuestoRestante < 0 ? 'text-danger' : 'text-success'}`}>
                   ${presupuestoRestante.toLocaleString('es-CO')}
                 </span>
-                <OverlayTrigger
-                  placement="top"
-                  overlay={
-                    <Tooltip id="tooltip-saldo-proyecto">
-                      Monto restante del presupuesto total del proyecto padre después de asignar a los POAs.
-                    </Tooltip>
-                  }
-                >
-                  <span className="d-inline-flex align-items-center">
-                    <i className="bi bi-info-circle ms-1 text-primary" style={{ cursor: 'pointer' }}></i>
-                  </span>
-                </OverlayTrigger>
               </div>
             </Card.Footer>
           )}
