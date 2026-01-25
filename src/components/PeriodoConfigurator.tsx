@@ -1,5 +1,5 @@
 import React from 'react';
-import { Row, Col, Card, Form } from 'react-bootstrap';
+import { Row, Col, Card, Form, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { Periodo } from '../interfaces/periodo';
 
 interface PeriodoConfiguratorProps {
@@ -127,9 +127,21 @@ export const PeriodoConfigurator: React.FC<PeriodoConfiguratorProps> = ({
                 </Col>
                 <Col md={4}>
                   <Form.Group className="mb-3" controlId={`presupuesto_${periodosSeleccionados[periodoActual].id_periodo}`}>
-                    <Form.Label className="fw-semibold">Presupuesto Asignado ($) <span className="text-danger">*</span></Form.Label>
-                    <Form.Control 
-                      type="text" 
+                    <Form.Label className="fw-semibold d-flex align-items-center">
+                      Techo Máximo del POA ($) <span className="text-danger ms-1">*</span>
+                      <OverlayTrigger
+                        placement="top"
+                        overlay={
+                          <Tooltip id="tooltip-techo-poa">
+                            Monto máximo permitido para este POA. No debe exceder el saldo disponible del proyecto padre.
+                          </Tooltip>
+                        }
+                      >
+                        <i className="bi bi-info-circle ms-2 text-primary" style={{ cursor: 'pointer' }}></i>
+                      </OverlayTrigger>
+                    </Form.Label>
+                    <Form.Control
+                      type="text"
                       value={presupuestoPorPeriodo[periodosSeleccionados[periodoActual].id_periodo] || ''}
                       onChange={(e) => handlePresupuestoChange(e as React.ChangeEvent<HTMLInputElement>, periodosSeleccionados[periodoActual].id_periodo)}
                       isInvalid={!!presupuestoError}
