@@ -188,7 +188,9 @@ export const PeriodoSelector: React.FC<PeriodoSelectorProps> = ({
                       </Tooltip>
                     }
                   >
-                    <i className="bi bi-info-circle ms-1 text-primary" style={{ cursor: 'pointer' }}></i>
+                    <span className="d-inline-flex align-items-center">
+                      <i className="bi bi-info-circle ms-1 text-primary" style={{ cursor: 'pointer' }}></i>
+                    </span>
                   </OverlayTrigger>
                 </span>
               </div>
@@ -205,7 +207,9 @@ export const PeriodoSelector: React.FC<PeriodoSelectorProps> = ({
                     </Tooltip>
                   }
                 >
-                  <i className="bi bi-info-circle ms-1 text-primary" style={{ cursor: 'pointer' }}></i>
+                  <span className="d-inline-flex align-items-center">
+                    <i className="bi bi-info-circle ms-1 text-primary" style={{ cursor: 'pointer' }}></i>
+                  </span>
                 </OverlayTrigger>
               </div>
             </Card.Footer>

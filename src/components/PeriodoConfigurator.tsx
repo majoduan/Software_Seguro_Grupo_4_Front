@@ -137,7 +137,9 @@ export const PeriodoConfigurator: React.FC<PeriodoConfiguratorProps> = ({
                           </Tooltip>
                         }
                       >
-                        <i className="bi bi-info-circle ms-2 text-primary" style={{ cursor: 'pointer' }}></i>
+                        <span className="d-inline-flex align-items-center">
+                          <i className="bi bi-info-circle ms-2 text-primary" style={{ cursor: 'pointer' }}></i>
+                        </span>
                       </OverlayTrigger>
                     </Form.Label>
                     <Form.Control

@@ -60,7 +60,9 @@ const ProyectoSeleccionadoCard: React.FC<ProyectoSeleccionadoCardProps> = ({
                       </Tooltip>
                     }
                   >
-                    <i className="bi bi-info-circle ms-2 text-primary" style={{ cursor: 'pointer' }}></i>
+                    <span className="d-inline-flex align-items-center">
+                      <i className="bi bi-info-circle ms-2 text-primary" style={{ cursor: 'pointer' }}></i>
+                    </span>
                   </OverlayTrigger>
                 </p>
                 <p><strong>Periodos Calculados:</strong> {periodosCalculados.length}</p>
