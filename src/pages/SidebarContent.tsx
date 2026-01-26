@@ -160,19 +160,6 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
               </Nav.Item>
             )}
 
-            {/* Gestión de Precios Predefinidos - Solo para ADMINISTRADOR */}
-            {hasAccessTo([ROLES.ADMINISTRADOR]) && (
-              <Nav.Item>
-                <Nav.Link
-                  className={`text-white ${isActive("/gestion-precios")}`}
-                  onClick={() => handleNavigate("/gestion-precios")}
-                >
-                  <DollarSign size={iconSize} className="me-2" />
-                  Gestión de Precios
-                </Nav.Link>
-              </Nav.Item>
-            )}
-
             {/* Gestión de Departamentos - Solo para ADMINISTRADOR */}
             {hasAccessTo([ROLES.ADMINISTRADOR]) && (
               <Nav.Item>
@@ -277,6 +264,19 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
                   </Nav.Link>
                 </Nav.Item>
               </>
+            )}
+
+            {/* Gestión de Precios Predefinidos - Solo para ADMINISTRADOR */}
+            {hasAccessTo([ROLES.ADMINISTRADOR]) && (
+              <Nav.Item>
+                <Nav.Link
+                  className={`text-white ${isActive("/gestion-precios")}`}
+                  onClick={() => handleNavigate("/gestion-precios")}
+                >
+                  <DollarSign size={iconSize} className="me-2" />
+                  Gestión de Precios
+                </Nav.Link>
+              </Nav.Item>
             )}
 
 
@@ -443,20 +443,6 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
             </Nav.Item>
           )}
 
-          {/* Gestión de Precios Predefinidos */}
-          {hasAccessTo([ROLES.ADMINISTRADOR]) && (
-            <Nav.Item>
-              <Nav.Link
-                className={`text-white ${isActive("/gestion-precios")}`}
-                onClick={() => handleNavigate("/gestion-precios")}
-                style={{ cursor: 'pointer' }}
-                title="Gestión de Precios"
-              >
-                <DollarSign size={iconSize} />
-              </Nav.Link>
-            </Nav.Item>
-          )}
-
           {/* Gestión de Departamentos */}
           {hasAccessTo([ROLES.ADMINISTRADOR]) && (
             <Nav.Item>
@@ -546,6 +532,20 @@ const SidebarContent: React.FC<SidebarContentProps> = ({
                 title="Editar Actividad"
               >
                 <FileChartLine size={iconSize} />
+              </Nav.Link>
+            </Nav.Item>
+          )}
+
+          {/* Gestión de Precios Predefinidos */}
+          {hasAccessTo([ROLES.ADMINISTRADOR]) && (
+            <Nav.Item>
+              <Nav.Link
+                className={`text-white ${isActive("/gestion-precios")}`}
+                onClick={() => handleNavigate("/gestion-precios")}
+                style={{ cursor: 'pointer' }}
+                title="Gestión de Precios"
+              >
+                <DollarSign size={iconSize} />
               </Nav.Link>
             </Nav.Item>
           )}
