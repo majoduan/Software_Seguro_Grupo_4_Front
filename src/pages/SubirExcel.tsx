@@ -23,6 +23,10 @@ import { poaAPI } from "../api/poaAPI"; // Importa el API de POA
 import { TipoProyecto } from "../interfaces/project";
 import { POA } from "../interfaces/poa";
 import { excelAPI } from "../api/excelAPI"; // Importa la función de subir Excel
+import { sanitizeInput } from "../utils/sanitizer"; // Importación de sanitizador
+
+// Resultado de la carga de un par (POA, hoja)
+type ResultadoCarga = { texto: string; tipo: "ok" | "warning" | "error" };
 
 const SubirExcel: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
@@ -30,19 +34,15 @@ const SubirExcel: React.FC = () => {
   const [anio, setAnio] = useState("");
   const [tiposProyecto, setTiposProyecto] = useState<TipoProyecto[]>([]);
   const [poas, setPoas] = useState<POA[]>([]);
-  const [poaSeleccionado, setPoaSeleccionado] = useState("");
-  const [nombreHoja, setNombreHoja] = useState(""); // Estado para el nombre de la hoja
+  const [poasSeleccionados, setPoasSeleccionados] = useState<string[]>([]); // POAs seleccionados (uno por hoja)
+  const [nombresHojas, setNombresHojas] = useState<string[]>([]); // Hojas seleccionadas (una por POA)
   const [formTouched, setFormTouched] = useState(false);
+  const [subiendo, setSubiendo] = useState(false); // Deshabilita el botón mientras se procesan las cargas
   const [errors, setErrors] = useState<{
     file?: string;
-    opcion?: string;
-    poaSeleccionado?: string;
-    anio?: string;
+    poas?: string;
+    hojas?: string;
   }>({});
-  const [poaSeleccionado2, seterror2] = useState<string | undefined>(undefined);
-  const [nombreHojaError, setNombreHojaError] = useState<string | undefined>(
-    undefined
-  ); // Estado para el error del nombre de la hoja
 
   // Estados para el Snackbar
   const [openSnackbar, setOpenSnackbar] = useState(false);
@@ -52,10 +52,16 @@ const SubirExcel: React.FC = () => {
   >("info");
 
   const [openDialog, setOpenDialog] = useState(false); // Estado para el diálogo de confirmación
-  const [pendingRequest, setPendingRequest] = useState<FormData | null>(null); // Almacena la solicitud pendiente
+  // Pares (POA, hoja) cuyo POA ya tiene actividades y esperan confirmación del usuario
+  const [paresPendientes, setParesPendientes] = useState<
+    { idPoa: string; hoja: string }[]
+  >([]);
+  // Resultados de los pares ya procesados, a la espera de resolver los pendientes
+  const [resultadosParciales, setResultadosParciales] = useState<
+    ResultadoCarga[]
+  >([]);
 
   const [hojas, setHojas] = useState<string[]>([]); // Estado para los nombres de las hojas
-  const [seleccionManualPoa, setSeleccionManualPoa] = useState(false);
   // Función para cerrar el Snackbar
   const handleCloseSnackbar = () => {
     setOpenSnackbar(false);
@@ -112,107 +118,31 @@ const SubirExcel: React.FC = () => {
     fetchPOAs();
   }, []);
 
-  // Actualizar el nombre de la hoja automáticamente cuando se selecciona un año
-  useEffect(() => {
-    if (hojas.length > 0 && anio) {
-      const hojaConAnio = hojas.find((sheet) => sheet.includes(anio));
-      setNombreHoja(hojaConAnio || ""); // Seleccionar la hoja o dejar vacío
-    }
-  }, [anio, hojas]);
+  // Obtener el código legible de un POA a partir de su id
+  const codigoDePoa = (idPoa: string): string =>
+    poas.find((p) => p.id_poa === idPoa)?.codigo_poa || idPoa;
 
-  // Sincronizar POA cuando se selecciona tipo de proyecto y año
-  useEffect(() => {
-    if (opcion && anio) {
-      if (!seleccionManualPoa) {
-        // Solo si no fue manual
-        const tipoProyecto = tiposProyecto.find(
-          (tipo) => tipo.id_tipo_proyecto === opcion
-        );
-        if (tipoProyecto) {
-          const poa = poas.find(
-            (p) =>
-              obtenerCodigoTipo(p.codigo_poa) === tipoProyecto.codigo_tipo &&
-              p.anio_ejecucion === String(anio)
-          );
-          seterror2(undefined);
-          if (poa) {
-            setPoaSeleccionado(poa.id_poa); // Actualizar POA
-            setErrors((prev) => ({ ...prev, poaSeleccionado: undefined })); // Limpiar error
-          } else {
-            setPoaSeleccionado(""); // Limpiar POA si no coincide
-            seterror2(
-              "No se encontró un POA para el tipo de proyecto y año seleccionados."
-            );
-          }
-        }
-      }
-    } else {
-      setPoaSeleccionado(""); // Limpiar POA si no hay tipo de proyecto o año
-      seterror2(undefined);
-    }
-  }, [opcion, anio, poas, tiposProyecto]);
-
-  // Sincronizar campos cuando se selecciona un POA
-  useEffect(() => {
-    if (poaSeleccionado) {
-      const poa = poas.find((p) => p.id_poa === poaSeleccionado);
-      if (poa) {
-        // Extraer el prefijo del código POA
-        const codigoTipo = obtenerCodigoTipo(poa.codigo_poa);
-        if (codigoTipo) {
-          // Buscar el tipo de proyecto correspondiente
-          const tipoProyecto = tiposProyecto.find(
-            (tipo) => tipo.codigo_tipo === codigoTipo
-          );
-          if (tipoProyecto) {
-            setOpcion(tipoProyecto.id_tipo_proyecto); // Actualizar tipo de proyecto
-          } else {
-            setErrors((prev) => ({
-              ...prev,
-              opcion:
-                "No se encontró un tipo de proyecto para el POA seleccionado.",
-            }));
-          }
-        }
-        setAnio(poa.anio_ejecucion); // Actualizar año
-        setErrors((prev) => ({ ...prev, poaSeleccionado: undefined })); // Limpiar error
-      } else {
-        setErrors((prev) => ({
-          ...prev,
-          poaSeleccionado: "El POA seleccionado no existe.",
-        }));
-      }
-    }
-  }, [poaSeleccionado, poas, tiposProyecto]);
-
-  // Validar automáticamente el formulario y generar el nombre de la hoja
+  // Validar automáticamente el formulario: archivo presente y misma cantidad de POAs y hojas
   useEffect(() => {
     const newErrors: {
       file?: string;
-      opcion?: string;
-      poaSeleccionado?: string;
-      anio?: string;
+      poas?: string;
+      hojas?: string;
     } = {};
 
     if (!file) {
       newErrors.file = "Debes seleccionar un archivo.";
     }
-    if (!opcion) {
-      newErrors.opcion = "Debes seleccionar un tipo de proyecto.";
+    if (poasSeleccionados.length === 0) {
+      newErrors.poas = "Debes seleccionar al menos un POA.";
     }
-    if (!poaSeleccionado) {
-      newErrors.poaSeleccionado = "Debes seleccionar un POA.";
-    }
-    if (!anio) {
-      newErrors.anio = "Debes seleccionar un año.";
-    }
-    if (!nombreHoja) {
-      setNombreHojaError("Debes seleccionar el nombre de la hoja.");
-    } else {
-      setNombreHojaError(undefined);
+    if (nombresHojas.length === 0) {
+      newErrors.hojas = "Debes seleccionar al menos una hoja.";
+    } else if (nombresHojas.length !== poasSeleccionados.length) {
+      newErrors.hojas = `Debes seleccionar la misma cantidad de POAs y hojas (tienes ${poasSeleccionados.length} POA(s) y ${nombresHojas.length} hoja(s)).`;
     }
     setErrors(newErrors);
-  }, [file, opcion, poaSeleccionado, anio, nombreHoja]); // Ejecutar cada vez que cambie alguno de estos estados
+  }, [file, poasSeleccionados, nombresHojas]); // Ejecutar cada vez que cambie alguno de estos estados
 
   // Manejar el cambio de archivo
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -242,21 +172,7 @@ const SubirExcel: React.FC = () => {
         const workbook = XLSX.read(data, { type: "array" });
         const sheetNames = workbook.SheetNames; // Obtener los nombres de las hojas
         setHojas(sheetNames);
-
-        // Seleccionar automáticamente la hoja que contenga el año seleccionado
-        if (anio) {
-          const hojaConAnio = sheetNames.find((sheet) => sheet.includes(anio));
-          console.log(hojaConAnio);
-          setNombreHoja(hojaConAnio || ""); // Seleccionar la hoja o dejar vacío
-          if (!hojaConAnio) {
-            setNombreHojaError("Debes seleccionar un año.");
-          } else {
-            setNombreHojaError(undefined); // Limpiar error si se selecciona una hoja válida
-          }
-        } else {
-          setNombreHoja(""); // Limpiar si no hay año seleccionado
-          setNombreHojaError("Debes seleccionar un año.");
-        }
+        setNombresHojas([]); // Reiniciar la selección de hojas al cambiar el archivo
       };
       reader.readAsArrayBuffer(selectedFile);
     }
@@ -291,14 +207,7 @@ const SubirExcel: React.FC = () => {
         const workbook = XLSX.read(data, { type: "array" });
         const sheetNames = workbook.SheetNames; // Obtener los nombres de las hojas
         setHojas(sheetNames);
-
-        // Seleccionar automáticamente la hoja que contenga el año seleccionado
-        if (anio) {
-          const hojaConAnio = sheetNames.find((sheet) => sheet.includes(anio));
-          setNombreHoja(hojaConAnio || ""); // Seleccionar la hoja o dejar vacío
-        } else {
-          setNombreHoja(""); // Limpiar si no hay año seleccionado
-        }
+        setNombresHojas([]); // Reiniciar la selección de hojas al cambiar el archivo
       };
       reader.readAsArrayBuffer(selectedFile);
     }
@@ -317,124 +226,165 @@ const SubirExcel: React.FC = () => {
   const handleRemoveFile = () => {
     setFile(null);
     setHojas([]); // Limpiar las hojas
-    setNombreHoja(""); // Limpiar el nombre de la hoja
+    setNombresHojas([]); // Limpiar la selección de hojas
     setErrors((prev) => ({ ...prev, file: undefined }));
+  };
+
+  // Sube un par (POA, hoja) al backend con el archivo cargado.
+  // Devuelve "pendiente" si el POA ya tiene actividades y el backend pide confirmación.
+  const subirPar = async (
+    idPoa: string,
+    hoja: string,
+    confirmacion: boolean
+  ): Promise<ResultadoCarga | "pendiente"> => {
+    const codigo = codigoDePoa(idPoa);
+    const formData = new FormData();
+    formData.append("file", file!);
+    formData.append("id_poa", idPoa);
+    formData.append("hoja", hoja);
+    if (confirmacion) {
+      formData.append("confirmacion", "true");
+    }
+
+    try {
+      const data = await excelAPI.subirExcel(formData);
+
+      if (data.requires_confirmation) {
+        return "pendiente";
+      }
+
+      let texto = `${codigo} (hoja "${hoja}"): actividades y tareas creadas exitosamente.`;
+      let tipo: "ok" | "warning" = "ok";
+
+      // Verificar si hay warning de presupuesto
+      if (data.warning && data.warning.excede_presupuesto) {
+        texto = `${codigo} (hoja "${hoja}"): ${data.warning.mensaje}`;
+        tipo = "warning";
+      }
+
+      // Si también hay otros errores, agregarlos
+      if (data.errores && data.errores.length > 0) {
+        texto += `\nAdvertencias adicionales: ${data.errores.join(" | ")}`;
+        tipo = "warning";
+      }
+
+      return { texto, tipo };
+    } catch (err: any) {
+      return {
+        texto: `${codigo} (hoja "${hoja}"): ${
+          err.detail || "Error al procesar el archivo."
+        }`,
+        tipo: "error",
+      };
+    }
+  };
+
+  // Muestra el resumen de todos los pares procesados y limpia el formulario si todo salió bien
+  const mostrarResumen = (resultados: ResultadoCarga[]) => {
+    const hayError = resultados.some((r) => r.tipo === "error");
+    const hayWarning = resultados.some((r) => r.tipo === "warning");
+
+    let severidad: "success" | "warning" | "error" = "success";
+    if (hayError && resultados.every((r) => r.tipo === "error")) {
+      severidad = "error";
+    } else if (hayError || hayWarning) {
+      severidad = "warning";
+    }
+
+    setMessage(resultados.map((r) => r.texto).join("\n"));
+    setSeverity(severidad);
+    setOpenSnackbar(true);
+
+    // Limpiar formulario solo si todas las cargas fueron exitosas
+    if (!hayError && !hayWarning) {
+      setFile(null);
+      setOpcion("");
+      setAnio("");
+      setPoasSeleccionados([]);
+      setNombresHojas([]);
+      setHojas([]);
+      setFormTouched(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormTouched(true); // Marcar el formulario como tocado
 
-    // Si hay errores, no enviar el formulario o si no hay hoja seleccionada
-    if (Object.keys(errors).length > 0 || !nombreHoja) {
+    // Si hay errores, no enviar el formulario
+    if (Object.keys(errors).length > 0) {
       setMessage("Por favor, corrige los errores antes de enviar.");
       setSeverity("error");
       setOpenSnackbar(true);
       return;
     }
 
-    const formData = new FormData();
-    formData.append("file", file!);
-    formData.append("id_poa", poaSeleccionado); // Agregar el POA seleccionado
-    formData.append("hoja", nombreHoja); // Usar el valor del input para el nombre de la hoja
+    setSubiendo(true);
 
-    try {
-      const data = await excelAPI.subirExcel(formData);
+    // Procesar cada par por orden de selección: el primer POA recibe la primera hoja, y así sucesivamente
+    const resultados: ResultadoCarga[] = [];
+    const pendientes: { idPoa: string; hoja: string }[] = [];
 
-      if (data.requires_confirmation) {
-        setPendingRequest(formData);
-        setOpenDialog(true);
+    for (let i = 0; i < poasSeleccionados.length; i++) {
+      const idPoa = poasSeleccionados[i];
+      const hoja = nombresHojas[i];
+      const resultado = await subirPar(idPoa, hoja, false);
+      if (resultado === "pendiente") {
+        pendientes.push({ idPoa, hoja });
       } else {
-        // Construir mensaje de respuesta
-        let mensaje = "Actividades y tareas creadas exitosamente.";
-        let severidadRespuesta: "success" | "warning" = "success";
-
-        // Verificar si hay warning de presupuesto
-        if (data.warning && data.warning.excede_presupuesto) {
-          mensaje = data.warning.mensaje;
-          severidadRespuesta = "warning";
-        }
-
-        // Si también hay otros errores, agregarlos
-        if (data.errores && data.errores.length > 0) {
-          mensaje += `\n\nAdvertencias adicionales:\n${data.errores.join("\n")}`;
-          severidadRespuesta = "warning";
-        }
-
-        setMessage(mensaje);
-        setSeverity(severidadRespuesta);
-
-        // Limpiar formulario solo si fue éxito completo
-        if (!data.warning || !data.warning.excede_presupuesto) {
-          setFile(null);
-          setOpcion("");
-          setAnio("");
-          setPoaSeleccionado("");
-          setNombreHoja("");
-          setHojas([]);
-          setFormTouched(false);
-        }
-
-        setOpenSnackbar(true);
+        resultados.push(resultado);
       }
-    } catch (err: any) {
-      setMessage(err.detail || "Error al procesar el archivo.");
-      setSeverity("error");
-      setOpenSnackbar(true);
+    }
+
+    setSubiendo(false);
+
+    if (pendientes.length > 0) {
+      // Guardar el avance y pedir confirmación para los POAs que ya tienen actividades
+      setResultadosParciales(resultados);
+      setParesPendientes(pendientes);
+      setOpenDialog(true);
+    } else {
+      mostrarResumen(resultados);
     }
   };
 
   const handleConfirm = async () => {
-    if (!pendingRequest) return;
+    if (paresPendientes.length === 0) return;
 
-    // Agregar confirmación al FormData y reenviar la solicitud
-    pendingRequest.append("confirmacion", "true");
+    setOpenDialog(false);
+    setSubiendo(true);
 
-    try {
-      const data = await excelAPI.subirExcel(pendingRequest);
-
-      // Construir mensaje de respuesta
-      let mensaje = "Actividades y tareas creadas exitosamente.";
-      let severidadRespuesta: "success" | "warning" = "success";
-
-      // Verificar si hay warning de presupuesto
-      if (data.warning && data.warning.excede_presupuesto) {
-        mensaje = data.warning.mensaje;
-        severidadRespuesta = "warning";
+    const resultados: ResultadoCarga[] = [...resultadosParciales];
+    for (const par of paresPendientes) {
+      const resultado = await subirPar(par.idPoa, par.hoja, true);
+      // Con confirmación explícita el backend no vuelve a pedirla
+      if (resultado !== "pendiente") {
+        resultados.push(resultado);
       }
-
-      // Si también hay otros errores, agregarlos
-      if (data.errores && data.errores.length > 0) {
-        mensaje += `\n\nAdvertencias adicionales:\n${data.errores.join("\n")}`;
-        severidadRespuesta = "warning";
-      }
-
-      setMessage(mensaje);
-      setSeverity(severidadRespuesta);
-
-      // Limpiar formulario solo si fue éxito completo
-      if (!data.warning || !data.warning.excede_presupuesto) {
-        setFile(null);
-        setOpcion("");
-        setAnio("");
-        setPoaSeleccionado("");
-        setNombreHoja("");
-        setHojas([]);
-        setFormTouched(false);
-      }
-    } catch (err: any) {
-      setMessage(err.detail || "Error al procesar el archivo.");
-      setSeverity("error");
-    } finally {
-      setOpenDialog(false);
-      setPendingRequest(null);
-      setOpenSnackbar(true);
     }
+
+    setSubiendo(false);
+    setParesPendientes([]);
+    setResultadosParciales([]);
+    mostrarResumen(resultados);
   };
 
   const handleCancel = () => {
     setOpenDialog(false);
-    setPendingRequest(null);
+
+    // Los pares no confirmados se reportan como omitidos
+    const omitidos: ResultadoCarga[] = paresPendientes.map((par) => ({
+      texto: `${codigoDePoa(par.idPoa)} (hoja "${par.hoja}"): omitido, el POA conserva sus actividades actuales.`,
+      tipo: "warning" as const,
+    }));
+
+    const resultados = [...resultadosParciales, ...omitidos];
+    setParesPendientes([]);
+    setResultadosParciales([]);
+
+    if (resultados.length > 0) {
+      mostrarResumen(resultados);
+    }
   };
 
   return (
@@ -450,10 +400,7 @@ const SubirExcel: React.FC = () => {
             <Select
               labelId="opcion-label"
               value={opcion}
-              onChange={(e) => {
-                setOpcion(e.target.value);
-                setSeleccionManualPoa(false); // <-- Resetea selección manual
-              }}
+              onChange={(e) => setOpcion(sanitizeInput(e.target.value))}
               label="Seleccione tipo de Proyecto"
               className="custom-select"
               renderValue={(selected) => {
@@ -479,9 +426,6 @@ const SubirExcel: React.FC = () => {
                 </MenuItem>
               ))}
             </Select>
-            {formTouched && errors.opcion && (
-              <Typography color="error">{errors.opcion}</Typography>
-            )}
           </FormControl>
           {/* Selector de año */}
           <FormControl fullWidth className="input-margin">
@@ -491,10 +435,7 @@ const SubirExcel: React.FC = () => {
             <Select
               labelId="anio-label"
               value={anio}
-              onChange={(e) => {
-                setAnio(e.target.value);
-                setSeleccionManualPoa(false); // <-- Resetea selección manual
-              }}
+              onChange={(e) => setAnio(sanitizeInput(e.target.value))}
               label="Selecciona un año"
               className="custom-select"
             >
@@ -509,40 +450,37 @@ const SubirExcel: React.FC = () => {
                 );
               })}
             </Select>
-            {formTouched && errors.anio && (
-              <Typography color="error">{errors.anio}</Typography>
-            )}
           </FormControl>
 
-          {/* Selector de POA */}
+          {/* Selector de POA (selección múltiple, uno por hoja del Excel) */}
           <FormControl fullWidth className="input-margin">
             <InputLabel id="poa-label" className="custom-label">
-              Seleccione POA
+              Seleccione POA(s)
             </InputLabel>
             <Select
               labelId="poa-label"
-              value={poaSeleccionado}
+              multiple
+              value={poasSeleccionados}
               onChange={(e) => {
-                setPoaSeleccionado(e.target.value);
-                setSeleccionManualPoa(true); // <-- Selección manual
+                const value = e.target.value;
+                const seleccion =
+                  typeof value === "string" ? value.split(",") : value;
+                setPoasSeleccionados(seleccion.map((v) => sanitizeInput(v)));
               }}
-              label="Seleccione POA"
+              label="Seleccione POA(s)"
               className="custom-select"
+              renderValue={(selected) =>
+                (selected as string[]).map((id) => codigoDePoa(id)).join(", ")
+              }
             >
-              <MenuItem value="" disabled>
-                -- Selecciona un POA --
-              </MenuItem>
               {poasFiltrados.map((poa) => (
                 <MenuItem key={poa.id_poa} value={poa.id_poa}>
                   {poa.codigo_poa}
                 </MenuItem>
               ))}
             </Select>
-            {poaSeleccionado2 && (
-              <Typography color="error">{poaSeleccionado2}</Typography>
-            )}
-            {formTouched && errors.poaSeleccionado && !poaSeleccionado2 && (
-              <Typography color="error">{errors.poaSeleccionado}</Typography>
+            {formTouched && errors.poas && (
+              <Typography color="error">{errors.poas}</Typography>
             )}
           </FormControl>
 
@@ -577,8 +515,8 @@ const SubirExcel: React.FC = () => {
           {formTouched && errors.file && (
             <Typography color="error">{errors.file}</Typography>
           )}
-          {/* Selector para el nombre de la hoja */}
-          {Object.keys(errors).length === 0 && file && (
+          {/* Selector para los nombres de las hojas (selección múltiple, una por POA) */}
+          {file && hojas.length > 0 && (
             <FormControl
               fullWidth
               className="input-margin"
@@ -589,14 +527,21 @@ const SubirExcel: React.FC = () => {
                 className="custom-label"
                 sx={{ marginBottom: "0px" }}
               >
-                Seleccione el nombre de la hoja
+                Seleccione las hojas
               </InputLabel>
               <Select
                 labelId="hoja-label"
-                value={nombreHoja}
-                onChange={(e) => setNombreHoja(e.target.value)}
-                label="Seleccione el nombre de la hoja"
+                multiple
+                value={nombresHojas}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  const seleccion =
+                    typeof value === "string" ? value.split(",") : value;
+                  setNombresHojas(seleccion.map((v) => sanitizeInput(v)));
+                }}
+                label="Seleccione las hojas"
                 className="custom-select2"
+                renderValue={(selected) => (selected as string[]).join(", ")}
               >
                 {hojas.map((hoja, index) => (
                   <MenuItem key={index} value={hoja}>
@@ -604,11 +549,27 @@ const SubirExcel: React.FC = () => {
                   </MenuItem>
                 ))}
               </Select>
-              {/*  Mensaje de error para el nombre de la hoja si no se selecciona y el formulario ha sido tocado y hay un archivo */}
-              {formTouched && nombreHojaError && file && (
-                <Typography color="error">{nombreHojaError}</Typography>
+              {/* Mensaje de error si la cantidad de hojas no coincide con la de POAs */}
+              {formTouched && errors.hojas && (
+                <Typography color="error">{errors.hojas}</Typography>
               )}
             </FormControl>
+          )}
+
+          {/* Vista previa del emparejamiento: cada hoja se carga en el POA del mismo orden de selección */}
+          {poasSeleccionados.length > 0 && nombresHojas.length > 0 && (
+            <div style={{ marginTop: "16px" }}>
+              <Typography variant="subtitle2">
+                Así se cargarán las hojas en los POAs:
+              </Typography>
+              {poasSeleccionados.map((idPoa, i) => (
+                <Typography key={idPoa} variant="body2">
+                  {`${codigoDePoa(idPoa)}  ⟵  ${
+                    nombresHojas[i] || "(sin hoja asignada)"
+                  }`}
+                </Typography>
+              ))}
+            </div>
           )}
 
           {/* Botón de subir */}
@@ -617,8 +578,9 @@ const SubirExcel: React.FC = () => {
             variant="contained"
             className="custom-button"
             fullWidth
+            disabled={subiendo}
           >
-            Subir
+            {subiendo ? "Subiendo..." : "Subir"}
           </Button>
         </form>
       </div>
@@ -652,8 +614,9 @@ const SubirExcel: React.FC = () => {
         <DialogTitle>Confirmación requerida</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            El POA seleccionado ya tiene actividades asociadas. ¿Deseas
-            reemplazarlas con las nuevas actividades del Excel?
+            {`Los siguientes POAs ya tienen actividades asociadas: ${paresPendientes
+              .map((par) => codigoDePoa(par.idPoa))
+              .join(", ")}. ¿Deseas reemplazarlas con las nuevas actividades del Excel?`}
           </DialogContentText>
         </DialogContent>
         <DialogActions>
