@@ -151,7 +151,7 @@ const TareaModal: React.FC<TareaModalProps> = ({
             <Form.Select
               value={tarea.id_detalle_tarea || ''}
               onChange={(e) => {
-                onDetalleTareaChange(e.target.value);
+                onDetalleTareaChange(sanitizeInput(e.target.value));
                 if (e.target.value) {
                   clearTaskError('detalle_tarea');
                 }
@@ -189,7 +189,7 @@ const TareaModal: React.FC<TareaModalProps> = ({
             <Form.Select
               value={tarea.id_item_presupuestario_seleccionado || ''}
               onChange={(e) => {
-                onItemPresupuestarioChange(e.target.value);
+                onItemPresupuestarioChange(sanitizeInput(e.target.value));
                 if (e.target.value) {
                   clearTaskError('item_presupuestario');
                 }
@@ -229,7 +229,7 @@ const TareaModal: React.FC<TareaModalProps> = ({
             type="text"
             value={tarea.nombre || ''}
             onChange={(e) => {
-              handleTareaFieldChange('nombre', e.target.value);
+              handleTareaFieldChange('nombre', sanitizeInput(e.target.value));
               if (e.target.value.trim()) {
                 clearTaskError('nombre');
               }

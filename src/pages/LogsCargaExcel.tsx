@@ -19,6 +19,7 @@ import {
   TablePagination,
 } from "@mui/material";
 import { excelAPI } from "../api/excelAPI";
+import { sanitizeInput } from "../utils/sanitizer"; // Importación añadida para sanitización
 import "../styles/LogsCargaExcel.css"; // Import your custom styles
 const LogsCargaExcel: React.FC = () => {
   const [logs, setLogs] = useState<any[]>([]);
@@ -52,7 +53,7 @@ const LogsCargaExcel: React.FC = () => {
  */
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFilters((prev) => ({ ...prev, [name]: value }));
+    setFilters((prev) => ({ ...prev, [name]: sanitizeInput(value) })); // Sanitización aplicada
   };
 
   
@@ -72,7 +73,7 @@ const LogsCargaExcel: React.FC = () => {
  */
   const handleSelectChange = (e: SelectChangeEvent<string>) => {
     const { name, value } = e.target;
-    setFilters((prev) => ({ ...prev, [name as string]: value }));
+    setFilters((prev) => ({ ...prev, [name as string]: sanitizeInput(value) })); // Sanitización aplicada
   };
 
   /**

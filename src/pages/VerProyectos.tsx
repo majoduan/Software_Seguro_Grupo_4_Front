@@ -144,22 +144,17 @@ const VerProyectos: React.FC = () => {
 
   // Función para actualizar filtros con sanitización
   const updateFilter = (filterKey: keyof FilterState, value: string) => {
-    // Crear un setter temporal para aplicar sanitización solo a los campos de texto
-    const sanitizedSetter = (newValue: string) => {
+    // Crear un setter temporal para actualizar el estado
+    const setter = (newValue: string) => {
       setFilters(prev => ({
         ...prev,
         [filterKey]: newValue
       }));
     };
 
-    // Aplicar sanitización a campos que pueden contener entrada de usuario
-    if (filterKey === 'searchTerm' || filterKey === 'minBudget' || filterKey === 'maxBudget') {
-      const sanitizedSetValue = withSanitization(sanitizedSetter, filterKey);
-      sanitizedSetValue(value);
-    } else {
-      // Para otros campos (selects), aplicar directamente
-      sanitizedSetter(value);
-    }
+    // Aplicar sanitización a todos los campos (inputs y selects) usando el envoltorio
+    const sanitizedSetValue = withSanitization(setter, filterKey);
+    sanitizedSetValue(value);
   };
 
   // Función para limpiar filtros

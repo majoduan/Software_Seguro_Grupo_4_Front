@@ -14,6 +14,7 @@ import iconoExcel from "../assets/icono-excel.png";
 import { reporteAPI } from '../api/reporteAPI';
 import { projectAPI } from '../api/projectAPI';
 import { Departamento } from '../interfaces/project';
+import { sanitizeInput } from '../utils/sanitizer';
 import "../styles/ReportePOA.css"; 
 
 const tiposProyecto = [
@@ -148,7 +149,7 @@ const ReportePOA: React.FC = () => {
             <Select
               labelId="tipo-proyecto-label"
               value={tipoProyecto}
-              onChange={(e) => setTipoProyecto(e.target.value)}
+              onChange={(e) => setTipoProyecto(sanitizeInput(e.target.value))}
               label="Tipo de Proyecto"
               className="custom-select"
             >
@@ -167,7 +168,7 @@ const ReportePOA: React.FC = () => {
             <Select
               labelId="anio-label"
               value={anio}
-              onChange={(e) => setAnio(e.target.value)}
+              onChange={(e) => setAnio(sanitizeInput(e.target.value))}
               label="Año"
               className="custom-select"
             >
@@ -189,7 +190,7 @@ const ReportePOA: React.FC = () => {
             <Select
               labelId="departamento-label"
               value={departamento}
-              onChange={(e) => setDepartamento(e.target.value)}
+              onChange={(e) => setDepartamento(sanitizeInput(e.target.value))}
               label="Departamento"
               className="custom-select"
             >

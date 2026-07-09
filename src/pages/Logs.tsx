@@ -19,6 +19,7 @@ import {
   Button,
 } from "@mui/material";
 import { historicoAPI, HistoricoProyecto, HistoricoPoa } from "../api/historicoAPI";
+import { sanitizeInput } from "../utils/sanitizer"; // Importación de sanitizador
 
 /**
  * Página de Logs del Sistema
@@ -209,7 +210,7 @@ const Logs: React.FC = () => {
               label="Fecha Inicio"
               type="date"
               value={fechaInicio}
-              onChange={(e) => setFechaInicio(e.target.value)}
+              onChange={(e) => setFechaInicio(sanitizeInput(e.target.value))}
               InputLabelProps={{ shrink: true }}
               fullWidth
               size="small"
@@ -220,7 +221,7 @@ const Logs: React.FC = () => {
               label="Fecha Fin"
               type="date"
               value={fechaFin}
-              onChange={(e) => setFechaFin(e.target.value)}
+              onChange={(e) => setFechaFin(sanitizeInput(e.target.value))}
               InputLabelProps={{ shrink: true }}
               fullWidth
               size="small"
@@ -230,7 +231,7 @@ const Logs: React.FC = () => {
             <Autocomplete
               options={usuariosUnicos}
               value={usuarioFiltro}
-              onChange={(_, newValue) => setUsuarioFiltro(newValue)}
+              onChange={(_, newValue) => setUsuarioFiltro(newValue ? sanitizeInput(newValue) : null)}
               renderInput={(params) => (
                 <TextField {...params} label="Usuario" size="small" />
               )}
