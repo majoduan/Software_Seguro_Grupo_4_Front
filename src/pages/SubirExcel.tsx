@@ -122,6 +122,31 @@ const SubirExcel: React.FC = () => {
   const codigoDePoa = (idPoa: string): string =>
     poas.find((p) => p.id_poa === idPoa)?.codigo_poa || idPoa;
 
+  // Elimina las 3 primeras columnas (izquierda a derecha) de todas las hojas del Excel
+  const eliminarPrimerasColumnas = (data: Uint8Array, nombreArchivo: string): File => {
+    // cellDates: true preserva las celdas de fecha como objetos Date (no como texto),
+    // ya que el backend distingue explícitamente las columnas de fecha por su tipo.
+    const workbook = XLSX.read(data, { type: "array", cellDates: true });
+
+    workbook.SheetNames.forEach((nombreHoja) => {
+      const hoja = workbook.Sheets[nombreHoja];
+      const filas: unknown[][] = XLSX.utils.sheet_to_json(hoja, {
+        header: 1,
+        raw: true,
+        defval: "",
+      });
+      const filasRecortadas = filas.map((fila) => fila.slice(3));
+      workbook.Sheets[nombreHoja] = XLSX.utils.aoa_to_sheet(filasRecortadas, {
+        cellDates: true,
+      });
+    });
+
+    const wbout = XLSX.write(workbook, { type: "array", bookType: "xlsx" });
+    return new File([wbout], nombreArchivo, {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+  };
+
   // Validar automáticamente el formulario: archivo presente y misma cantidad de POAs y hojas
   useEffect(() => {
     const newErrors: {
@@ -163,12 +188,13 @@ const SubirExcel: React.FC = () => {
         return;
       }
       setErrors((prev) => ({ ...prev, file: undefined }));
-      setFile(selectedFile);
 
-      // Leer el archivo Excel y obtener los nombres de las hojas
+      // Leer el archivo Excel, eliminar las 3 primeras columnas de cada hoja y obtener los nombres de las hojas
       const reader = new FileReader();
       reader.onload = (event) => {
         const data = new Uint8Array(event.target?.result as ArrayBuffer);
+        const archivoRecortado = eliminarPrimerasColumnas(data, selectedFile.name);
+        setFile(archivoRecortado);
         const workbook = XLSX.read(data, { type: "array" });
         const sheetNames = workbook.SheetNames; // Obtener los nombres de las hojas
         setHojas(sheetNames);
@@ -198,12 +224,13 @@ const SubirExcel: React.FC = () => {
         return;
       }
       setErrors((prev) => ({ ...prev, file: undefined }));
-      setFile(selectedFile);
 
-      // Leer el archivo Excel y obtener los nombres de las hojas
+      // Leer el archivo Excel, eliminar las 3 primeras columnas de cada hoja y obtener los nombres de las hojas
       const reader = new FileReader();
       reader.onload = (event) => {
         const data = new Uint8Array(event.target?.result as ArrayBuffer);
+        const archivoRecortado = eliminarPrimerasColumnas(data, selectedFile.name);
+        setFile(archivoRecortado);
         const workbook = XLSX.read(data, { type: "array" });
         const sheetNames = workbook.SheetNames; // Obtener los nombres de las hojas
         setHojas(sheetNames);
@@ -269,10 +296,14 @@ const SubirExcel: React.FC = () => {
       }
 
       return { texto, tipo };
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const detalle =
+        err && typeof err === "object" && "detail" in err
+          ? String((err as { detail?: unknown }).detail)
+          : undefined;
       return {
         texto: `${codigo} (hoja "${hoja}"): ${
-          err.detail || "Error al procesar el archivo."
+          detalle || "Error al procesar el archivo."
         }`,
         tipo: "error",
       };
