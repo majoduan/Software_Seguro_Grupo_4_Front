@@ -475,7 +475,7 @@ const SubirExcel: React.FC = () => {
               {Array.from({ length: 12 }, (_, i) => {
                 const year = new Date().getFullYear() + 3 - i;
                 return (
-                  <MenuItem key={year} value={year}>
+                  <MenuItem key={year} value={String(year)}>
                     {year}
                   </MenuItem>
                 );
